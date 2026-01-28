@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Invoice – Mr & Mrs Ray</title>
+
+<style>
+:root {
+  --bg: #fafafa;
+  --card: #fff;
+  --text: #222;
+  --muted: #444;
+  --border: #000;
+  --table-border: #000;
+  --thead: #f0f0f0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f172a;
+    --card: #111827;
+    --text: #e5e7eb;
+    --muted: #cbd5e1;
+    --border: #1f2937;
+    --table-border: #334155;
+    --thead: #1e293b;
+  }
+}
+
+body {
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+  color: var(--text);
+  padding: 24px;
+  background: var(--bg);
+}
+
+/* ===== HEADER ===== */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 10px;
+  margin-bottom: 16px;
+}
+
+.header-left .title {
+  font-size: 17px;
+  font-weight: bold;
+}
+
+.header-left .subtitle {
+  font-size: 11px;
+}
+
+.logo {
+  height: 90px;
+}
+
+/* ===== INFO ===== */
+.info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.box {
+  width: 48%;
+  border: 1px solid var(--border);
+  padding: 10px;
+  background: var(--card);
+}
+
+.box-title {
+  font-weight: bold;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+
+/* ===== TABLE ===== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+  background: var(--card);
+}
+
+th, td {
+  border: 1px solid var(--table-border);
+  padding: 8px;
+}
+
+th {
+  background: var(--thead);
+}
+
+.num {
+  text-align: right;
+}
+
+.total-row td {
+  font-weight: bold;
+  font-size: 13px;
+}
+
+/* ===== PAYMENT ===== */
+.payment {
+  margin-top: 22px;
+  border: 1px dashed var(--border);
+  padding: 14px;
+  background: var(--card);
+}
+
+.pay-btn {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 10px 16px;
+  background: #d32f2f;
+  color: #fff;
+  font-weight: bold;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+/* ===== FOOTER ===== */
+.footer {
+  margin-top: 22px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.error {
+  color: red;
+  text-align: center;
+}
+</style>
+</head>
+
+<body>
+
+<div id="invoice" style="display:none">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <div class="title">TAX INVOICE</div>
+      <div class="subtitle">
+        Mr & Mrs Ray’s Home Kitchen<br>
+        Home-style meals • Freshly prepared<br>
+        Phone: 8850545924
+      </div>
+    </div>
+
+    <img src="../images/logo1.jpg" class="logo">
+  </div>
+
+  <!-- INFO -->
+  <div class="info">
+    <div class="box">
+      <div class="box-title">Bill To</div>
+      <div id="customer"></div>
+      <div id="address"></div>
+      📞 <span id="phone"></span>
+    </div>
+
+    <div class="box">
+      <div class="box-title">Invoice Details</div>
+      <strong>Invoice No:</strong> <span id="orderId"></span><br>
+      <strong>Invoice Date:</strong> <span id="date"></span><br>
+      <strong>Place of Supply:</strong> Maharashtra
+      <div id="couponBox" style="margin-top:6px;display:none;">
+        <strong>Coupon:</strong> <span id="couponCode"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ITEMS -->
+  <table id="itemsTable">
+    <tr>
+      <th>Description</th>
+      <th class="num">Rate</th>
+      <th class="num">Qty</th>
+      <th class="num">Amount</th>
+    </tr>
+  </table>
+
+  <!-- PAYMENT SECTION (FIXED) -->
+  <div class="payment" id="payment">
+    <strong>Pay via UPI ID</strong><br><br>
+
+    <div style="font-size:13px;">
+      UPI ID:
+      <span id="upiText" style="font-weight:bold;color:var(--text);">
+        Loading...
+      </span>
+    </div>
+
+    <button type="button" onclick="copyUPI()" class="pay-btn">
+      Copy UPI ID
+    </button>
+
+    <div id="copyMsg"
+         style="margin-top:10px;font-size:11px;color:green;">
+    </div>
+
+    <div style="margin-top:12px;font-size:11px;color:#555;line-height:1.5;">
+      <strong>How to Pay:</strong><br>
+      1. Tap “Copy UPI ID”<br>
+      2. Open Google Pay / PhonePe / Paytm / BHIM<br>
+      3. Select “Pay by UPI ID”<br>
+      4. Paste the UPI ID and enter amount manually<br>
+      5. Complete payment
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    This is a computer-generated invoice and does not require a physical signature.
+  </div>
+
+</div>
+
+<div class="error" id="error"></div>
+
+<script>
+const isLocalHost =
+  location.hostname === "localhost" || location.hostname === "127.0.0.1";
+const API_BASE = isLocalHost
+  ? "http://localhost:3000"
+  : "https://api.healthymealspot.com";
+
+const orderId = new URLSearchParams(location.search).get("orderId");
+if (!orderId) fail("Invalid invoice link");
+
+let currentUPI = "";
+
+/* Load invoice */
+fetch(`${API_BASE}/invoice?orderId=${orderId}`)
+  .then(r => r.json())
+  .then(d => {
+    if (!d.success) throw "Invoice not found";
+    renderInvoice(d.invoice);
+  })
+  .catch(() => fail("Unable to load invoice"));
+
+/* Load UPI ID */
+fetch(`${API_BASE}/invoice/payment?orderId=${orderId}`)
+  .then(r => r.json())
+  .then(d => {
+    if (!d.success) return;
+
+    currentUPI = d.upiId || "";
+
+    document.getElementById("upiText").innerText =
+      currentUPI || "UPI Not Available";
+  })
+  .catch(() => {
+    document.getElementById("upiText").innerText =
+      "Unable to load UPI ID";
+  });
+
+/* UNIVERSAL COPY FUNCTION */
+function copyUPI() {
+  if (!currentUPI) {
+    alert("UPI ID not available");
+    return;
+  }
+
+  const tempInput = document.createElement("textarea");
+  tempInput.value = currentUPI;
+  document.body.appendChild(tempInput);
+
+  tempInput.select();
+  tempInput.setSelectionRange(0, 99999);
+
+  document.execCommand("copy");
+  document.body.removeChild(tempInput);
+
+  document.getElementById("copyMsg").innerText =
+    "UPI ID copied. Paste it in any UPI app to pay.";
+}
+
+/* Render invoice */
+function renderInvoice(o) {
+  if (!o || typeof o !== "object") return fail("Invalid invoice data");
+
+  document.getElementById("orderId").innerText = o.orderId;
+  document.getElementById("date").innerText = o.date;
+  document.getElementById("customer").innerText = o.customer;
+  document.getElementById("address").innerText = o.address;
+  document.getElementById("phone").innerText = o.phone;
+  showCoupon(o);
+
+  const table = document.getElementById("itemsTable");
+
+  const lines = normalizeLines(o.items);
+  let itemsTotal = 0;
+  let extrasTotal = 0;
+
+  if (!lines.length) {
+    table.insertAdjacentHTML("beforeend", `
+      <tr>
+        <td colspan="4">No items available</td>
+      </tr>
+    `);
+  }
+
+  lines.forEach(line => {
+    if (!line.trim()) return;
+
+    // Extract item name + extras
+    const itemPart = line.split("=")[0].trim();
+
+    // Extract name before quantity
+    const baseName = (itemPart.split(/x\s*\d+/i)[0] || "").trim() || "Item";
+
+    // Extract extras inside parentheses
+    const extrasMatch = itemPart.match(/\((.*?)\)/);
+    const itemExtras = extrasMatch ? extrasMatch[1].trim() : "";
+
+    const qty = Math.max(parseQuantity(line), 1);
+    const amt = parseAmount(line);
+    const rate = qty ? amt / qty : amt;
+
+    table.insertAdjacentHTML("beforeend", `
+      <tr>
+        <td>
+          ${baseName}
+          ${
+            itemExtras
+              ? `<div style="font-size:11px;color:#444;margin-top:4px;">
+                  Extras: ${itemExtras}
+                </div>`
+              : ""
+          }
+        </td>
+        <td class="num">₹${formatCurrency(rate)}</td>
+        <td class="num">${qty}</td>
+        <td class="num">₹${formatCurrency(amt)}</td>
+      </tr>
+    `);
+    itemsTotal += Number(amt) || 0;
+  });
+
+  if (Array.isArray(o.extras)) {
+    o.extras.forEach(ex => {
+      const amt = Number(ex.amount) || 0;
+      extrasTotal += amt;
+      table.insertAdjacentHTML("beforeend", `
+        <tr>
+          <td colspan="3" class="num">${ex.label}</td>
+          <td class="num">${formatSignedCurrency(amt, ex.label)}</td>
+        </tr>
+      `);
+    });
+  }
+
+  // If the backend total includes charges not captured in items/extras (e.g., "as per actuals")
+  const gap = Number(o.total) - (itemsTotal + extrasTotal);
+  if (gap > 0.49) {
+    table.insertAdjacentHTML("beforeend", `
+      <tr>
+        <td colspan="3" class="num">Delivery (actuals)</td>
+        <td class="num">${formatSignedCurrency(gap)}</td>
+      </tr>
+    `);
+  }
+
+  table.insertAdjacentHTML("beforeend", `
+    <tr class="total-row">
+      <td colspan="3" class="num">TOTAL AMOUNT</td>
+      <td class="num">₹${formatCurrency(o.total)}</td>
+    </tr>
+  `);
+
+  document.getElementById("invoice").style.display = "block";
+}
+
+function fail(msg) {
+  document.getElementById("error").innerText = msg;
+}
+
+function formatCurrency(val) {
+  const n = Number(val);
+  if (Number.isFinite(n)) return n.toFixed(2);
+  return String(val ?? 0);
+}
+
+function parseAmount(text) {
+  const m = text.match(/₹\s*(-?\d+(?:\.\d+)?)/);
+  return m ? Number(m[1]) : 0;
+}
+
+function parseQuantity(text) {
+  const m = text.match(/x\s*(\d+)/i);
+  return m ? Number(m[1]) : 0;
+}
+
+function normalizeLines(val) {
+  if (Array.isArray(val)) return val.map(v => String(v));
+  if (typeof val === "string") return val.split(/\r?\n/);
+  return [];
+}
+
+function showCoupon(o) {
+  const couponBox = document.getElementById("couponBox");
+  const couponCodeEl = document.getElementById("couponCode");
+  if (!couponBox || !couponCodeEl) return;
+
+  const code =
+    (o.couponCode || o.coupon || o.coupon_name || "").toString().trim();
+  const discount =
+    Number(o.couponDiscount ?? o.discount ?? o.coupon_amount ?? 0) || 0;
+
+  if (!code) {
+    couponBox.style.display = "none";
+    return;
+  }
+
+  let text = code;
+  if (discount !== 0) {
+    const sign = discount > 0 ? "-" : "";
+    text += ` (${sign}₹${formatCurrency(Math.abs(discount))})`;
+  }
+
+  couponCodeEl.innerText = text;
+  couponBox.style.display = "block";
+}
+
+function formatSignedCurrency(val, label) {
+  const n = Number(val);
+  if (!Number.isFinite(n)) return String(val ?? 0);
+
+  let num = n;
+  const text = (label || "").toLowerCase();
+  if (num > 0 && (text.includes("discount") || text.includes("coupon"))) {
+    num = -num;
+  }
+
+  const sign = num >= 0 ? "+" : "-";
+  return `${sign}₹${Math.abs(num).toFixed(2)}`;
+}
+</script>
+
+</body>
+</html>

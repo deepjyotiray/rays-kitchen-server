@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <meta charset="UTF-8" />
+  <script>window.APP_VERSION = "26.1.24.03";</script>
+  <script>window.ORDER_FOR_DATE = window.ORDER_FOR_DATE || new Date();</script>
+  <script>
+    /* Customize free delivery target here */
+    window.FREE_DELIVERY_TARGET = 1500;
+    window.DEFAULT_DELIVERY_CHARGE = 50;
+  </script>
+  
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
+  <title>Mr & Mrs Ray’s Home Kitchen</title>
+  
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <script>document.write(`<link rel="stylesheet" href="/style.css?v=${APP_VERSION}">`);</script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-TE81BJG5TS"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-TE81BJG5TS');
+  </script>
+</head>
+<body>
+
+<header class="header header-slideshow">
+  <div class="slideshow">
+    <img src="/images/home-cooked-food.jpg" class="slide active" alt="Home cooked" fetchpriority="high">
+    <img src="/images/chicken-pulao.jpg" class="slide" alt="Chicken pulao" loading="lazy">
+    <img src="/images/gulab-1.jpg" class="slide" alt="Dessert" loading="lazy">
+    <img src="/images/gulab-2.jpg" class="slide" alt="Dessert" loading="lazy">
+    <img src="/images/prawns.JPG" class="slide" alt="Prawns" loading="lazy">
+  </div>
+  <div class="header-overlay">
+    <h1>Mr & Mrs Ray’s Home Kitchen</h1>
+    <p>Modern • Hygienic • Home-Cooked Fresh Food</p>
+  </div>
+</header>
+
+<div id="kitchen-closed-banner" class="kitchen-closed">🚫 Kitchen is closed.</div>
+
+<div class="sticky-controls">
+  <section class="action-bar">
+    <div class="date-picker">
+      <button class="action-btn secondary calendar-btn" onclick="toggleCalendar()">
+        <i class="fa-solid fa-calendar-days"></i>
+        <span id="selected-date-label"></span>
+      </button>
+    </div>
+
+    <button class="action-btn primary motd-btn" onclick="openMotd()">🍽️ Menu of the Day</button>
+    <button class="action-btn secondary" onclick="downloadMenuPDF()">⬇️ Menu PDF</button>
+    <button class="action-btn primary" onclick="bulkOrder()"><i class="fa-brands fa-whatsapp"></i> Bulk Order</button>
+  </section>
+
+  <section class="filter-bar">
+    <div class="search-field" aria-label="Search dishes">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input id="search-dishes" type="search" inputmode="search" placeholder="Search dishes, ingredients..." autocomplete="off">
+      <button id="clear-search" class="clear-search" type="button" aria-label="Clear search">✕</button>
+    </div>
+    <div class="filter-controls">
+      <button id="veg-toggle" class="pill-btn" aria-pressed="false">Veg Only</button>
+    </div>
+  </section>
+</div>
+
+<section class="reviews-unified">
+  <div class="reviews-card">
+    <div id="review-card" class="review-card-fixed"></div>
+    <a href="https://maps.app.goo.gl/viSKnour2Eh7QQzx9" target="_blank" class="reviews-link-inline">Read all reviews →</a>
+  </div>
+</section>
+
+<div id="menu-container"></div>
+
+<section class="section about-section">
+  <h2>About Us</h2>
+
+  <p class="about-text">
+    Mr & Mrs Ray’s Home Kitchen was born out of a simple idea —
+    to serve <strong>fresh, hygienic, home-cooked food</strong> that feels like a
+    meal made by family.
+  </p>
+
+  <p class="about-text">
+    Every dish is prepared daily using quality ingredients, traditional recipes,
+    and lots of care. No mass production, no shortcuts — just honest food.
+  </p>
+
+  <!-- ===== SUBSCRIPTION RULES CARD ===== -->
+<div class="ordering-rules subscription-rules">
+  <h3>📦 Subscription Rules</h3>
+
+  <ul>
+    <li>
+      <strong>Full payment</strong> is required in advance for all subscriptions.
+    </li>
+
+    <li>
+      A monthly subscription includes up to
+      <strong>30 meals (dishes)</strong> as per the selected menu.
+      <em>(Juices, hot beverages, and à la carte items are not included.)</em>
+    </li>
+
+    <li>
+      Up to <strong>5 days</strong> can be carried forward in a monthly subscription,
+      provided you inform us in advance.
+    </li>
+
+    <li>
+      Any change in schedule must be communicated at least
+      <strong>1 day prior</strong>.
+      Last-minute changes may not be accepted.
+    </li>
+
+    <li>
+      Please inform us in advance about any
+      <strong>food allergies</strong> (e.g., dairy, mushrooms, broccoli, etc.).
+      We cannot be held responsible if allergy information is not shared.
+    </li>
+
+    <li>
+      <strong>Customizations</strong>, fish meals, or special requests
+      may incur <strong>additional charges</strong>.
+    </li>
+
+    <li>
+      Delivery is free for subscription meals.
+      Single or extra deliveries may attract delivery charges.
+    </li>
+
+    <li>
+      Our kitchen remains closed on
+      <strong>national holidays</strong>.
+    </li>
+
+    <li>
+      <strong>No refund policy</strong> applies to all subscriptions.
+    </li>
+  </ul>
+</div>
+
+  <!-- ===== ORDERING RULES CARD ===== -->
+  <div class="ordering-rules">
+    <h3>🕒 Ordering Timings</h3>
+
+    <ul>
+      <li>
+        Orders for <strong>today</strong> are accepted between
+        <strong>7:00 AM and 8:00 PM</strong>.
+      </li>
+      <li>
+        Between <strong>12:00 AM and 6:59 AM</strong>, the kitchen is closed for
+        preparation and cleaning, and ordering for today is unavailable.
+      </li>
+      <li>
+        Orders placed during late-night hours are automatically treated as
+        <strong>orders for tomorrow</strong>.
+      </li>
+      <li>
+        The <strong>Menu of the Day</strong> is available only during active
+        kitchen hours.
+      </li>
+    </ul>
+  </div>
+
+  <p class="about-text highlight">
+    📍 Serving Navi Mumbai <br />
+    🏡 Home-cooked • 🍲 Freshly prepared • 🚚 Delivered with care
+  </p>
+</section>
+
+<footer class="footer">© 2026 Mr & Mrs Ray’s Home Kitchen • Navi Mumbai</footer>
+
+<div id="floating-cart">
+  <div class="cart-handle"><span>🍽️ Your Plate</span><button class="cart-minimize-btn" onclick="minimizeCart()" aria-label="Minimize cart">▾</button></div>
+  <div class="cart-body">
+    <div id="cart-items"></div>
+    <div class="coupon-box">
+      <input id="coupon-input" type="text" placeholder="Enter coupon code">
+      <button onclick="applyCoupon()">Apply</button>
+      <div id="coupon-msg" class="coupon-msg"></div>
+    </div>
+    <div id="cart-progress" class="cart-progress">
+      <div class="cart-progress-top">
+        <span>Free delivery goal</span>
+        <span id="cart-progress-value">₹0 / ₹0</span>
+      </div>
+      <div class="cart-progress-bar"><span id="cart-progress-fill"></span></div>
+      <div id="cart-progress-msg" class="cart-progress-msg"></div>
+    </div>
+    <div class="cart-footer"><span>Total</span><strong id="cart-total">₹0</strong></div>
+    <div id="cart-eta" class="cart-eta" aria-live="polite"></div>
+    <button id="cart-order-btn" class="cart-order-btn" onclick="orderOnWhatsApp()" disabled><i class="fa-brands fa-whatsapp"></i> Order on WhatsApp</button>
+  </div>
+</div>
+<div id="cart-mini-summary" class="cart-mini-summary" aria-live="polite"></div>
+<div id="floating-cart-toggle" onclick="expandCart()" aria-expanded="false" aria-label="Expand cart">🍽️ Your Plate <span id="cart-count">0</span></div>
+
+<div id="customer-modal" class="modal">
+  <div class="modal-content">
+    <h3>Enter Your Details</h3>
+    <input id="cust-name" type="text" placeholder="Your Name *">
+    <input id="cust-phone" type="tel" placeholder="Mobile Number *">
+    <textarea id="cust-address" rows="3" placeholder="Delivery Address"></textarea>
+    <textarea id="cust-notes" rows="2" placeholder="Notes for kitchen"></textarea>
+    <div class="order-type-group">
+      <div class="order-type-label">Order For</div>
+      <div class="order-type-options">
+        <label class="order-type-pill"><input type="radio" name="orderType" value="Lunch"><span>Lunch</span></label>
+        <label class="order-type-pill"><input type="radio" name="orderType" value="Dinner"><span>Dinner</span></label>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button onclick="closeCustomerModal()">Cancel</button>
+      <button class="primary" onclick="confirmOrder()">Continue</button>
+    </div>
+  </div>
+</div>
+<div id="calendar-popup" class="calendar-popup hidden">
+      <div class="calendar-header">
+        <button onclick="changeMonth(-1)">‹</button>
+        <span id="calendar-month"></span>
+        <button onclick="changeMonth(1)">›</button>
+      </div>
+      <div class="calendar-grid">
+        <div class="day-name">Sun</div><div class="day-name">Mon</div><div class="day-name">Tue</div>
+        <div class="day-name">Wed</div><div class="day-name">Thu</div><div class="day-name">Fri</div><div class="day-name">Sat</div>
+      </div>
+      <div id="calendar-days" class="calendar-grid"></div>
+      <button class="tomorrow-btn" id="quick-date-btn"></button>
+</div>
+<script src="/delivery.js?v=${APP_VERSION}"></script>
+<script src="/menu.js?v=${APP_VERSION}"></script>
+<script src="/menuOfTheDay.js?v=${APP_VERSION}"></script>
+
+<script>
+  /* --- Slideshow --- */
+  (function() {
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const slides = document.querySelectorAll(".slide");
+    let index = 0;
+    if (slides.length > 1) {
+      setInterval(() => {
+        slides[index].classList.remove("active");
+        index = (index + 1) % slides.length;
+        slides[index].classList.add("active");
+      }, 4000);
+    }
+  })();
+
+  /* --- Reviews --- */
+  (async function() {
+    try {
+      const res = await fetch("/reviews.json");
+      const data = await res.json();
+      const card = document.getElementById("review-card");
+      if (!card || !data.reviews.length) return;
+      let index = 0;
+      function render() {
+        const r = data.reviews[index];
+        card.classList.remove("show");
+        setTimeout(() => {
+          card.innerHTML = `
+            <img src="${r.image||'/images/reviewers/default.jpg'}" class="review-avatar">
+            <div class="review-content">
+              <div class="review-text">“${r.text}”</div>
+              <div class="review-meta">${r.name} · ${"★".repeat(r.stars)}</div>
+            </div>`;
+          card.classList.add("show");
+        }, 250);
+        index = (index + 1) % data.reviews.length;
+      }
+      render(); setInterval(render, 5500);
+    } catch(e) {}
+  })();
+
+  /* --- Calendar --- */
+  let selectedDate = new Date(window.ORDER_FOR_DATE);
+let viewDate = new Date(selectedDate);
+
+
+
+  
+  function getToday() { const d = new Date(); d.setHours(0,0,0,0); return d; }
+  function getTomorrow() { const d = getToday(); d.setDate(d.getDate() + 1); return d; }
+  function isSameDay(a, b) { return a.toDateString() === b.toDateString(); }
+
+function toggleCalendar() {
+  const popup = document.getElementById("calendar-popup");
+  const btn = document.querySelector(".calendar-btn"); // Find the button
+  const wasHidden = popup.classList.contains("hidden");
+
+  popup.classList.toggle("hidden");
+
+  if (wasHidden) {
+    updateQuickDateButton();
+
+    // DYNAMIC POSITIONING LOGIC
+    if (window.innerWidth > 768) {
+      // Desktop: Attach to the button coordinates
+      const rect = btn.getBoundingClientRect();
+      popup.style.position = "fixed"; // Keep it fixed so it scrolls with the sticky header
+      popup.style.top = (rect.bottom + 10) + "px"; // 10px below button
+      popup.style.left = rect.left + "px"; // Align with left edge
+    } else {
+      // Mobile: Clear inline styles so your CSS class handles the centering
+      popup.style.position = "";
+      popup.style.top = "";
+      popup.style.left = "";
+    }
+  }
+}
+
+
+  function formatLabel(date) {
+    if (isSameDay(date, getToday())) return "Ordering for Today";
+    if (isSameDay(date, getTomorrow())) return "Ordering for Tomorrow";
+    return `Ordering for ${date.toLocaleDateString("en-IN", {day:"numeric",month:"short"})}`;
+  }
+
+  function updateSelectedLabel() {
+    document.getElementById("selected-date-label").textContent = formatLabel(selectedDate);
+  }
+
+  function renderCalendar() {
+    const daysEl = document.getElementById("calendar-days");
+    document.getElementById("calendar-month").textContent = viewDate.toLocaleDateString("en-IN", {month:"long", year:"numeric"});
+    daysEl.innerHTML = "";
+    
+    const firstDay = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay();
+    const totalDays = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
+
+    for(let i=0; i<firstDay; i++) daysEl.appendChild(document.createElement("div"));
+    
+    for(let d=1; d<=totalDays; d++) {
+      const date = new Date(viewDate.getFullYear(), viewDate.getMonth(), d);
+      const cell = document.createElement("div");
+      const isTodayCell = isSameDay(date, getToday());
+      const isPast = date < getToday();
+      const isBlocked = (typeof window.isDateClosed === "function")
+        ? window.isDateClosed(date)
+        : (window.KITCHEN_CLOSED_TODAY === true && isTodayCell);
+      const isDisabled = isBlocked || isPast;
+      cell.className = "calendar-day" + (isDisabled ? " disabled" : "");
+      cell.textContent = d;
+      if (isSameDay(date, selectedDate)) cell.classList.add("active");
+      
+      cell.onclick = () => {
+  if ((typeof window.isDateClosed === "function" && window.isDateClosed(date)) ||
+      (window.KITCHEN_CLOSED_TODAY === true && isSameDay(date, getToday()))) {
+    if (typeof showToast === "function") {
+      const closedToday = isSameDay(date, getToday());
+      showToast(closedToday ? "Ordering for today is closed." : "Kitchen is closed for that date.");
+    }
+    return;
+  }
+  if (date < getToday()) {
+    if (typeof showToast === "function") {
+      showToast("Past dates cannot be selected.");
+    }
+    return;
+  }
+  // Set selected date locally
+  selectedDate = new Date(date);
+  selectedDate.setHours(0, 0, 0, 0);
+
+  // ✅ Update global date
+  window.ORDER_FOR_DATE = new Date(selectedDate);
+
+
+  // ✅ Switch into CUSTOM mode properly
+  if (typeof setOrderDate === "function") {
+    setOrderDate(
+      `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
+    );
+  }
+
+  updateSelectedLabel();
+  renderCalendar();
+  toggleCalendar();
+};
+
+      daysEl.appendChild(cell);
+    }
+  }
+
+  function changeMonth(delta) {
+    viewDate.setMonth(viewDate.getMonth() + delta);
+    renderCalendar();
+  }
+
+  function updateQuickDateButton() {
+    const btn = document.getElementById("quick-date-btn");
+    if (!btn) return;
+
+    const today = getToday();
+    const tomorrow = getTomorrow();
+    const getNextOpen = (base) =>
+      (typeof window.findNextOpenDate === "function")
+        ? window.findNextOpenDate(base)
+        : base;
+
+    const nextOpenFromToday = getNextOpen(today);
+    const nextAfterToday = getNextOpen(tomorrow);
+    const todayOpen = isSameDay(nextOpenFromToday, today);
+    const isTodaySelected = isSameDay(selectedDate, today);
+
+    const formatShort = (d) =>
+      d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+
+    let label = "";
+    if (!todayOpen) {
+      label = isSameDay(nextOpenFromToday, tomorrow)
+        ? "Ordering for tomorrow only"
+        : `Next open: ${formatShort(nextOpenFromToday)}`;
+    } else if (isTodaySelected) {
+      label = isSameDay(nextAfterToday, tomorrow)
+        ? "Select Tomorrow"
+        : `Next open: ${formatShort(nextAfterToday)}`;
+    } else {
+      label = "Go to Today";
+    }
+    btn.textContent = label;
+
+    btn.onclick = () => {
+  const target = !todayOpen
+    ? nextOpenFromToday
+    : isTodaySelected
+      ? nextAfterToday
+      : nextOpenFromToday;
+
+  const iso = `${target.getFullYear()}-${String(target.getMonth() + 1).padStart(2, "0")}-${String(target.getDate()).padStart(2, "0")}`;
+  setOrderDate(iso);
+  selectedDate = new Date(window.ORDER_FOR_DATE);
+  viewDate = new Date(selectedDate);
+  updateSelectedLabel();
+  renderCalendar();
+  toggleCalendar();
+};
+
+  }
+
+  function downloadMenuPDF() {
+    const a = document.createElement("a"); a.href = "/menu.pdf"; a.download = "Mr_Mrs_Ray_Menu.pdf"; a.click();
+  }
+
+  // Close calendar when clicking outside the popup or button
+  document.addEventListener("click", (e) => {
+    const popup = document.getElementById("calendar-popup");
+    const btn = document.querySelector(".calendar-btn");
+    if (!popup || !btn) return;
+
+    const clickedInsidePopup = popup.contains(e.target);
+    const clickedButton = btn.contains(e.target);
+    const isOpen = !popup.classList.contains("hidden");
+
+    if (isOpen && !clickedInsidePopup && !clickedButton) {
+      popup.classList.add("hidden");
+    }
+  });
+
+  // Init
+  updateSelectedLabel(); renderCalendar();
+</script>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

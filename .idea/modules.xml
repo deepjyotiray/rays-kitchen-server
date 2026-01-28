@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/../ray-orders-backend/.idea/ray-orders-backend.iml" filepath="$PROJECT_DIR$/../ray-orders-backend/.idea/ray-orders-backend.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/rays-home-kitchen.iml" filepath="$PROJECT_DIR$/.idea/rays-home-kitchen.iml" />
+    </modules>
+  </component>
+</project>

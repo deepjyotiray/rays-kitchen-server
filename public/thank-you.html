@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
+  <title>Thank You • Mr & Mrs Ray’s Kitchen</title>
+  <link rel="stylesheet" href="/style.css">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-TE81BJG5TS"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-TE81BJG5TS');
+  </script>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --bg-2: #eef2f7;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #4b5563;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --badge-bg: #ecfdf3;
+      --badge-text: #166534;
+      --shadow: 0 20px 48px rgba(15,23,42,0.12);
+      --pre-bg: #f9fafb;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0b1220;
+        --bg-2: #0f172a;
+        --card: #0f172a;
+        --text: #e5e7eb;
+        --muted: #94a3b8;
+        --border: #1f2937;
+        --accent: #60a5fa;
+        --badge-bg: rgba(34,197,94,0.12);
+        --badge-text: #bbf7d0;
+        --shadow: 0 22px 52px rgba(0,0,0,0.4);
+        --pre-bg: #111827;
+      }
+    }
+
+    body {
+      background: linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+      min-height: 100vh;
+      padding: 18px 14px 48px;
+      color: var(--text);
+    }
+    .thanks-card {
+      max-width: 680px;
+      margin: 0 auto;
+      background: var(--card);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 20px;
+      border: 1px solid var(--border);
+    }
+    .thanks-head {
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin-bottom:14px;
+    }
+    .badge {
+      padding:6px 10px;
+      border-radius:999px;
+      background: var(--badge-bg);
+      color: var(--badge-text);
+      font-weight:700;
+      font-size:12px;
+    }
+    .order-meta {
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      color: var(--muted);
+      font-size:13px;
+      margin-bottom:10px;
+    }
+    .section {
+      margin-top:12px;
+      padding-top:12px;
+      border-top:1px solid var(--border);
+    }
+    .section h3 {
+      margin:0 0 6px;
+      font-size:16px;
+    }
+    pre {
+      background: var(--pre-bg);
+      padding:12px;
+      border-radius:10px;
+      font-size:13px;
+      white-space:pre-wrap;
+      border:1px solid var(--border);
+      color: var(--text);
+    }
+    .actions {
+      margin-top:14px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .btn {
+      border:0;
+      border-radius:12px;
+      padding:12px 14px;
+      font-weight:700;
+      cursor:pointer;
+      font-size:14px;
+    }
+    .btn.primary { background: var(--accent); color:#0b1220; }
+    .btn.secondary { background: var(--pre-bg); color: var(--text); border:1px solid var(--border); }
+    .hint {
+      margin-top:8px;
+      color: var(--muted);
+      font-size:13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="thanks-card">
+    <div class="thanks-head">
+      <div style="font-size:32px;">✅</div>
+      <div>
+        <h2 style="margin:0;">Thank you for your order!</h2>
+        <div class="badge">Order placed on WhatsApp</div>
+      </div>
+    </div>
+    <div id="order-meta" class="order-meta"></div>
+
+    <div class="section">
+      <h3>Items</h3>
+      <pre id="order-items">Loading…</pre>
+    </div>
+
+    <div class="section" id="extras-section" style="display:none;">
+      <h3>Extras</h3>
+      <pre id="order-extras"></pre>
+    </div>
+
+    <div class="section">
+      <h3>Instructions</h3>
+      <ul style="margin:0 0 6px 18px;padding:0; color:#4b5563; font-size:14px;">
+        <li>We’ll confirm your order on WhatsApp soon.</li>
+        <li>Please keep your phone available for delivery updates.</li>
+        <li>You can reply to the WhatsApp thread for any changes or notes.</li>
+      </ul>
+      <div class="hint">Need help? Call/WhatsApp: +91 88505 45924</div>
+    </div>
+
+    <div class="actions">
+      <button class="btn primary" onclick="goHome()">Back to menu</button>
+      <button class="btn secondary" onclick="openWhatsApp()">Open WhatsApp</button>
+    </div>
+  </div>
+
+  <script>
+    function goHome() { window.location.href = "/"; }
+    function openWhatsApp() {
+      window.open("https://wa.me/918850545924", "_blank");
+    }
+
+    (function loadSummary() {
+      let data = null;
+      try {
+        data = JSON.parse(sessionStorage.getItem("LAST_ORDER") || "null");
+      } catch (e) { data = null; }
+
+      if (!data) {
+        document.getElementById("order-items").textContent = "Order details unavailable.";
+        return;
+      }
+
+      const meta = document.getElementById("order-meta");
+      meta.innerHTML = `
+        <div><strong>Order:</strong> ${data.orderId || "-"}</div>
+        <div><strong>For:</strong> ${data.orderFor || ""}${data.orderForDateISO ? " (" + data.orderForDateISO + ")" : ""}</div>
+        <div><strong>Name:</strong> ${data.name || "-"}</div>
+        <div><strong>Phone:</strong> ${data.phone || "-"}</div>
+        <div><strong>Address:</strong> ${data.address || "-"}</div>
+      `;
+
+      document.getElementById("order-items").textContent =
+        data.items || "No items captured.";
+
+      if (data.extras) {
+        const extrasWrap = document.getElementById("extras-section");
+        document.getElementById("order-extras").textContent = data.extras;
+        extrasWrap.style.display = "block";
+      }
+
+    })();
+  </script>
+</body>
+</html>

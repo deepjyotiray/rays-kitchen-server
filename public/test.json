@@ -1,0 +1,86 @@
+{
+  "rice&breads": {
+    "title": "Homemade Biryanis, Rice & Breads",
+    "veg": true,
+    "items": [
+        { "name": "Chicken Biryani", "price": 150 },
+        { "name": "Mutton Biryani", "price": 200 },
+        { "name": "Veg Biryani", "price": 110},
+        { "name": "Veg Pulao", "price": 90 },
+        { "name": "Steamed Rice", "price": 40},
+        { "name": "Jeera Rice", "price": 60 },
+        { "name": "Ghee Paratha", "price": 15 },
+        { "name": "Fulka/Roti", "price": 10 }
+    ]
+  },
+
+  "veg_starters": {
+    "title": "Veg Starters",
+    "veg": true,
+    "items": [
+      { "name": "Paneer Tikka", "price": 180 },
+      { "name": "Paneer Chilli", "price": 180 },
+      { "name": "Veg Spring Roll (per roll)", "price": 25},
+      { "name": "Paneer Spring Roll (per roll)", "price": 35},
+      { "name": "French Fries", "price": 50},
+      { "name": "Veg Tandoori Creamy Samosa (per pc)", "price": 25 }
+    ]
+  },
+
+  "veg_main": {
+    "title": "Veg Main Course",
+    "veg": true,
+    "items": [
+      { "name": "Matar Paneer ", "price": 100 },
+      { "name": "Paneer Masala ", "price": 110},
+      { "name": "Mushroom Masala",  "price": 100},
+      { "name": "Sprouts Masala",  "price": 85},
+      { "name": "Aloo Gobi + 3 Chapati", "price": 85 },
+      { "name": "Aloo Palak + 3 Chapati", "price": 85 },
+      { "name": "Methi Aloo + 3 Chapati", "price": 70 },
+      { "name": "Aloo Bhindi + 3 Chapati", "price": 85 },
+      { "name": "Paneer Bhurji + 2 paratha ", "price": 100 }
+    ]
+  },
+
+  "non_veg_starters": {
+    "title": "Non-Veg Starters",
+    "veg": false,
+    "items": [
+      { "name": "Chicken Tandoori (5 pcs)", "price": 160 },
+      { "name": "Chicken Kabab (per pc)", "price": 25},
+      { "name": "Chicken Shami Kabab (per pc)", "price": 30},
+      { "name": "Green Pahadi Chicken (5 pcs)", "price": 200 },
+      { "name": "Seekh Kabab (per pc)", "price": 30 }
+    ]
+  },
+
+  "non_veg_main": {
+    "title": "Non-Veg Main Course",
+    "veg": false,
+    "items": [
+      { "name": "Chicken Masala ", "price": 120 },
+      { "name": "Chicken Tikka Masala", "price" :150},
+      { "name": "Chicken Korma", "price" :130},
+      { "name": "Chicken Keema aloo muttor",  "price": 150},
+      { "name": "Fish Curry",  "price": 100 },
+      { "name": "Pomfret Curry", "price": 150 },
+      { "name": "Prawns Masala ", "price": 120 },
+      { "name": "Egg Curry", "price": 100 },
+      { "name": "Mutton Curry ", "price": 150 }
+    ]
+  },
+
+  "sweets": {
+    "title": "Sweet Dishes",
+    "veg": true,
+    "items": [
+      
+      { "name": "Mawa Gulab Jamun", "price": 20 },
+      { "name": "Kheer", "price": 50 },
+      { "name": "Gajar Halwa", "price": 70 },
+      { "name": "Sheera", "price": 40 },
+      { "name": "Phirni", "price": 60 }
+    ]
+  }
+}

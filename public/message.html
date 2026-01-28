@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Invoice Payment</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+  body {
+    font-family: system-ui, Arial, sans-serif;
+    background: #f6f6f6;
+    padding: 16px;
+  }
+  .card {
+    max-width: 440px;
+    margin: auto;
+    background: #fff;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.08);
+  }
+  img {
+    width: 240px;
+    height: 240px;
+    display: block;
+    margin: 12px auto;
+  }
+  textarea {
+    width: 100%;
+    min-height: 260px;
+    padding: 12px;
+    font-size: 14px;
+  }
+  button {
+    width: 100%;
+    margin-top: 12px;
+    padding: 14px;
+    font-size: 16px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    background: #25D366;
+    color: #fff;
+  }
+</style>
+</head>
+
+<body>
+<div class="card">
+  <h3 style="text-align:center">💳 Payment QR</h3>
+
+  <!-- REAL IMAGE: copyable -->
+  <img id="qr" alt="UPI QR">
+
+  <textarea id="msg" readonly></textarea>
+
+  <button onclick="copyMsg()">📋 Copy WhatsApp Message</button>
+</div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const orderId = params.get("o");
+const name = params.get("n") || "Customer";
+const invoiceUrl = params.get("i") || "";
+
+if (!orderId) {
+  alert("Missing order ID");
+}
+
+const API =
+  "https://script.google.com/macros/s/AKfycbzpV6819bR3ta2wkFGL7lpOcO-ZhbOZXUimcvR8XMSRHsAaq1zF7zMinjd82ukbq7ml/exec" +
+  "?action=payment&orderId=" + orderId;
+
+fetch(API)
+  .then(r => r.json())
+  .then(d => {
+    if (!d.success) {
+      alert(d.error || "Payment error");
+      return;
+    }
+
+    const upi =
+      "upi://pay" +
+      "?pa=" + d.upiId +
+      "&pn=" + encodeURIComponent(d.payeeName) +
+      "&am=" + d.amount +
+      "&cu=INR" +
+      "&tn=Order " + d.orderId;
+
+    const qr =
+      "https://api.qrserver.com/v1/create-qr-code/" +
+      "?size=240x240&data=" + encodeURIComponent(upi);
+
+    document.getElementById("qr").src = qr;
+
+    document.getElementById("msg").value =
+`Hi ${name} 😊
+
+Your order has been confirmed! 🎉
+
+🧾 Invoice:
+${invoiceUrl}
+
+💳 Payment Options:
+
+👉 Paying from THIS phone?
+Tap here to pay:
+https://healthymealspot.com/pay.html?o=${orderId}
+
+👉 Paying from ANOTHER phone?
+Scan the QR image shared above.
+
+Once payment is done, please ignore this message 🙏
+
+— Mr & Mrs Ray 💛`;
+  });
+
+function copyMsg() {
+  const t = document.getElementById("msg");
+  t.select();
+  document.execCommand("copy");
+  alert("Message copied. Paste in WhatsApp.");
+}
+</script>
+</body>
+</html>

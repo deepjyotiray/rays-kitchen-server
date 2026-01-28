@@ -1,0 +1,223 @@
+{
+  "healthy": {
+    "title": "Healthy Meals",
+    "subheading": "Nutritious and balanced meals crafted for your well-being.",
+    "items": [
+      {
+        "name": "Steamed or Sauteed Chicken with Brown Rice, Broccoli and Veggies",
+        "price": 300,
+        "veg": false,
+        "description": "Lean chicken served with brown rice, broccoli, and fresh veggies – clean, balanced, and filling."
+      },
+      {
+        "name": "Sprouts and Mushroom with Capsicum and Veggies",
+        "price": 250,
+        "veg": true,
+        "description": "Protein-rich sprouts and mushrooms tossed with crunchy veggies for a light yet powerful meal."
+      },
+      {
+        "name": "Paneer with Brown Rice and Veggies",
+        "price": 350,
+        "veg": true,
+        "description": "Soft paneer paired with wholesome brown rice and seasonal veggies."
+      }
+    ]
+  },
+
+  "healthySubs": {
+    "title": "Healthy Meals Subscriptions for 30 Dishes",
+    "subheading": "Enjoy a month of healthy eating with our curated meal subscriptions.",
+    "items": [
+      {
+        "name": "Chicken Salad Meal",
+        "price": 8000,
+        "veg": false,
+        "description": "30 days of fresh, protein-packed chicken salads for consistent healthy eating."
+      },
+      {
+        "name": "Sprouts and Mushroom Salad Meal",
+        "price": 7000,
+        "veg": true,
+        "description": "Daily bowls of nourishing sprouts and mushrooms – light, fresh, and energizing."
+      },
+      {
+        "name": "Paneer Salad Meal",
+        "price": 9000,
+        "veg": true,
+        "description": "Creamy paneer salads crafted to keep your meals healthy and exciting."
+      }
+    ]
+  },
+
+  "breakfast": {
+    "title": "Breakfast",
+    "subheading": "Start your day with our wholesome and delicious breakfast options.",
+    "items": [
+      { "name": "Upma", "price": 30, "veg": true, "description": "Soft, warm semolina cooked with mild spices – simple and comforting." },
+      { "name": "Poha", "price": 30, "veg": true, "description": "Light and fluffy poha with gentle spices and a homely touch." },
+      { "name": "Idli (3 pcs)", "price": 30, "veg": true, "description": "Soft steamed idlis – light, healthy, and easy on the stomach." },
+      { "name": "Sabudana Khichdi", "price": 30, "veg": true, "description": "Classic sabudana cooked with peanuts for a filling breakfast." },
+      { "name": "Sabudana Vada (3 pcs)", "price": 30, "veg": true, "description": "Crispy outside, soft inside – golden sabudana vadas." },
+      { "name": "Mendu Vada (3 pcs)", "price": 30, "veg": true, "description": "Crispy, fluffy vadas perfect with chai or coffee." },
+      { "name": "Pav Bhaji", "price": 40, "veg": true, "description": "Rich, buttery bhaji served with soft pav – street food favorite." },
+      { "name": "Dosa", "price": 30, "veg": true, "description": "Thin and crispy dosa made fresh to order." },
+      { "name": "Masala Dosa", "price": 40, "veg": true, "description": "Golden dosa filled with spiced potato masala." },
+      { "name": "Tea", "price": 15, "veg": true, "description": "Hot, refreshing chai brewed just right." },
+      { "name": "Coffee", "price": 25, "veg": true, "description": "Smooth and aromatic coffee to kickstart your day." }
+    ]
+  },
+
+  "veg_starters": {
+    "title": "Veg Starters",
+    "subheading": "All veg starters are served with mint chutney and salad.",
+        "note": {
+      "Extras available": [
+        { "item": "Extra Chutney", "price": 20 },
+        { "item": "Extra Salad", "price": 30 }
+      ]
+    },
+    "items": [
+      { "name": "Mix Veg Starter Plate", "price": 300, "veg": true, "description": "2 Paneer Tikka Sticks, 3 Paneer Spring Rolls, 4 Veg Spring Rolls & 4 Veg Tandoori Mayo Samosas" },
+      { "name": "Veg Spring Roll Platter (5 pcs)", "price": 100, "veg": true, "description": "A shareable platter of crispy veg spring rolls." },
+      { "name": "Paneer Spring Roll Platter (5 pcs)", "price": 130, "veg": true, "description": "Paneer-filled spring rolls served hot and crispy." },
+      { "name": "Veg Tandoori Creamy Samosa Platter (5 pcs)", "price": 100, "veg": true, "description": "Creamy veg samosas with smoky tandoori flavor." },
+      { "name": "Paneer Tikka", "price": 120, "veg": true, "description": "Char-grilled paneer cubes marinated in tandoori spices." },
+      { "name": "Paneer Chilli", "price": 100, "veg": true, "description": "Crispy paneer tossed in a spicy Indo-Chinese sauce." },
+      { "name": "French Fries", "price": 40, "veg": true, "description": "Golden, crispy fries with a light crunch." }
+    ]
+  },
+
+  "veg_main": {
+    "title": "Veg Main Course",
+    "subheading": "You can choose either 3 Chapati or 2 Paratha or a Rice Bowl with each main course dish(except Veg Special Thali).",
+    "note": {
+      "Extras available": [
+        { "item": "Extra Gravy", "price": 30 },
+        { "item": "Chutney", "price": 20 },
+        { "item": "Salad", "price": 30 }
+      ]
+    },
+    "items": [
+      { "name": "Veg Special Thali", "price": 120, "veg": true, "description": "A complete veg thali with balanced flavors and 3 chapati and rice." },
+      { "name": "Veg Pulao", "price": 90, "veg": true, "description": "Fragrant rice cooked with mixed vegetables." },
+      { "name": "Veg Biryani", "price": 100, "veg": true, "description": "Aromatic basmati rice layered with veggies." },
+      { "name": "Matar Paneer", "price": 100, "veg": true, "description": "Paneer and green peas in a mildly spiced gravy." },
+      { "name": "Paneer Masala", "price": 110, "veg": true, "description": "Rich and creamy paneer masala." },
+      { "name": "Paneer Bhurji", "price": 90, "veg": true, "description": "Spiced scrambled paneer cooked desi-style." },
+      { "name": "Dal Tadka", "price": 90, "veg": true, "description": "Spiced lentils with a tempering touch." },
+      { "name": "Mushroom Masala", "price": 80, "veg": true, "description": "Juicy mushrooms in a flavorful gravy." },
+      { "name": "Sprouts Masala", "price": 70, "veg": true, "description": "Healthy sprouts cooked with traditional spices." },
+      { "name": "Aloo Gobi", "price": 70, "veg": true, "description": "Classic potato and cauliflower sabzi." },
+      { "name": "Aloo Palak", "price": 70, "veg": true, "description": "Potatoes cooked with fresh spinach." },
+      { "name": "Methi Aloo", "price": 70, "veg": true, "description": "Aromatic methi leaves with potatoes." },
+      { "name": "Aloo Bhindi", "price": 70, "veg": true, "description": "Stir-fried okra and potatoes with simple spices." }
+    ]
+  },
+
+  "non_veg_starters": {
+    "title": "Non-Veg Starters",
+    "subheading": "All non-veg starters are served with mint chutney and salad.",
+    "note": {
+      "Extras available": [
+        { "item": "Extra Chutney", "price": 20 },
+        { "item": "Extra Salad", "price": 30 }
+      ]
+    },
+    "items": [
+      { "name": "Chicken Tandoori (5 pcs)", "price": 160, "veg": false, "description": "Juicy chicken roasted with smoky tandoori spices." },
+      { "name": "Chicken Kabab (5 pcs)", "price": 120, "veg": false, "description": "Tender chicken kababs with classic seasoning." },
+      { "name": "Chicken Shami Kabab (5 pcs)", "price": 150, "veg": false, "description": "Soft, melt-in-mouth minced chicken kababs." },
+      { "name": "Green Pahadi Kabab (6 boneless pcs)", "price": 200, "veg": false, "description": "Herb-marinated green kababs with a fresh flavor." },
+      { "name": "Seekh Kabab (5 pcs)", "price": 180, "veg": false, "description": "Spiced minced chicken grilled on skewers." },
+      {
+        "name": "Mix Non-Veg Platter",
+        "price": 450,
+        "veg": false,
+        "description": "A grand assortment of our best chicken starters with chutney."
+      }
+    ]
+  },
+
+  "SeaFood_starters": {
+    "title": "Seafood Starters",
+    "subheading": "All seafood starters are served with mint chutney and salad.",
+        "note": {
+      "Extras available": [
+        { "item": "Extra Chutney", "price": 20 },
+        { "item": "Extra Salad", "price": 30 }
+      ]
+    },
+    "items": [
+      { "name": "Tawa fry special", "price": 150, "veg": false, "description": "Fresh fish shallow-fried on tawa with local spices." },
+      { "name": "Pomfret rawa fry", "price": 150, "veg": false, "description": "Crispy pomfret coated in rawa and pan-fried." },
+      { "name": "Pomfret green fry", "price": 150, "veg": false, "description": "Pomfret marinated in green masala and shallow-fried." },
+      { "name": "Prawns fry", "price": 200, "veg": false, "description": "Juicy prawns fried with coastal spices." },
+      { "name": "Surmai fry", "price": 200, "veg": false, "description": "Kingfish slices fried crisp and flavorful." },
+      { "name": "Rawas fry", "price": 150, "veg": false, "description": "Soft rawas fish fried with light spices." },
+      { "name": "Bangda fry", "price": 150, "veg": false, "description": "Crispy fried mackerel with traditional masala." }
+    ]
+  },
+
+  "non_veg_main": {
+    "title": "Non-Veg Main Course",
+    "subheading": "Savor our delicious non-veg main courses crafted with fresh ingredients and traditional flavors.",
+    "note": {
+      "Extras available": [
+        { "item": "Extra Gravy", "price": 30 },
+        { "item": "Chutney", "price": 20 },
+        { "item": "Salad", "price": 30 }
+      ]
+    },
+    "items": [
+      { "name": "Non-Veg Special Thali", "price": 170, "veg": false, "description": "A hearty thali featuring classic non-veg curries with 3 chapati and rice." },
+      { "name": "Chicken Pulao", "price": 110, "veg": false, "description": "Mildly spiced chicken cooked with fragrant rice." },
+      { "name": "Chicken Biryani", "price": 120, "veg": false, "description": "Classic chicken biryani with rich spices." },
+      { "name": "Mutton Biryani", "price": 150, "veg": false, "description": "Slow-cooked mutton biryani with bold flavors." },
+      { "name": "Chicken Masala", "price": 100, "veg": false, "description": "Chicken cooked in a rich onion-tomato gravy." },
+      { "name": "Chicken Tikka Masala", "price": 150, "veg": false, "description": "Smoky tikka pieces in a creamy masala sauce." },
+      { "name": "Chicken Matar Keema", "price": 130, "veg": false, "description": "Minced chicken with green peas and spices." },
+      { "name": "Chicken Korma", "price": 110, "veg": false, "description": "Mild and creamy chicken curry with rich flavors." },
+      { "name": "Mutton Korma", "price": 180, "veg": false, "description": "Slow-cooked mutton in a flavorful korma gravy." },
+      { "name": "Fish Curry", "price": 100, "veg": false, "description": "Traditional fish curry with coastal spices.(As per availability)" },
+      { "name": "Pomfret Curry", "price": 130, "veg": false, "description": "Pomfret cooked in a tangy, spiced curry.(As per availability)" },
+      { "name": "Prawns Masala", "price": 110, "veg": false, "description": "Juicy prawns in a spicy masala gravy.(As per availability)" },
+      { "name": "Egg Curry", "price": 100, "veg": false, "description": "Boiled eggs cooked in a comforting curry." },
+      { "name": "Mutton Curry", "price": 170, "veg": false, "description": "Classic mutton curry slow-cooked with spices." }
+    ]
+  },
+
+  "rice&breads": {
+    "title": "Rice & Breads",
+    "subheading": "Complement your meal with our selection of rice and breads.",
+    "note": {
+      "Extras available": [
+        { "item": "Extra Bowl of Rice", "price": 20 },
+        { "item": "Extra Puri ", "price": 4 }
+      ]
+    },
+    "items": [
+      { "name": "Steamed Rice", "price": 30, "veg": true, "description": "Simple, fluffy steamed rice." },
+      { "name": "Jeera Rice", "price": 40, "veg": true, "description": "Fragrant rice tempered with cumin seeds." },
+      { "name": "Curry Rice", "price": 90, "veg": true, "description": "Rice served with flavorful curry gravy." },
+      { "name": "Dal Khichdi", "price": 80, "veg": true, "description": "Comforting rice and dal cooked together." },
+      { "name": "Chapati", "price": 8, "veg": true, "description": "Soft whole wheat rotis made fresh." },
+      { "name": "Ghee Paratha", "price": 15, "veg": true, "description": "Flaky paratha cooked with desi ghee." },
+      { "name": "Puri (5 pcs)", "price": 30, "veg": true, "description": "Puffed, golden puris served hot." }
+      
+    
+    ]
+  },
+
+  "sweets": {
+    "title": "Sweet Dishes",
+    "subheading": "Indulge in our delightful selection of traditional sweets to complete your meal.",
+    "items": [
+      { "name": "Gulab Jamun (per pc)", "price": 12, "veg": true, "description": "Soft milk dumplings soaked in sugar syrup." },
+      { "name": "Mawa Gulab Jamun", "price": 15, "veg": true, "description": "Rich mawa jamuns with extra softness." },
+      { "name": "Kheer", "price": 40, "veg": true, "description": "Creamy rice pudding with cardamom notes." },
+      { "name": "Gajar Ka Halwa", "price": 60, "veg": true, "description": "Slow-cooked carrot halwa with ghee." },
+      { "name": "Sheera", "price": 30, "veg": true, "description": "Classic semolina dessert with ghee and warmth." },
+      { "name": "Phirni", "price": 50, "veg": true, "description": "Silky smooth rice dessert served chilled." }
+    ]
+  }
+}

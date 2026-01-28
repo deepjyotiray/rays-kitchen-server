@@ -1,0 +1,20 @@
+{
+  "name": "rays-home-kitchen",
+  "version": "1.0.0",
+  "description": "",
+  "main": "menu.js",
+  "scripts": {
+    "test": "node --test",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "supertest": "^7.1.1"
+  }
+}

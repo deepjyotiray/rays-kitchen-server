@@ -1,0 +1,32 @@
+{
+  "FREEDELIVERY": {
+    "discount": 40,
+    "minOrder": 0,
+    "active": false
+  },
+  "WELCOME100": {
+    "discount": 100,
+    "minOrder": 600,
+    "active": true
+  },
+  "DINNER30": {
+    "discount": 30,
+    "minOrder": 250,
+    "active": true
+  },
+  "BODYBUILDER": {
+    "discount": 50,
+    "minOrder": 300,
+    "active": true
+  },
+  "DAILYMEAL": {
+    "discount": 10,
+    "minOrder": 0,
+    "active": true
+  },
+  "FREESHIP": {
+    "minOrder": 0,
+    "discount": 0,
+    "freeDelivery": true
+  }
+}

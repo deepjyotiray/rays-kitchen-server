@@ -1,0 +1,8 @@
+{
+  "title": "Speciality of the Day !",
+  "items": [
+    { "name": "Egg Curry", "price": 100, "veg": false, "description": "Boiled eggs cooked in a comforting curry." },
+    { "name": "Paneer Mix Veg", "price": 110, "veg": true, "description": "Malai paneer with crunchy mixed vegetables." }
+
+      ]
+}
