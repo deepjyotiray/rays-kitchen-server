@@ -2,6 +2,8 @@
 window.ORDER_FOR_DATE = window.ORDER_FOR_DATE || new Date();
 
 const API_URL = "https://api.healthymealspot.com/orders";
+const ORDER_FALLBACK_URL =
+  "https://script.google.com/macros/s/AKfycbzpV6819bR3ta2wkFGL7lpOcO-ZhbOZXUimcvR8XMSRHsAaq1zF7zMinjd82ukbq7ml/exec";
 let freeDeliveryTarget = Number(window.FREE_DELIVERY_TARGET) || 1500;
 let baseFreeDeliveryTarget = freeDeliveryTarget;
 
@@ -16,7 +18,8 @@ let kitchenClosures = [];
 let customerName = "",
   customerPhone = "",
   customerAddress = "",
-  customerNotes = "";
+  customerNotes = "",
+  currentUser = null;
 
 let locationAllowed = true,
   capturedLocation = null,
@@ -41,6 +44,14 @@ let cartInteractionLocked = false,
 let coupons = {};
 let searchQuery = "";
 let priceFilter = "all";
+let defaultSearchPlaceholder = "Search dishes, ingredients...";
+let sectionContextLabel = "";
+let sectionContextRaf = false;
+const TODAY_PREP_MINUTES = 60;
+const FUTURE_WINDOWS = {
+  Lunch: "12:30 – 1:30 PM",
+  Dinner: "7:30 – 8:30 PM",
+};
 
 function getStartOfDay(d) {
   const copy = new Date(d);
@@ -64,6 +75,26 @@ function parseISODate(val) {
   if (Number.isNaN(d)) return null;
   d.setHours(0, 0, 0, 0);
   return d;
+}
+
+function pad2(n) {
+  return String(n).padStart(2, "0");
+}
+
+function formatLocalDateISO(d = new Date()) {
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+
+function formatLocalTime(d = new Date()) {
+  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
+}
+
+function formatTime12(d = new Date()) {
+  let h = d.getHours();
+  const m = d.getMinutes();
+  const ampm = h >= 12 ? "PM" : "AM";
+  h = h % 12 || 12;
+  return `${h}:${pad2(m)} ${ampm}`;
 }
 
 function isDateClosed(date) {
@@ -378,6 +409,7 @@ async function fetchMenuData() {
     console.warn("Kitchen state load failed", e);
   }
   await fetchMenuData();
+  await loadExistingUser();
 })();
 
 /* ---------- RENDER MENU ---------- */
@@ -393,7 +425,7 @@ function renderMenu() {
 
   Object.entries(menuData).forEach(([k, s], idx) => {
     const available = isSectionAvailable(k);
-    const collapsed = false;
+    const collapsed = true;
 
     const filteredItems = (s.items || []).filter(
       (itm) => (itm.available !== false) && matchesFilters(itm)
@@ -524,6 +556,7 @@ function renderMenu() {
     c.innerHTML = `<div class="empty-state">No dishes match your filters right now.</div>`;
   }
   updateCart();
+  updateSectionContext();
 }
 
 window.toggleSection = function (key) {
@@ -606,6 +639,71 @@ function updateMenuQtyUI(itemId) {
     const available = incBtn.dataset.available !== "false";
     incBtn.classList.toggle("qty-plus-active", available && qty > 0);
     if (available) incBtn.disabled = false;
+  }
+}
+
+/* ---------- SECTION CONTEXT (FLOATING LABEL) ---------- */
+function bindSectionContextListeners() {
+  window.addEventListener("scroll", handleSectionContextScroll, {
+    passive: true,
+  });
+  handleSectionContextScroll();
+}
+
+function handleSectionContextScroll() {
+  if (sectionContextRaf) return;
+  sectionContextRaf = true;
+  requestAnimationFrame(() => {
+    updateSectionContext();
+    sectionContextRaf = false;
+  });
+}
+
+function getActiveSectionContext() {
+  const sections = Array.from(
+    document.querySelectorAll("#menu-container section")
+  );
+  if (!sections.length) return { label: "" };
+
+  const filterBar = document.querySelector(".filter-bar");
+  const anchor = (filterBar?.getBoundingClientRect().bottom || 0) + 6;
+
+  let best = sections[0];
+  let bestDelta = Infinity;
+
+  sections.forEach((sec) => {
+    const rect = sec.getBoundingClientRect();
+    const delta = rect.top - anchor;
+    const score = Math.abs(delta);
+    if (score < Math.abs(bestDelta) || (score === Math.abs(bestDelta) && delta < bestDelta)) {
+      best = sec;
+      bestDelta = delta;
+    }
+  });
+
+  const titleEl = best.querySelector(".section-header h2");
+  const label = titleEl ? titleEl.textContent.trim() : best.id || "";
+
+  return { label };
+}
+
+function updateSectionContext() {
+  const ctx = document.getElementById("section-context");
+  const searchInput = document.getElementById("search-dishes");
+  if (!ctx || !searchInput) return;
+
+  const { label } = getActiveSectionContext();
+
+  if (label) {
+    ctx.textContent = label;
+    if (!searchInput.value) {
+      searchInput.placeholder = `Search • ${label}`;
+    }
+  } else {
+    ctx.textContent = "";
+    if (!searchInput.value) {
+      searchInput.placeholder = defaultSearchPlaceholder;
+    }
   }
 }
 
@@ -819,6 +917,319 @@ function getFreeEligibleSubtotal() {
   return total;
 }
 
+window.loginUser = async function() {
+  const mobile = document.getElementById("reg-mobile").value.trim();
+  
+  if (!mobile) {
+    alert("Please enter your mobile number");
+    return;
+  }
+  
+  try {
+    const res = await fetch(`https://api.healthymealspot.com/users/${mobile}`);
+    
+    if (!res.ok) {
+      if (res.status === 404) {
+        alert("No account found with this mobile number. Please register first.");
+        return;
+      }
+      throw new Error("Login failed");
+    }
+    
+    const data = await res.json();
+    currentUser = data.user;
+    customerName = currentUser.name;
+    customerPhone = currentUser.mobile;
+    customerAddress = currentUser.address || "";
+    
+    localStorage.setItem("user_mobile", mobile);
+    
+    showOrderStep();
+    
+    if (typeof showToast === "function") {
+      showToast(`Welcome back, ${currentUser.name}!`);
+    }
+  } catch (e) {
+    console.error("Login error:", e);
+    alert("Login failed. Please try again.");
+  }
+};
+
+/* ---------- USER REGISTRATION ---------- */
+window.registerUser = async function() {
+  const name = document.getElementById("reg-name").value.trim();
+  const mobile = document.getElementById("reg-mobile").value.trim();
+  
+  if (!name || !mobile) {
+    alert("Please enter both name and mobile number");
+    return;
+  }
+  
+  try {
+    const res = await fetch("https://api.healthymealspot.com/users/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, mobile })
+    });
+    
+    if (!res.ok) throw new Error("Registration failed");
+    
+    const data = await res.json();
+    currentUser = data.user;
+    customerName = currentUser.name;
+    customerPhone = currentUser.mobile;
+    customerAddress = currentUser.address || "";
+    
+    // Store in localStorage for future visits
+    localStorage.setItem("user_mobile", mobile);
+    
+    showOrderStep();
+    
+    if (typeof showToast === "function") {
+      showToast(data.updated ? "Welcome back!" : "Registration successful!");
+    }
+  } catch (e) {
+    console.error("Registration error:", e);
+    alert("Registration failed. Please try again.");
+  }
+};
+
+window.editUser = function() {
+  showRegistrationStep();
+  if (currentUser) {
+    document.getElementById("reg-name").value = currentUser.name;
+    document.getElementById("reg-mobile").value = currentUser.mobile;
+  }
+};
+
+window.showMyOrders = async function() {
+  if (!currentUser) {
+    if (typeof showToast === "function") {
+      showToast("Please login first to view your orders");
+    }
+    return;
+  }
+  
+  try {
+    const res = await fetch(`https://api.healthymealspot.com/users/${currentUser.mobile}/orders`);
+    
+    if (!res.ok) {
+      throw new Error("Failed to fetch orders");
+    }
+    
+    const data = await res.json();
+    const orders = data.orders || [];
+    
+    if (orders.length === 0) {
+      if (typeof showToast === "function") {
+        showToast("No orders found");
+      }
+      return;
+    }
+    
+    // Create and show orders modal
+    let ordersModal = document.getElementById("orders-modal");
+    if (!ordersModal) {
+      ordersModal = document.createElement("div");
+      ordersModal.id = "orders-modal";
+      ordersModal.className = "modal";
+      document.body.appendChild(ordersModal);
+    }
+    
+    const ordersHtml = orders.map(order => `
+      <div class="order-item">
+        <div class="order-header">
+          <strong>${order.id}</strong>
+          <span class="order-date">${new Date(order.order_date).toLocaleDateString()}</span>
+        </div>
+        <div class="order-details">
+          <div>Order For: ${order.order_for || 'N/A'}</div>
+          <div>Total: ₹${order.total}</div>
+          <div>Status: ${order.status || 'Confirmed'}</div>
+        </div>
+        <div class="order-items">${order.items}</div>
+        <button class="repeat-order-btn" onclick="addOrderToCart('${order.id}', '${order.items.replace(/'/g, "\\'").replace(/\n/g, "\\n")}')">➕ Add to Current Order</button>
+      </div>
+    `).join('');
+    
+    ordersModal.innerHTML = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>My Orders</h3>
+          <button onclick="closeOrdersModal()" class="close-btn">×</button>
+        </div>
+        <div class="orders-list">
+          ${ordersHtml}
+        </div>
+      </div>
+    `;
+    
+    ordersModal.classList.add("show");
+    
+  } catch (e) {
+    console.error("Error fetching orders:", e);
+    if (typeof showToast === "function") {
+      showToast("Failed to load orders. Please try again.");
+    }
+  }
+};
+
+window.closeOrdersModal = function() {
+  const modal = document.getElementById("orders-modal");
+  if (modal) {
+    modal.classList.remove("show");
+  }
+};
+
+window.addOrderToCart = function(orderId, itemsText) {
+  try {
+    // Parse items from order text (format: "• Item x Qty = ₹Price")
+    const lines = itemsText.split('\n').filter(line => line.trim().startsWith('•'));
+    let addedCount = 0;
+    
+    lines.forEach(line => {
+      const match = line.match(/• (.+?) x (\d+)(?:\s*\([^)]+\))? = ₹(\d+)/);
+      if (match) {
+        const [, itemName, qty, price] = match;
+        const quantity = parseInt(qty);
+        const itemPrice = parseInt(price) / quantity; // Get unit price
+        
+        // Find matching menu item
+        let found = false;
+        Object.entries(menuData).forEach(([sectionKey, section]) => {
+          if (found) return;
+          const menuItem = section.items?.find(item => 
+            item.name.toLowerCase().trim() === itemName.toLowerCase().trim()
+          );
+          if (menuItem) {
+            const itemId = `${sectionKey}__${menuItem.name}`;
+            // Add to cart
+            for (let i = 0; i < quantity; i++) {
+              updateQty(itemId, menuItem.name, menuItem.price, 1);
+            }
+            addedCount++;
+            found = true;
+          }
+        });
+      }
+    });
+    
+    closeOrdersModal();
+    
+    if (addedCount > 0) {
+      if (typeof showToast === "function") {
+        showToast(`${addedCount} items added to your current order`);
+      }
+      // Close any open modals and show cart for review
+      closeCustomerModal();
+      setTimeout(() => {
+        expandCart();
+      }, 300);
+    } else {
+      if (typeof showToast === "function") {
+        showToast("No matching items found in current menu");
+      }
+    }
+  } catch (e) {
+    console.error('Error adding order to cart:', e);
+    if (typeof showToast === "function") {
+      showToast("Error adding items to cart");
+    }
+  }
+};
+
+window.repeatOrder = function(orderId) {
+  const waWindow = window.open("", "_blank");
+  const message = `Hi! I'd like to repeat my previous order ${orderId}. Please confirm the items and total.`;
+  waWindow.location.href = "https://wa.me/919326492088?text=" + encodeURIComponent(message);
+  closeOrdersModal();
+};
+
+window.submitBulkOrder = async function() {
+  const name = document.getElementById('bulk-name').value.trim();
+  const mobile = document.getElementById('bulk-mobile').value.trim();
+  const address = document.getElementById('bulk-address').value.trim();
+  const dates = document.getElementById('bulk-dates').value.trim();
+  const requirements = document.getElementById('bulk-requirements').value.trim();
+  
+  if (!name || !mobile || !address || !dates) {
+    alert('Please fill all required fields');
+    return;
+  }
+  
+  try {
+    const res = await fetch('https://api.healthymealspot.com/bulk-orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, mobile, address, dates, requirements })
+    });
+    
+    if (!res.ok) throw new Error('Failed to submit');
+    
+    // Send WhatsApp message
+    const waMessage = `🍽️ *New Bulk Order Request*\n\n*Name:* ${name}\n*Mobile:* ${mobile}\n*Address:* ${address}\n*Delivery Dates:* ${dates}\n*Requirements:* ${requirements || 'None specified'}`;
+    window.open('https://wa.me/919326492088?text=' + encodeURIComponent(waMessage), '_blank');
+    
+    closeBulkOrderModal();
+    if (typeof showToast === 'function') {
+      showToast('Bulk order request submitted successfully!');
+    }
+    
+    // Clear form
+    document.getElementById('bulk-name').value = '';
+    document.getElementById('bulk-mobile').value = '';
+    document.getElementById('bulk-address').value = '';
+    document.getElementById('bulk-dates').value = '';
+    document.getElementById('bulk-requirements').value = '';
+  } catch (e) {
+    alert('Failed to submit request. Please try again.');
+  }
+};
+
+window.closeBulkOrderModal = function() {
+  document.getElementById('bulk-order-modal').classList.remove('show');
+};
+
+function showRegistrationStep() {
+  document.getElementById("registration-step").style.display = "block";
+  document.getElementById("order-step").style.display = "none";
+}
+
+function showOrderStep() {
+  document.getElementById("registration-step").style.display = "none";
+  document.getElementById("order-step").style.display = "block";
+  
+  // Update user display
+  const userDisplay = document.getElementById("user-display");
+  if (userDisplay && currentUser) {
+    userDisplay.textContent = `${currentUser.name} (${currentUser.mobile})`;
+  }
+  
+  // Pre-fill address if available
+  const addressField = document.getElementById("cust-address");
+  if (addressField && currentUser && currentUser.address) {
+    addressField.value = currentUser.address;
+  }
+}
+
+async function loadExistingUser() {
+  const savedMobile = localStorage.getItem("user_mobile");
+  if (!savedMobile) return;
+  
+  try {
+    const res = await fetch(`https://api.healthymealspot.com/users/${savedMobile}`);
+    if (!res.ok) return;
+    
+    const data = await res.json();
+    currentUser = data.user;
+    customerName = currentUser.name;
+    customerPhone = currentUser.mobile;
+    customerAddress = currentUser.address || "";
+  } catch (e) {
+    console.warn("Failed to load existing user:", e);
+  }
+}
+
 /* ---------- ORDERING ---------- */
 window.orderOnWhatsApp = function () {
   if (!Object.keys(selectedItems).length) return;
@@ -826,6 +1237,17 @@ window.orderOnWhatsApp = function () {
     showToast("Ordering for today is closed. Please switch to tomorrow.");
     return;
   }
+  
+  syncOrderTypeRadios();
+  updateExpectedDeliveryUI();
+  
+  // Check if user is already registered
+  if (currentUser) {
+    showOrderStep();
+  } else {
+    showRegistrationStep();
+  }
+  
   document.getElementById("customer-modal").classList.add("show");
 };
 
@@ -833,13 +1255,11 @@ window.closeCustomerModal = () =>
   document.getElementById("customer-modal").classList.remove("show");
 
 window.confirmOrder = function () {
-  customerName = document.getElementById("cust-name").value.trim();
-  customerPhone = document.getElementById("cust-phone").value.trim();
   customerAddress = document.getElementById("cust-address").value.trim();
   customerNotes = document.getElementById("cust-notes").value.trim();
 
-  if (!customerName || !customerAddress) {
-    alert("Please enter Name and Address");
+  if (!customerAddress) {
+    alert("Please enter delivery address");
     return;
   }
 
@@ -847,12 +1267,66 @@ window.confirmOrder = function () {
     showToast("Ordering for today is closed. Please pick tomorrow.");
     return;
   }
+  
+  // Update user address if changed
+  if (currentUser && customerAddress !== currentUser.address) {
+    updateUserAddress(customerAddress);
+  }
 
   closeCustomerModal();
 
   const waWindow = window.open("", "_blank");
   setTimeout(() => placeFinalOrder(waWindow), 50);
 };
+
+async function updateUserAddress(address) {
+  if (!currentUser) return;
+  
+  try {
+    await fetch("https://api.healthymealspot.com/users/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: currentUser.name,
+        mobile: currentUser.mobile,
+        address: address
+      })
+    });
+    currentUser.address = address;
+  } catch (e) {
+    console.warn("Failed to update user address:", e);
+  }
+}
+
+async function persistOrder(payload) {
+  // Primary: backend API
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) throw new Error("PRIMARY_SAVE_FAILED_" + res.status);
+    return true;
+  } catch (err) {
+    console.warn("Primary order save failed", err);
+  }
+
+  // Fallback: Google Apps Script sheet logger
+  try {
+    const res = await fetch(ORDER_FALLBACK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ order: JSON.stringify(payload) }),
+    });
+    if (!res.ok) throw new Error("FALLBACK_SAVE_FAILED_" + res.status);
+    return true;
+  } catch (err) {
+    console.error("Order fallback save failed", err);
+    return false;
+  }
+}
 
 async function placeFinalOrder(waWindow) {
   let subtotal = 0;
@@ -917,6 +1391,7 @@ async function placeFinalOrder(waWindow) {
 
   const finalTotal = Math.max(subtotal - discountAmount + appliedDeliveryCharge, 0);
   const orderId = "RAY-" + Date.now();
+  const expectedInfo = computeExpectedDelivery();
   const locationPayload = capturedLocation
     ? {
         ...capturedLocation,
@@ -926,39 +1401,32 @@ async function placeFinalOrder(waWindow) {
     : null;
 
   /* ✅ API SAVE */
-  try {
-    await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        orderId,
-        orderDate: new Date().toLocaleDateString("en-IN"),
-        orderTime: new Date().toLocaleTimeString("en-IN", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
+  const payload = {
+    orderId,
+    orderDate: formatLocalDateISO(new Date()),
+    orderTime: formatLocalTime(new Date()),
 
-        orderFor: getOrderForDateISO(),
+    orderFor: getOrderForDateISO(),
 
-        customer: customerName,
-        phone: customerPhone,
-        address: customerAddress,
-        notes: customerNotes,
+    customer: customerName,
+    phone: customerPhone,
+    address: customerAddress,
+    notes: customerNotes,
 
-        items: itemsText.trim(),
-        extras: extrasField,
+    items: itemsText.trim(),
+    extras: extrasField,
 
-        total: finalTotal,
-        couponCode: appliedCoupon || enteredCoupon || "",
-        couponDiscount: discountAmount || 0,
-        location: locationPayload,
-        locationUrl: locationPayload?.mapsUrl || "",
-        deliveryDistanceKm: locationPayload?.distanceKm || null,
-      }),
-    });
-  } catch (e) {
-    console.warn("Order save failed", e);
-  }
+    total: finalTotal,
+    expectedDelivery: expectedInfo.label,
+    expectedDeliveryIso: expectedInfo.iso || "",
+    couponCode: appliedCoupon || enteredCoupon || "",
+    couponDiscount: discountAmount || 0,
+    location: locationPayload,
+    locationUrl: locationPayload?.mapsUrl || "",
+    deliveryDistanceKm: locationPayload?.distanceKm || null,
+  };
+
+  await persistOrder(payload);
 
   /* ✅ WhatsApp MESSAGE */
   const message = `🧾 *New Order ${orderId}*
@@ -975,6 +1443,7 @@ async function placeFinalOrder(waWindow) {
 ${itemsText}
 
 ${extrasField ? `*Extras:*\n${extrasField}\n` : ""}
+${expectedInfo?.label ? `*Expected Delivery:* ${expectedInfo.label}\n` : ""}
 ----------------------
 Total: ₹${finalTotal}`;
 
@@ -997,7 +1466,7 @@ Total: ₹${finalTotal}`;
   } catch (_) {}
 
   waWindow.location.href =
-    "https://wa.me/918850545924?text=" + encodeURIComponent(message);
+    "https://wa.me/919326492088?text=" + encodeURIComponent(message);
 
   selectedItems = {};
   updateCart();
@@ -1163,9 +1632,13 @@ document.addEventListener("DOMContentLoaded", () => {
   setupParallax();
   setupCartTouch();
   setupCartFocusGuards();
+  bindSectionContextListeners();
 });
 window.addEventListener("scroll", handleCartScroll, { passive: true });
-window.addEventListener("resize", syncCartVisibility);
+window.addEventListener("resize", () => {
+  syncCartVisibility();
+  handleSectionContextScroll();
+});
 
 function flashMenuItem(itemId) {
   const itemEl = document.querySelector(
@@ -1186,6 +1659,11 @@ function setupFilters() {
   const priceSelect = document.getElementById("price-filter");
   const vegBtn = document.getElementById("veg-toggle");
   const clearBtn = document.getElementById("clear-search");
+
+  if (searchInput) {
+    defaultSearchPlaceholder =
+      searchInput.getAttribute("placeholder") || defaultSearchPlaceholder;
+  }
 
   if (searchInput) {
     searchInput.addEventListener("input", (e) => {
@@ -1312,6 +1790,55 @@ function updateEtaLabel() {
   etaEl.style.display = "block";
 }
 
+function getSelectedOrderType() {
+  const checked = document.querySelector('input[name="orderType"]:checked');
+  if (checked && checked.value) {
+    orderType = checked.value;
+  }
+  return orderType;
+}
+
+function syncOrderTypeRadios() {
+  const radios = document.querySelectorAll('input[name="orderType"]');
+  if (!radios.length) return;
+  radios.forEach((r) => {
+    r.checked = r.value === orderType;
+    r.onchange = () => {
+      orderType = r.value;
+      updateExpectedDeliveryUI();
+    };
+  });
+}
+
+function computeExpectedDelivery() {
+  const today = orderDay === "today";
+  if (today) {
+    const eta = new Date();
+    eta.setMinutes(eta.getMinutes() + TODAY_PREP_MINUTES);
+    const labelDay = isSameDay(eta, new Date()) ? "Today" : "Tomorrow";
+    return {
+      label: `${labelDay} · ${formatTime12(eta)}`,
+      iso: eta.toISOString(),
+    };
+  }
+
+  const type = getSelectedOrderType() || "Lunch";
+  const windowLabel = FUTURE_WINDOWS[type] || "Scheduled delivery";
+  return {
+    label: `${type} window · ${windowLabel}`,
+    iso: null,
+  };
+}
+
+function updateExpectedDeliveryUI() {
+  const el = document.getElementById("expected-delivery");
+  if (!el) return;
+  const info = computeExpectedDelivery();
+  el.textContent = "";
+  el.innerHTML = `<strong>Expected Delivery Time:</strong> ${info.label}`;
+  el.setAttribute("data-eta-iso", info.iso || "");
+}
+
 let toastTimer = null;
 function showToast(msg) {
   const toast = document.getElementById("toast");
@@ -1436,6 +1963,7 @@ window.setOrderDay = function (day) {
   updateEtaLabel();
   syncCartVisibility();
   showKitchenClosedBanner();
+  updateExpectedDeliveryUI();
 };
 
 window.setOrderDate = function (isoDate) {
@@ -1468,6 +1996,7 @@ window.setOrderDate = function (isoDate) {
   updateEtaLabel();
   syncCartVisibility();
   showKitchenClosedBanner();
+  updateExpectedDeliveryUI();
   if (typeof renderCalendar === "function") renderCalendar();
   if (typeof updateSelectedLabel === "function") updateSelectedLabel();
 };

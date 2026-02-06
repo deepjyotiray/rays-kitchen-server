@@ -126,6 +126,47 @@ th {
   border: none;
   cursor: pointer;
 }
+.pay-btn.secondary {
+  background: #2563eb;
+}
+.pay-btn.neutral {
+  background: #0f172a;
+}
+.pay-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 6px;
+}
+.pay-note {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.qr-wrap {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 12px;
+}
+.qr-box {
+  width: 180px;
+  height: 180px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.qr-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
 
 /* ===== FOOTER ===== */
 .footer {
@@ -152,7 +193,7 @@ th {
       <div class="subtitle">
         Mr & Mrs Ray’s Home Kitchen<br>
         Home-style meals • Freshly prepared<br>
-        Phone: 8850545924<br>
+        Phone: 9326492088<br>
         Email: <a href="mailto:kitchen@healthymealspot.com" style="color:inherit;text-decoration:none;">kitchen@healthymealspot.com</a>
       </div>
     </div>
@@ -201,9 +242,18 @@ th {
       </span>
     </div>
 
-    <button type="button" onclick="copyUPI()" class="pay-btn">
-      Copy UPI ID
-    </button>
+    <div id="upiQrWrap" class="qr-wrap" style="display:none;">
+      <div class="qr-box">
+        <img id="upiQr" alt="UPI payment QR">
+      </div>
+      <div class="pay-note" id="qrNote"></div>
+    </div>
+
+    <div class="pay-actions">
+      <button type="button" onclick="copyUPI()" class="pay-btn">
+        Copy UPI ID
+      </button>
+    </div>
 
     <div id="copyMsg"
          style="margin-top:10px;font-size:11px;color:green;">
@@ -211,11 +261,8 @@ th {
 
     <div style="margin-top:12px;font-size:11px;color:#555;line-height:1.5;">
       <strong>How to Pay:</strong><br>
-      1. Tap “Copy UPI ID”<br>
-      2. Open Google Pay / PhonePe / Paytm / BHIM<br>
-      3. Select “Pay by UPI ID”<br>
-      4. Paste the UPI ID and enter amount manually<br>
-      5. Complete payment
+      1. Scan the QR in Google Pay / PhonePe / Paytm / BHIM (amount is prefilled).<br>
+      2. If scanning is not possible, tap “Copy UPI ID” and pay manually.
     </div>
   </div>
 
@@ -239,6 +286,10 @@ const orderId = new URLSearchParams(location.search).get("orderId");
 if (!orderId) fail("Invalid invoice link");
 
 let currentUPI = "";
+let currentPayee = "Mr & Mrs Ray";
+let currentInvoiceTotal = 0;
+let currentUpiLink = "";
+let paymentAmount = null;
 
 /* Load invoice */
 fetch(`${API_BASE}/invoice?orderId=${orderId}`)
@@ -255,10 +306,7 @@ fetch(`${API_BASE}/invoice/payment?orderId=${orderId}`)
   .then(d => {
     if (!d.success) return;
 
-    currentUPI = d.upiId || "";
-
-    document.getElementById("upiText").innerText =
-      currentUPI || "UPI Not Available";
+    applyPaymentDetails(d);
   })
   .catch(() => {
     document.getElementById("upiText").innerText =
@@ -286,9 +334,83 @@ function copyUPI() {
     "UPI ID copied. Paste it in any UPI app to pay.";
 }
 
+function applyPaymentDetails(payload) {
+  if (!payload || typeof payload !== "object") return;
+
+  if (payload.upiId) currentUPI = payload.upiId;
+  if (payload.payeeName) currentPayee = payload.payeeName;
+
+  const total = Number(payload.amount);
+  if (Number.isFinite(total) && total > 0) {
+    paymentAmount = total;
+    updateInvoiceTotal(total);
+  }
+
+  document.getElementById("upiText").innerText =
+    currentUPI || "UPI Not Available";
+
+  updateUpiDeepLink();
+}
+
+function buildUpiLink(upiId, amount, oid) {
+  if (!upiId) return "";
+  const amt = Math.max(Number(amount) || 0, 0).toFixed(2);
+  const params = new URLSearchParams({
+    pa: upiId,
+    pn: currentPayee || "Mr & Mrs Ray",
+    am: amt,
+    cu: "INR",
+    tn: oid ? `Invoice ${oid}` : "Invoice payment"
+  });
+  return `upi://pay?${params.toString()}`;
+}
+
+function openUpiLink(link) {
+  if (!link) return;
+  window.location.href = link;
+  setTimeout(() => window.open(link, "_blank"), 150);
+}
+
+function updateUpiDeepLink() {
+  const btn = document.getElementById("upiDeepLinkBtn");
+  const note = document.getElementById("payNote");
+  if (btn || note) {
+    // Legacy elements; keep hidden
+    if (btn) btn.style.display = "none";
+    if (note) note.textContent = "";
+  }
+
+  const qrWrap = document.getElementById("upiQrWrap");
+  const qrImg = document.getElementById("upiQr");
+  const qrNote = document.getElementById("qrNote");
+
+  if (!qrWrap || !qrImg) return;
+
+  if (!currentUPI || !currentInvoiceTotal || currentInvoiceTotal <= 0) {
+    qrWrap.style.display = "none";
+    return;
+  }
+
+  currentUpiLink = buildUpiLink(currentUPI, currentInvoiceTotal, orderId);
+  const formatted = Math.max(Number(currentInvoiceTotal) || 0, 0)
+    .toFixed(2)
+    .replace(/\.00$/, "");
+
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(currentUpiLink)}`;
+  qrImg.src = qrUrl;
+  qrImg.alt = `Scan to pay ₹${formatted}`;
+  qrWrap.style.display = "flex";
+
+  if (qrNote) {
+    qrNote.textContent = `Scan to pay ₹${formatted} (${currentPayee}). Amount and note are prefilled.`;
+  }
+}
+
 /* Render invoice */
 function renderInvoice(o) {
   if (!o || typeof o !== "object") return fail("Invalid invoice data");
+  const table = document.getElementById("itemsTable");
+  if (!table) return fail("Invoice template missing");
 
   document.getElementById("orderId").innerText = o.orderId;
   document.getElementById("date").innerText = o.date;
@@ -296,8 +418,6 @@ function renderInvoice(o) {
   document.getElementById("address").innerText = o.address;
   document.getElementById("phone").innerText = o.phone;
   showCoupon(o);
-
-  const table = document.getElementById("itemsTable");
 
   const lines = normalizeLines(o.items);
   let itemsTotal = 0;
@@ -361,23 +481,26 @@ function renderInvoice(o) {
     });
   }
 
-  // If the backend total includes charges not captured in items/extras (e.g., "as per actuals")
-  const gap = Number(o.total) - (itemsTotal + extrasTotal);
-  if (gap > 0.49) {
-    table.insertAdjacentHTML("beforeend", `
-      <tr>
-        <td colspan="3" class="num">Delivery (actuals)</td>
-        <td class="num">${formatSignedCurrency(gap)}</td>
-      </tr>
-    `);
-  }
+  const breakdownTotal = itemsTotal + extrasTotal;
+  const providedTotal = Number(o.total);
+  const displayTotal = Number.isFinite(providedTotal)
+    ? providedTotal
+    : breakdownTotal;
+
+  currentInvoiceTotal = displayTotal;
 
   table.insertAdjacentHTML("beforeend", `
     <tr class="total-row">
       <td colspan="3" class="num">TOTAL AMOUNT</td>
-      <td class="num">₹${formatCurrency(o.total)}</td>
+      <td class="num" id="invoiceTotalValue">₹${formatCurrency(displayTotal)}</td>
     </tr>
   `);
+
+  if (Number.isFinite(paymentAmount) && paymentAmount > 0) {
+    updateInvoiceTotal(paymentAmount);
+  } else {
+    updateUpiDeepLink();
+  }
 
   document.getElementById("invoice").style.display = "block";
 }
@@ -445,6 +568,18 @@ function formatSignedCurrency(val, label) {
 
   const sign = num >= 0 ? "+" : "-";
   return `${sign}₹${Math.abs(num).toFixed(2)}`;
+}
+
+function updateInvoiceTotal(amount) {
+  const num = Number(amount);
+  if (!Number.isFinite(num) || num <= 0) return;
+
+  currentInvoiceTotal = num;
+  const totalCell = document.getElementById("invoiceTotalValue");
+  if (totalCell) {
+    totalCell.innerText = `₹${formatCurrency(num)}`;
+  }
+  updateUpiDeepLink();
 }
 </script>
 

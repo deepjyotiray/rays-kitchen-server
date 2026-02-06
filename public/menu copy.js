@@ -463,7 +463,7 @@ const extrasText = extrasLines.join("\n");
   `;
 
   const whatsappURL =
-    "https://wa.me/918850545924?text=" + encodeURIComponent(message);
+    "https://wa.me/919326492088?text=" + encodeURIComponent(message);
   waWindow ? (waWindow.location.href = whatsappURL) : window.open(whatsappURL, "_blank");
   const snapshotItems = { ...selectedItems }; // optional safety
   clearCartCompletely();
@@ -472,7 +472,7 @@ const extrasText = extrasLines.join("\n");
 /* ---------- BULK ---------- */
 window.bulkOrder = function () {
   window.open(
-    "https://wa.me/918850545924?text=" +
+    "https://wa.me/919326492088?text=" +
       encodeURIComponent("Hello, I would like to place a bulk / catering order."),
     "_blank"
   );

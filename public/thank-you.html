@@ -120,6 +120,41 @@
       color: var(--muted);
       font-size:13px;
     }
+    .payment-section {
+      background: var(--pre-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      margin-top: 10px;
+    }
+    .upi-row {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+      flex-wrap:wrap;
+    }
+    .upi-id {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      background: rgba(37,99,235,0.08);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 13px;
+      word-break: break-all;
+    }
+    .upi-sub {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 2px;
+    }
+    .upi-actions {
+      display:flex;
+      gap:10px;
+      margin-top:10px;
+      flex-wrap:wrap;
+    }
   </style>
 </head>
 <body>
@@ -153,6 +188,22 @@
       <div class="hint">Need help? Call/WhatsApp: +91 88505 45924</div>
     </div>
 
+    <div class="section payment-section" id="upi-section" style="display:none;">
+      <div class="upi-row">
+        <div>
+          <h3 style="margin:0;">Pay via UPI</h3>
+          <div class="upi-sub" id="upi-subtext">
+            Opens your UPI app with the amount prefilled.
+          </div>
+        </div>
+        <div class="upi-id" id="upi-id"></div>
+      </div>
+      <div class="upi-actions">
+        <button class="btn primary" id="upi-pay-btn" type="button">Pay via UPI</button>
+        <button class="btn secondary" id="upi-copy-btn" type="button">Copy payment link</button>
+      </div>
+    </div>
+
     <div class="actions">
       <button class="btn primary" onclick="goHome()">Back to menu</button>
       <button class="btn secondary" onclick="openWhatsApp()">Open WhatsApp</button>
@@ -162,7 +213,94 @@
   <script>
     function goHome() { window.location.href = "/"; }
     function openWhatsApp() {
-      window.open("https://wa.me/918850545924", "_blank");
+      window.open("https://wa.me/919326492088", "_blank");
+    }
+
+    const UPI_ID = "9594614752@pthdfc";
+    const UPI_NAME = "Mr & Mrs Ray";
+
+    function formatAmount(amount) {
+      const val = Math.max(Number(amount) || 0, 0);
+      const formatted = val.toFixed(2);
+      return {
+        number: val,
+        label: "₹" + formatted.replace(/\.00$/, ""),
+        withPaise: "₹" + formatted
+      };
+    }
+
+    function buildUpiLink(amount, orderId) {
+      const amt = Math.max(Number(amount) || 0, 0).toFixed(2);
+      const params = new URLSearchParams({
+        pa: UPI_ID,
+        pn: UPI_NAME,
+        am: amt,
+        cu: "INR",
+        tn: orderId ? `Order ${orderId}` : "Order payment"
+      });
+      return `upi://pay?${params.toString()}`;
+    }
+
+    function openUpiLink(link) {
+      if (!link) return;
+      window.location.href = link;
+      setTimeout(() => window.open(link, "_blank"), 150);
+    }
+
+    function fallbackCopy(value, successMsg) {
+      const ta = document.createElement("textarea");
+      ta.value = value;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      if (successMsg) alert(successMsg);
+    }
+
+    function copyText(value, successMsg) {
+      if (!value) return;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(value)
+          .then(() => { if (successMsg) alert(successMsg); })
+          .catch(() => fallbackCopy(value, successMsg));
+      } else {
+        fallbackCopy(value, successMsg);
+      }
+    }
+
+    function setupUpiPayment(data) {
+      const section = document.getElementById("upi-section");
+      const payBtn = document.getElementById("upi-pay-btn");
+      const copyBtn = document.getElementById("upi-copy-btn");
+      const upiIdEl = document.getElementById("upi-id");
+      const subtextEl = document.getElementById("upi-subtext");
+
+      if (!section || !data) return;
+
+      const amount = Number(data.total || 0);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        section.style.display = "none";
+        return;
+      }
+
+      const link = buildUpiLink(amount, data.orderId || "");
+      const amt = formatAmount(amount);
+
+      upiIdEl.textContent = UPI_ID;
+      subtextEl.textContent =
+        `Tap to open your UPI app with ${amt.label} prefilled.`;
+
+      if (payBtn) {
+        payBtn.textContent = `Pay ${amt.label} via UPI`;
+        payBtn.onclick = () => openUpiLink(link);
+      }
+
+      if (copyBtn) {
+        copyBtn.onclick = () =>
+          copyText(link, "UPI payment link copied. Paste it if the app does not open automatically.");
+      }
+
+      section.style.display = "block";
     }
 
     (function loadSummary() {
@@ -194,6 +332,7 @@
         extrasWrap.style.display = "block";
       }
 
+      setupUpiPayment(data);
     })();
   </script>
 </body>

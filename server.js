@@ -6,7 +6,14 @@ const fsSync = require("fs");
 const app = express();
 app.disable("x-powered-by");
 app.set("trust proxy", true);
-app.use(express.json({ limit: "100kb" }));
+app.use(
+  express.json({
+    limit: "100kb",
+    verify: (req, _res, buf) => {
+      req.rawBody = buf; // keep raw body for signature verification on webhooks
+    },
+  })
+);
 
 function createRateLimiter({ windowMs = 60_000, max = 300 } = {}) {
   const buckets = new Map();
@@ -229,6 +236,48 @@ app.get("/api/state", async (_req, res) => {
     res.status(502).json({ error: "STATE_BACKEND_UNAVAILABLE" });
   }
 });
+
+/* User API proxy */
+app.post("/users/register", async (req, res) => {
+  try {
+    const resp = await fetchWithFallback(`/users/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(req.body)
+    });
+    const data = await resp.json();
+    res.json(data);
+  } catch (e) {
+    res.status(502).json({ error: "USER_BACKEND_UNAVAILABLE" });
+  }
+});
+
+app.get("/users/:mobile", async (req, res) => {
+  try {
+    const resp = await fetchWithFallback(`/users/${req.params.mobile}`);
+    const data = await resp.json();
+    res.json(data);
+  } catch (e) {
+    res.status(502).json({ error: "USER_BACKEND_UNAVAILABLE" });
+  }
+});
+
+app.get("/users/:mobile/orders", async (req, res) => {
+  try {
+    const resp = await fetchWithFallback(`/users/${req.params.mobile}/orders`);
+    const data = await resp.json();
+    res.json(data);
+  } catch (e) {
+    res.status(502).json({ error: "USER_BACKEND_UNAVAILABLE" });
+  }
+});
+
+/* Webhooks */
+app.use(
+  "/webhooks/whatsapp",
+  apiLimiter,
+  require("./routes/whatsapp.routes")
+);
 
 // Serve hosted invoice/receipt pages
 app.get(["/invoice", "/invoice/"], (_req, res) => {

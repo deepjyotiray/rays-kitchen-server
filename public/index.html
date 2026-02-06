@@ -67,6 +67,7 @@
       <i class="fa-solid fa-magnifying-glass"></i>
       <input id="search-dishes" type="search" inputmode="search" placeholder="Search dishes, ingredients..." autocomplete="off">
       <button id="clear-search" class="clear-search" type="button" aria-label="Clear search">✕</button>
+      <div id="section-context" class="section-context" aria-hidden="true"></div>
     </div>
     <div class="filter-controls">
       <button id="veg-toggle" class="pill-btn" aria-pressed="false">Veg Only</button>
@@ -212,37 +213,55 @@
 
 <div id="customer-modal" class="modal">
   <div class="modal-content">
-    <h3>Enter Your Details</h3>
-    <input id="cust-name" type="text" placeholder="Your Name *">
-    <input id="cust-phone" type="tel" placeholder="Mobile Number *">
-    <textarea id="cust-address" rows="3" placeholder="Delivery Address"></textarea>
-    <textarea id="cust-notes" rows="2" placeholder="Notes for kitchen"></textarea>
-    <div class="order-type-group">
-      <div class="order-type-label">Order For</div>
-      <div class="order-type-options">
-        <label class="order-type-pill"><input type="radio" name="orderType" value="Lunch"><span>Lunch</span></label>
-        <label class="order-type-pill"><input type="radio" name="orderType" value="Dinner"><span>Dinner</span></label>
+    <div id="registration-step" class="registration-step">
+      <h3>Quick Registration</h3>
+      <input id="reg-name" type="text" placeholder="Your Name *">
+      <input id="reg-mobile" type="tel" placeholder="Mobile Number *">
+      <div class="modal-actions">
+        <button onclick="registerUser()">Continue</button>
+        <button onclick="loginUser()">Login with Mobile</button>
       </div>
     </div>
-    <div class="modal-actions">
-      <button onclick="closeCustomerModal()">Cancel</button>
-      <button class="primary" onclick="confirmOrder()">Continue</button>
+    
+    <div id="order-step" class="registration-step" style="display:none;">
+      <h3>Complete Your Order</h3>
+      <div class="user-info">
+        <span id="user-display"></span>
+        <button class="edit-user-btn" onclick="editUser()">Edit</button>
+        <button class="edit-user-btn" onclick="showMyOrders()" style="margin-left:8px;">My Orders</button>
+      </div>
+      <textarea id="cust-address" rows="3" placeholder="Delivery Address *"></textarea>
+      <textarea id="cust-notes" rows="2" placeholder="Notes for kitchen"></textarea>
+      <div class="order-type-group">
+        <div class="order-type-label">Order For</div>
+        <div class="order-type-options">
+          <label class="order-type-pill"><input type="radio" name="orderType" value="Lunch"><span>Lunch</span></label>
+          <label class="order-type-pill"><input type="radio" name="orderType" value="Dinner"><span>Dinner</span></label>
+        </div>
+      </div>
+      <div id="expected-delivery" class="expected-delivery" aria-live="polite"></div>
+      <div class="modal-actions">
+        <button onclick="confirmOrder()">Place Order</button>
+        <button onclick="closeCustomerModal()">Cancel</button>
+      </div>
     </div>
   </div>
 </div>
+
 <div id="calendar-popup" class="calendar-popup hidden">
-      <div class="calendar-header">
-        <button onclick="changeMonth(-1)">‹</button>
-        <span id="calendar-month"></span>
-        <button onclick="changeMonth(1)">›</button>
-      </div>
-      <div class="calendar-grid">
-        <div class="day-name">Sun</div><div class="day-name">Mon</div><div class="day-name">Tue</div>
-        <div class="day-name">Wed</div><div class="day-name">Thu</div><div class="day-name">Fri</div><div class="day-name">Sat</div>
-      </div>
-      <div id="calendar-days" class="calendar-grid"></div>
-      <button class="tomorrow-btn" id="quick-date-btn"></button>
+  <div class="calendar-header">
+    <button onclick="changeMonth(-1)">‹</button>
+    <span id="calendar-month"></span>
+    <button onclick="changeMonth(1)">›</button>
+  </div>
+  <div class="calendar-grid">
+    <div class="day-name">Sun</div><div class="day-name">Mon</div><div class="day-name">Tue</div>
+    <div class="day-name">Wed</div><div class="day-name">Thu</div><div class="day-name">Fri</div><div class="day-name">Sat</div>
+  </div>
+  <div id="calendar-days" class="calendar-grid"></div>
+  <button class="tomorrow-btn" id="quick-date-btn"></button>
 </div>
+
 <script src="/delivery.js?v=${APP_VERSION}"></script>
 <script src="/menu.js?v=${APP_VERSION}"></script>
 <script src="/menuOfTheDay.js?v=${APP_VERSION}"></script>
@@ -458,6 +477,10 @@ function toggleCalendar() {
     const a = document.createElement("a"); a.href = "/menu.pdf"; a.download = "Mr_Mrs_Ray_Menu.pdf"; a.click();
   }
 
+  function bulkOrder() {
+    document.getElementById('bulk-order-modal').classList.add('show');
+  }
+
   // Close calendar when clicking outside the popup or button
   document.addEventListener("click", (e) => {
     const popup = document.getElementById("calendar-popup");
@@ -478,5 +501,20 @@ function toggleCalendar() {
 </script>
 
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<div id="bulk-order-modal" class="modal">
+  <div class="modal-content">
+    <h3>Bulk Order Request</h3>
+    <input id="bulk-name" type="text" placeholder="Your Name *">
+    <input id="bulk-mobile" type="tel" placeholder="Mobile Number *">
+    <textarea id="bulk-address" rows="2" placeholder="Delivery Address *"></textarea>
+    <input id="bulk-dates" type="date" placeholder="Delivery Date *">
+    <textarea id="bulk-requirements" rows="3" placeholder="Requirements (number of people, meal preferences, etc.)"></textarea>
+    <div class="modal-actions">
+      <button onclick="submitBulkOrder()">Submit Request</button>
+      <button onclick="closeBulkOrderModal()">Cancel</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

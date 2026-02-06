@@ -79,8 +79,14 @@ function jsonResponse(obj) {
  * doPost – ORDER WRITE + ADMIN EMAIL
  ***********************/
 function doPost(e) {
+  let emailSent = false;
+  let appendOk = false;
+
   try {
-    const data = JSON.parse(e.parameter.order);
+    const data = parseOrderPayload(e);
+    if (!data || !data.orderId) {
+      return jsonResponse({ success: false, error: "Invalid or missing order payload" });
+    }
 
     const sheet = SpreadsheetApp
       .openById(SPREADSHEET_ID)
@@ -89,44 +95,89 @@ function doPost(e) {
     // Force Extras column as TEXT
     sheet.getRange(2, 9, sheet.getMaxRows()).setNumberFormat("@");
 
-  sheet.appendRow([
-    String(data.orderId),
-    String(data.orderDate),
-    String(data.orderTime),
-    String(data.orderFor),
-    String(data.customer),
-    String(data.phone),
-    String(data.address),
-    String(data.items),
-    data.extras ? "\u200B" + data.extras : "",
-    String(data.total),
-    "Pending",
-    "Pending",
-    new Date(),
-    "Deep",
-    "New",
-    "",
-    "",
-    "",
-    data.couponCode || "",
-    Number(data.couponDiscount) || 0
-  ]);
+    sheet.appendRow([
+      String(data.orderId),
+      String(data.orderDate || ""),
+      String(data.orderTime || ""),
+      String(data.orderFor || ""),
+      String(data.customer || ""),
+      String(data.phone || ""),
+      String(data.address || ""),
+      String(data.items || ""),
+      data.extras ? "\u200B" + data.extras : "",
+      String(data.total || ""),
+      "Pending",
+      "Pending",
+      new Date(),
+      "Deep",
+      "New",
+      "",
+      "",
+      "",
+      data.couponCode || "",
+      Number(data.couponDiscount) || 0
+    ]);
+    appendOk = true;
 
-    MailApp.sendEmail({
-      to: ADMIN_EMAIL,
-      subject: `🧾 New Order – ${data.orderId}`,
-      body:
-        `Order ID: ${data.orderId}\n` +
-        `Customer: ${data.customer}\n` +
-        `Phone: ${data.phone}\n` +
-        `Items: ${data.items}\n` +
-        `Total: ₹${data.total}`
-    });
+    emailSent = safeSendEmail(
+      ADMIN_EMAIL,
+      `🧾 New Order – ${data.orderId}`,
+      `Order ID: ${data.orderId}\n` +
+        `Customer: ${data.customer || ""}\n` +
+        `Phone: ${data.phone || ""}\n` +
+        `Items: ${data.items || ""}\n` +
+        `Total: ₹${data.total || ""}`
+    );
 
-    return jsonResponse({ success: true });
-
+    return jsonResponse({ success: appendOk && emailSent, appended: appendOk, emailSent });
   } catch (err) {
-    return jsonResponse({ success: false, error: err.message });
+    // Best-effort email with error context
+    try {
+      safeSendEmail(
+        ADMIN_EMAIL,
+        "⚠️ Order processing error",
+        `Order processing failed: ${err && err.message ? err.message : err}`
+      );
+      emailSent = true;
+    } catch (_e) {}
+
+    return jsonResponse({
+      success: false,
+      appended: appendOk,
+      emailSent,
+      error: err && err.message ? err.message : String(err)
+    });
+  }
+}
+
+function parseOrderPayload(e) {
+  if (!e) throw new Error("Missing event");
+
+  // 1) Explicit "order" param (form-data / query param)
+  if (e.parameter && e.parameter.order) {
+    return JSON.parse(e.parameter.order);
+  }
+
+  // 2) Raw JSON body (application/json)
+  if (e.postData && e.postData.contents) {
+    return JSON.parse(e.postData.contents);
+  }
+
+  // 3) Fallback: build from individual params
+  if (e.parameter && Object.keys(e.parameter).length) {
+    return e.parameter;
+  }
+
+  throw new Error("Order payload not found");
+}
+
+function safeSendEmail(to, subject, body) {
+  try {
+    MailApp.sendEmail({ to, subject, body });
+    return true;
+  } catch (err) {
+    Logger.log("Email send failed: " + (err && err.message ? err.message : err));
+    return false;
   }
 }
 

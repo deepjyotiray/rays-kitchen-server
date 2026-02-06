@@ -136,7 +136,7 @@ th {
       <div class="subtitle">
         Mr & Mrs Ray’s Home Kitchen<br>
         Home-style meals • Freshly prepared<br>
-        Phone: 8850545924<br>
+        Phone: 9326492088<br>
         Email: <a href="mailto:kitchen@healthymealspot.com" style="color:inherit;text-decoration:none;">kitchen@healthymealspot.com</a>
       </div>
     </div>
@@ -199,6 +199,7 @@ function render(o) {
   document.getElementById("address").innerText = o.address;
 
   const table = document.getElementById("itemsTable");
+  if (!table) return fail("Receipt template missing");
 
   const lines = normalizeLines(o.items);
   let itemsTotal = 0;
@@ -255,21 +256,16 @@ function render(o) {
     });
   }
 
-  // If the backend total includes charges not captured in items/extras (e.g., "as per actuals")
-  const gap = Number(o.total) - (itemsTotal + extrasTotal);
-  if (gap > 0.49) {
-    table.insertAdjacentHTML("beforeend", `
-      <tr>
-        <td>Delivery (actuals)</td>
-        <td class="num">${formatSignedCurrency(gap)}</td>
-      </tr>
-    `);
-  }
+  const breakdownTotal = itemsTotal + extrasTotal;
+  const providedTotal = Number(o.total);
+  const displayTotal = Number.isFinite(providedTotal)
+    ? providedTotal
+    : breakdownTotal;
 
   table.insertAdjacentHTML("beforeend", `
     <tr class="total-row">
       <td>Total</td>
-      <td class="num">₹${formatCurrency(o.total)}</td>
+      <td class="num" id="receiptTotalValue">₹${formatCurrency(displayTotal)}</td>
     </tr>
   `);
 
