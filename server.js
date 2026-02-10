@@ -288,7 +288,19 @@ app.get(["/receipt", "/receipt/"], (_req, res) => {
   res.sendFile(path.join(publicPath, "receipt", "index.html"));
 });
 
+/* RTC route */
+app.get("/rtc", (_req, res) => {
+  console.log("RTC route accessed");
+  res.sendFile(path.join(publicPath, "rtc.html"));
+});
+
 console.log("Serving static from:", publicPath);
+
+/* RTC route before static assets */
+app.get("/rtc", (_req, res) => {
+  console.log("RTC route accessed");
+  res.sendFile(path.join(publicPath, "rtc.html"));
+});
 
 /* 1️⃣ Serve static assets */
 app.use(express.static(publicPath));

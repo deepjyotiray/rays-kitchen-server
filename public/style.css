@@ -849,7 +849,7 @@ body.past-hero .filter-controls select {
 .motd-overlay {
   position: absolute; inset: 0;
   background: linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.65)),
-              url("/images/motd-bg.jpg") center / cover no-repeat;
+              url("../public/images/motd-bg.jpg") center / cover no-repeat;
   z-index: -1;
 }
 .motd-close {
@@ -1191,8 +1191,8 @@ body.past-hero .filter-controls select {
   .action-btn {
     width: 100%;
     min-width: 0;
-    font-size: 12px;
-    padding: 0 8px;
+    font-size: 11px;
+    padding: 0 6px;
     height: 36px;
     border-radius: 11px;
   }
@@ -1434,4 +1434,93 @@ body.past-hero .filter-controls select {
 
 .repeat-order-btn:hover {
   opacity: 0.9;
+}
+
+/* ================= RTC SPECIFIC STYLES ================= */
+.rtc-item {
+  display: block;
+  padding: 18px 20px;
+}
+
+.weight-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.weight-option {
+  background: var(--card-alt);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.weight-option:hover {
+  background: var(--card);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.weight-option-in-cart {
+  background: var(--pill);
+  border-color: var(--accent);
+  box-shadow: 0 6px 16px rgba(198, 31, 58, 0.12);
+}
+
+.weight-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.weight-label {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.weight-price {
+  font-size: 13px;
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+
+.header-nav {
+  margin-top: 12px;
+}
+
+.nav-link {
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+  transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .weight-options {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .weight-option {
+    padding: 10px 12px;
+  }
+  
+  .rtc-item {
+    padding: 14px 16px;
+  }
 }
