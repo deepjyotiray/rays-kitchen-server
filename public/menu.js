@@ -387,6 +387,24 @@ async function refreshKitchenState() {
 
 async function fetchMenuData() {
   try {
+    // Try API first for dynamic menu with macros
+    const apiUrl = isCorporatePage ? 
+      "https://api.healthymealspot.com/menu?type=corporate" : 
+      "https://api.healthymealspot.com/menu?type=main";
+    
+    const apiRes = await fetch(apiUrl);
+    if (apiRes.ok) {
+      const apiData = await apiRes.json();
+      menuData = apiData.menu || apiData;
+      renderMenu();
+      return;
+    }
+  } catch (err) {
+    console.warn("API menu load failed, falling back to JSON:", err);
+  }
+  
+  // Fallback to JSON file
+  try {
     const res = await fetch(MENU_FILE);
     if (!res.ok) throw new Error("MENU_LOAD_FAILED");
     const data = await res.json();
@@ -486,12 +504,9 @@ function renderMenu() {
             return `
               <div class="menu-item ${!available ? "disabled" : ""} ${
               inCart ? "menu-item-in-cart" : ""
-            }" data-item-key="${itemDomKey}">
-              <div>
+            }" data-item-key="${itemDomKey}" ${i.calories ? `data-calories="${i.calories}" data-protein="${i.protein || 0}" data-carbs="${i.carbs || 0}" data-fat="${i.fat || 0}"` : ''}>
+                <div class="item-content">
                   <div class="item-name">
-                    <span class="food-indicator ${
-                      i.veg ? "veg" : "non-veg"
-                    }"></span>
                     ${i.name}
                   </div>
 
@@ -539,6 +554,8 @@ function renderMenu() {
 
                   <button class="qty-btn qty-plus${plusActiveClass}" data-item-key="${itemDomKey}" data-action="plus" data-available="${available}" ${plusDisabledAttr} onclick="updateQty('${itemId}','${i.name}',${i.price},1)" aria-label="Add ${i.name}">+</button>
                 </div>
+
+                ${i.calories ? `<div class="item-macros"><span class="food-indicator ${i.veg ? "veg" : "non-veg"}"></span>${(i.protein && i.protein >= 20) ? '<span class="high-protein-icon" title="High Protein">💪</span> ' : ''}${i.calories}kcal • ${i.protein || 0}g protein • ${i.carbs || 0}g carbs • ${i.fat || 0}g fat</div>` : ''}
               </div>
             `;
           })

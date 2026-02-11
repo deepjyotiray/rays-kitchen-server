@@ -519,11 +519,46 @@ body.past-hero .filter-controls select {
   background: var(--card);
   padding: 14px 16px;
   border-radius: 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto 1fr auto;
   box-shadow: var(--shadow-soft);
   position: relative;
+  overflow: hidden;
+  min-height: 80px;
+  gap: 8px;
+}
+
+.menu-item .item-content {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  padding-right: 20px;
+}
+
+.menu-item .qty-box {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  align-self: center;
+}
+
+.item-macros {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  width: 100%;
+  font-size: 9px;
+  color: #8b5a00;
+  font-weight: 700;
+  background: #fff9c4;
+  padding: 6px 8px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  white-space: nowrap;
 }
 
 .menu-item.disabled { opacity: 0.45; pointer-events: none; }
@@ -550,21 +585,51 @@ body.past-hero .filter-controls select {
   100% { background: var(--card); }
 }
 
-.item-name { font-size: 14px; font-weight: 500; color: var(--text); }
+.high-protein-icon {
+  margin-left: 2px;
+  font-size: 12px;
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+
+.item-name { font-size: 14px; font-weight: 500; color: var(--text); position: relative; }
 .item-price { font-size: 13px; color: var(--muted); }
 .item-desc { font-size: 12px; color: var(--muted); margin: 4px 0; }
 
+
 .food-indicator {
   display: inline-block;
-  width: 10px; height: 10px;
-  border-radius: 50%;
-  margin-right: 8px;
+  width: 12px; height: 12px;
+  border-radius: 2px;
+  margin-right: 2px;
+  position: relative;
+  border: 2px solid;
+  flex-shrink: 0;
 }
-.food-indicator.veg { background-color: #2ecc71; }
-.food-indicator.non-veg { background-color: #e74c3c; }
+.food-indicator.veg { 
+  border-color: #2ecc71;
+}
+.food-indicator.non-veg { 
+  border-color: #e74c3c;
+}
+.food-indicator::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+}
+.food-indicator.veg::after {
+  background-color: #2ecc71;
+}
+.food-indicator.non-veg::after {
+  background-color: #e74c3c;
+}
 
 /* Qty Controls */
-.qty-box { display: flex; gap: 6px; align-items: center; }
 .qty-box .qty-btn {
   width: 22px; height: 22px;
   border-radius: 50%;
