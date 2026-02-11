@@ -506,22 +506,38 @@ function renderMenu() {
               inCart ? "menu-item-in-cart" : ""
             }" data-item-key="${itemDomKey}" ${i.calories ? `data-calories="${i.calories}" data-protein="${i.protein || 0}" data-carbs="${i.carbs || 0}" data-fat="${i.fat || 0}"` : ''}>
                 <div class="item-content">
+                  <div class="item-indicator-top">
+                    <span class="food-indicator ${
+                      i.veg ? "veg" : "non-veg"
+                    }"></span>
+                  </div>
                   <div class="item-name">
                     ${i.name}
                   </div>
 
-                  ${
-                    i.description
-                      ? `<div class="item-desc">${i.description}</div>`
-                      : ""
-                  }
+                  <div class="item-desc">${i.description || ''}</div>
 
-                  <div class="item-price">
-                    ${
-                      k === "SeaFood_starters"
-                        ? "Market Price"
-                        : `Rs. ${i.price}`
-                    }
+                  <div class="item-price-row">
+                    <div class="item-price">
+                      ${
+                        k === "SeaFood_starters"
+                          ? "Market Price"
+                          : `Rs. ${i.price}`
+                      }
+                    </div>
+                    <div class="qty-box">
+                      ${qty === 0 ? 
+                        `<button class="add-btn" data-item-key="${itemDomKey}" data-available="${available}" ${plusDisabledAttr} onclick="updateQty('${itemId}','${i.name}',${i.price},1)" aria-label="Add ${i.name}">
+                          <span class="add-text">ADD</span>
+                          <span class="add-plus">+</span>
+                        </button>` :
+                        `<div class="qty-control" data-item-key="${itemDomKey}" data-available="${available}">
+                        <span class="qty-minus" onclick="updateQty('${itemId}','${i.name}',${i.price},-1)">−</span>
+                        <span class="qty-count">${qty}</span>
+                        <span class="qty-plus" onclick="updateQty('${itemId}','${i.name}',${i.price},1)">+</span>
+                        </div>`
+                      }
+                    </div>
                   </div>
 
                   ${
@@ -545,17 +561,7 @@ function renderMenu() {
                   }
                 </div>
 
-                <div class="qty-box">
-                  <button class="qty-btn qty-minus" data-item-key="${itemDomKey}" data-action="minus" data-available="${available}" ${minusDisabledAttr} onclick="updateQty('${itemId}','${i.name}',${i.price},-1)" aria-label="Remove ${i.name}">−</button>
-
-                  <span class="menu-qty" data-id="${itemId}">
-                    ${selectedItems[itemId]?.qty || 0}
-                  </span>
-
-                  <button class="qty-btn qty-plus${plusActiveClass}" data-item-key="${itemDomKey}" data-action="plus" data-available="${available}" ${plusDisabledAttr} onclick="updateQty('${itemId}','${i.name}',${i.price},1)" aria-label="Add ${i.name}">+</button>
-                </div>
-
-                ${i.calories ? `<div class="item-macros"><span class="food-indicator ${i.veg ? "veg" : "non-veg"}"></span>${(i.protein && i.protein >= 20) ? '<span class="high-protein-icon" title="High Protein">💪</span> ' : ''}${i.calories}kcal • ${i.protein || 0}g protein • ${i.carbs || 0}g carbs • ${i.fat || 0}g fat</div>` : ''}
+                <div class="item-macros">${i.calories ? `${(i.protein && i.protein >= 20) ? '<span class="high-protein-icon" title="High Protein">💪</span> ' : ''}${i.calories}kcal • ${i.protein || 0}g protein • ${i.carbs || 0}g carbs • ${i.fat || 0}g fat` : ''}</div>
               </div>
             `;
           })
@@ -630,33 +636,42 @@ function updateQty(id, name, price, delta) {
 }
 
 function updateMenuQtyUI(itemId) {
-  const span = document.querySelector(`.menu-qty[data-id="${itemId}"]`);
   const qty = selectedItems[itemId]?.qty || 0;
-  if (span) span.textContent = qty;
-
   const domKey = safeItemKey(itemId);
+  const qtyBox = document.querySelector(
+    `.menu-item[data-item-key="${domKey}"] .qty-box`
+  );
+  
+  if (qtyBox) {
+    const available = qtyBox.querySelector('[data-available]')?.dataset.available !== 'false';
+    
+    // Get item details from menu data
+    const [sectionKey, itemName] = itemId.split('__');
+    const section = menuData[sectionKey];
+    const menuItem = section?.items?.find(item => item.name === itemName);
+    const itemName2 = menuItem?.name || '';
+    const itemPrice = menuItem?.price || 0;
+    
+    if (qty === 0) {
+      qtyBox.innerHTML = `
+        <button class="add-btn" data-available="${available}" ${!available ? 'disabled' : ''} onclick="updateQty('${itemId}','${itemName2}',${itemPrice},1)" aria-label="Add item">
+          <span class="add-text">ADD</span>
+          <span class="add-plus">+</span>
+        </button>`;
+    } else {
+      qtyBox.innerHTML = `
+        <div class="qty-control" data-available="${available}">
+          <span class="qty-minus" onclick="updateQty('${itemId}','${itemName2}',${itemPrice},-1)">−</span>
+          <span class="qty-count">${qty}</span>
+          <span class="qty-plus" onclick="updateQty('${itemId}','${itemName2}',${itemPrice},1)">+</span>
+        </div>`;
+    }
+  }
+
   const itemEl = document.querySelector(
     `.menu-item[data-item-key="${domKey}"]`
   );
   if (itemEl) itemEl.classList.toggle("menu-item-in-cart", qty > 0);
-
-  const decBtn = document.querySelector(
-    `.qty-btn[data-item-key="${domKey}"][data-action="minus"]`
-  );
-  const incBtn = document.querySelector(
-    `.qty-btn[data-item-key="${domKey}"][data-action="plus"]`
-  );
-
-  if (decBtn) {
-    const available = decBtn.dataset.available !== "false";
-    decBtn.disabled = !available || qty <= 0;
-  }
-
-  if (incBtn) {
-    const available = incBtn.dataset.available !== "false";
-    incBtn.classList.toggle("qty-plus-active", available && qty > 0);
-    if (available) incBtn.disabled = false;
-  }
 }
 
 /* ---------- SECTION CONTEXT (FLOATING LABEL) ---------- */
