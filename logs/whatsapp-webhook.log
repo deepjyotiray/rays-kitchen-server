@@ -1,0 +1,15 @@
+2026-01-30T11:23:00.445Z signature_mismatch
+2026-01-30T11:23:00.447Z message from=12345 type=text text="Hello"
+2026-01-30T11:49:21.009Z signature_mismatch
+2026-01-30T11:49:21.012Z message from=12345 type=text text="Hello"
+2026-01-30T12:03:01.665Z signature_mismatch
+2026-01-30T12:03:01.667Z message from=12345 type=text text="Hello"
+2026-01-30T12:09:20.414Z message from=16315551181 type=text text="this is a text message"
+2026-02-02T10:05:06.924Z signature_mismatch
+2026-02-02T10:05:06.927Z message from=12345 type=text text="Hello"
+2026-02-02T10:27:01.277Z change field=messages product=whatsapp
+2026-02-04T00:06:04.422Z change field=phone_number_quality_update product=unknown
+2026-02-05T10:06:42.599Z change field=messages product=whatsapp
+2026-02-05T10:13:04.352Z change field=messages product=whatsapp
+2026-02-05T10:13:06.345Z change field=messages product=whatsapp
+2026-02-05T10:15:01.851Z change field=messages product=whatsapp

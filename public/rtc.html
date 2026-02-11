@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <meta charset="UTF-8" />
+  <script>window.APP_VERSION = "26.1.24.03";</script>
+  <script>window.ORDER_FOR_DATE = window.ORDER_FOR_DATE || new Date();</script>
+  <script>
+    window.FREE_DELIVERY_TARGET = 1500;
+    window.DEFAULT_DELIVERY_CHARGE = 50;
+    window.IS_RTC_PAGE = true;
+  </script>
+  
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
+  <title>Ready to Cook - Mr & Mrs Ray's Home Kitchen</title>
+  
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <script>document.write(`<link rel="stylesheet" href="/style.css?v=${APP_VERSION}">`);</script>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-overlay">
+    <h1>Ready to Cook Items</h1>
+    <p>Premium • Fresh • Ready to Cook at Home</p>
+    <nav class="header-nav">
+      <a href="/" class="nav-link">← Back to Main Menu</a>
+    </nav>
+  </div>
+</header>
+
+<div class="sticky-controls">
+  <section class="filter-bar">
+    <div class="search-field" aria-label="Search items">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input id="search-dishes" type="search" inputmode="search" placeholder="Search RTC items..." autocomplete="off">
+      <button id="clear-search" class="clear-search" type="button" aria-label="Clear search">✕</button>
+    </div>
+    <div class="filter-controls">
+      <button id="veg-toggle" class="pill-btn" aria-pressed="false">Veg Only</button>
+    </div>
+  </section>
+</div>
+
+<div id="menu-container"></div>
+
+<section class="section about-section">
+  <h2>About Ready to Cook Items</h2>
+  <p class="about-text">
+    Our Ready to Cook (RTC) items are prepared with the finest ingredients and 
+    flash-frozen to preserve freshness. Simply cook at home and enjoy restaurant-quality food.
+  </p>
+  <div class="ordering-rules">
+    <h3>🍽️ Cooking Instructions</h3>
+    <ul>
+      <li>All items come with detailed cooking instructions</li>
+      <li>Store in freezer until ready to cook</li>
+      <li>No preservatives or artificial colors added</li>
+      <li>Best consumed within 30 days of purchase</li>
+    </ul>
+  </div>
+</section>
+
+<footer class="footer">
+  © 2026 Mr & Mrs Ray's Home Kitchen • Navi Mumbai<br>
+  Contact: <a href="mailto:kitchen@healthymealspot.com">kitchen@healthymealspot.com</a>
+</footer>
+
+<div id="floating-cart">
+  <div class="cart-handle"><span>🛒 Your Cart</span><button class="cart-minimize-btn" onclick="minimizeCart()" aria-label="Minimize cart">▾</button></div>
+  <div class="cart-body">
+    <div id="cart-items"></div>
+    <div class="coupon-box">
+      <input id="coupon-input" type="text" placeholder="Enter coupon code">
+      <button onclick="applyCoupon()">Apply</button>
+      <div id="coupon-msg" class="coupon-msg"></div>
+    </div>
+    <div id="cart-progress" class="cart-progress">
+      <div class="cart-progress-top">
+        <span>Free delivery goal</span>
+        <span id="cart-progress-value">₹0 / ₹0</span>
+      </div>
+      <div class="cart-progress-bar"><span id="cart-progress-fill"></span></div>
+      <div id="cart-progress-msg" class="cart-progress-msg"></div>
+    </div>
+    <div class="cart-footer"><span>Total</span><strong id="cart-total">₹0</strong></div>
+    <div id="cart-eta" class="cart-eta" aria-live="polite"></div>
+    <button id="cart-order-btn" class="cart-order-btn" onclick="orderOnWhatsApp()" disabled><i class="fa-brands fa-whatsapp"></i> Order on WhatsApp</button>
+  </div>
+</div>
+<div id="cart-mini-summary" class="cart-mini-summary" aria-live="polite"></div>
+<div id="floating-cart-toggle" onclick="expandCart()" aria-expanded="false" aria-label="Expand cart">🛒 Your Cart <span id="cart-count">0</span></div>
+
+<div id="customer-modal" class="modal">
+  <div class="modal-content">
+    <div id="registration-step" class="registration-step">
+      <h3>Quick Registration</h3>
+      <input id="reg-name" type="text" placeholder="Your Name *">
+      <input id="reg-mobile" type="tel" placeholder="Mobile Number *">
+      <div class="modal-actions">
+        <button onclick="registerUser()">Continue</button>
+        <button onclick="loginUser()">Login with Mobile</button>
+      </div>
+    </div>
+    
+    <div id="order-step" class="registration-step" style="display:none;">
+      <h3>Complete Your Order</h3>
+      <div class="user-info">
+        <span id="user-display"></span>
+        <button class="edit-user-btn" onclick="editUser()">Edit</button>
+        <button class="edit-user-btn" onclick="showMyOrders()" style="margin-left:8px;">My Orders</button>
+      </div>
+      <textarea id="cust-address" placeholder="Delivery Address *" rows="2"></textarea>
+      <textarea id="cust-notes" placeholder="Special instructions (optional)" rows="2"></textarea>
+      <div id="expected-delivery" class="expected-delivery"></div>
+      <div class="modal-actions">
+        <button onclick="confirmOrder()" class="primary-btn">Confirm Order</button>
+        <button onclick="closeCustomerModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+// Slideshow functionality (if needed)
+if (document.querySelector('.slideshow')) {
+  const slides = document.querySelectorAll('.slide');
+  let currentSlide = 0;
+  
+  function showNextSlide() {
+    slides[currentSlide].classList.remove('active');
+    currentSlide = (currentSlide + 1) % slides.length;
+    slides[currentSlide].classList.add('active');
+  }
+  
+  if (slides.length > 1) {
+    setInterval(showNextSlide, 4000);
+  }
+}
+</script>
+
+<script src="/rtc-menu.js"></script>
+
+</body>
+</html>

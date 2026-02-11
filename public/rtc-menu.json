@@ -1,0 +1,144 @@
+{
+  "veg_items": {
+    "title": "Veg Items",
+    "subheading": "Fresh vegetarian ready-to-cook items. Choose your preferred weight.",
+    "items": [
+      {
+        "name": "Cheese Corn Triangle",
+        "veg": true,
+        "description": "Crispy triangular pastry filled with cheese and corn",
+        "weights": {
+          "250g": 120,
+          "500g": 230,
+          "1kg": 450
+        }
+      },
+      {
+        "name": "Cheesy Pizza Fingers",
+        "veg": true,
+        "description": "Finger-shaped pizza bites loaded with cheese",
+        "weights": {
+          "250g": 140,
+          "500g": 270,
+          "1kg": 520
+        }
+      },
+      {
+        "name": "Veg Burger Patty",
+        "veg": true,
+        "description": "Perfectly seasoned vegetable patties ready to cook",
+        "weights": {
+          "250g": 100,
+          "500g": 190,
+          "1kg": 370
+        }
+      },
+      {
+        "name": "French Fries (9mm)",
+        "veg": true,
+        "description": "Premium cut french fries, 9mm thickness",
+        "weights": {
+          "250g": 80,
+          "500g": 150,
+          "1kg": 290
+        }
+      }
+    ]
+  },
+  "non_veg_items": {
+    "title": "Non-Veg Items",
+    "subheading": "Premium chicken ready-to-cook items. Choose your preferred weight.",
+    "items": [
+      {
+        "name": "Chicken Chilli Cheese Coin",
+        "veg": false,
+        "description": "Spicy chicken coins with cheese filling",
+        "weights": {
+          "250g": 180,
+          "500g": 350,
+          "1kg": 680
+        }
+      },
+      {
+        "name": "Chicken Cheese Balls",
+        "veg": false,
+        "description": "Juicy chicken balls stuffed with cheese",
+        "weights": {
+          "250g": 170,
+          "500g": 330,
+          "1kg": 640
+        }
+      },
+      {
+        "name": "Chicken Momos",
+        "veg": false,
+        "description": "Steamed chicken dumplings with authentic flavors",
+        "weights": {
+          "250g": 160,
+          "500g": 310,
+          "1kg": 600
+        }
+      },
+      {
+        "name": "Chicken Spicy Finger",
+        "veg": false,
+        "description": "Crispy chicken fingers with spicy coating",
+        "weights": {
+          "250g": 190,
+          "500g": 370,
+          "1kg": 720
+        }
+      },
+      {
+        "name": "Chicken Nuggets",
+        "veg": false,
+        "description": "Classic chicken nuggets with golden coating",
+        "weights": {
+          "250g": 175,
+          "500g": 340,
+          "1kg": 660
+        }
+      },
+      {
+        "name": "Chicken Burger Patty",
+        "veg": false,
+        "description": "Juicy chicken patties perfect for burgers",
+        "weights": {
+          "250g": 150,
+          "500g": 290,
+          "1kg": 560
+        }
+      },
+      {
+        "name": "Spicy Chicken Grill Patty",
+        "veg": false,
+        "description": "Grilled chicken patties with spicy marinade",
+        "weights": {
+          "250g": 165,
+          "500g": 320,
+          "1kg": 620
+        }
+      },
+      {
+        "name": "Seekh Kebab",
+        "veg": false,
+        "description": "Traditional minced chicken seekh kebabs",
+        "weights": {
+          "250g": 200,
+          "500g": 390,
+          "1kg": 760
+        }
+      },
+      {
+        "name": "Spicy Chicken Wings",
+        "veg": false,
+        "description": "Marinated chicken wings with spicy coating",
+        "weights": {
+          "250g": 220,
+          "500g": 430,
+          "1kg": 840
+        }
+      }
+    ]
+  }
+}
