@@ -28,6 +28,8 @@
 </head>
 <body>
 
+<div class="fssai-reg-number">FSSAI: 21526071000648</div>
+
 <header class="header header-slideshow">
   <div class="slideshow">
     <img src="/images/home-cooked-food.jpg" class="slide active" alt="Home cooked" fetchpriority="high">
@@ -175,6 +177,20 @@
     </ul>
   </div>
 
+  <!-- ===== FSSAI CERTIFICATION CARD ===== -->
+  <div class="fssai-certification">
+    <div class="fssai-badge">
+      <div class="fssai-logo">FSSAI</div>
+      <div class="fssai-text">Licensed</div>
+    </div>
+    <div class="fssai-details">
+      <h4>🛡️ Food Safety Certified</h4>
+      <p><strong>FSSAI License:</strong> 21526071000648</p>
+      <p>Valid until: 06-02-2027</p>
+      <p class="fssai-note">Certified under Food Safety and Standards Act, 2006</p>
+    </div>
+  </div>
+
   <p class="about-text highlight">
     📍 Serving Navi Mumbai <br />
     🏡 Home-cooked • 🍲 Freshly prepared • 🚚 Delivered with care
@@ -213,13 +229,13 @@
 
 <div id="customer-modal" class="modal">
   <div class="modal-content">
+    <button class="modal-close-btn" onclick="closeCustomerModal()" aria-label="Close modal">×</button>
     <div id="registration-step" class="registration-step">
-      <h3>Quick Registration</h3>
-      <input id="reg-name" type="text" placeholder="Your Name *">
+      <h3>Enter Details</h3>
+      <input id="reg-name" type="text" placeholder="Your Name *" style="display:none;">
       <input id="reg-mobile" type="tel" placeholder="Mobile Number *">
       <div class="modal-actions">
-        <button onclick="registerUser()">Continue</button>
-        <button onclick="loginUser()">Login with Mobile</button>
+        <button onclick="proceedWithMobile()">Continue</button>
       </div>
     </div>
     

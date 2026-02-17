@@ -88,6 +88,32 @@ body {
   -webkit-text-size-adjust: 100%;
 }
 
+/* ================= FSSAI TOP RIGHT NUMBER ================= */
+.fssai-reg-number {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  background: rgba(40, 167, 69, 0.95);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  z-index: 9999;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 768px) {
+  .fssai-reg-number {
+    top: 8px;
+    right: 8px;
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+}
+
 /* ================= HERO BACKDROP ================= */
 .hero-backdrop {
   position: fixed;
@@ -660,8 +686,9 @@ body.past-hero .filter-controls select {
 
 .menu-item.disabled { opacity: 0.45; pointer-events: none; }
 .menu-item.menu-item-in-cart {
+  background: #fef2f2;
   box-shadow: 0 10px 26px rgba(177,18,38,0.14);
-  border: 1px solid var(--border);
+  border: 1px solid #fecaca;
 }
 .menu-item.menu-item-in-cart::after {
   content: "Added";
@@ -822,7 +849,7 @@ body.past-hero .filter-controls select {
 }
 
 .cart-body { padding: 16px; max-height: 380px; overflow-y: auto; position: relative; z-index: 2; }
-.cart-body { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding-bottom: 90px; }
+.cart-body { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding-bottom: 16px; }
 .cart-progress {
   margin: 6px 0 10px;
   border: 1px solid var(--border);
@@ -1207,6 +1234,135 @@ body.past-hero .filter-controls select {
   font-size: 13px; font-weight: 600; color: var(--accent-strong); text-decoration: none;
 }
 
+/* ================= FSSAI CERTIFICATION ================= */
+.fssai-certification {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 24px auto 28px;
+  max-width: 720px;
+  background: linear-gradient(135deg, #f8f9fa, #ffffff);
+  border: 2px solid #28a745;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 8px 24px rgba(40, 167, 69, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.fssai-certification::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #28a745, #20c997, #28a745);
+}
+
+.fssai-badge {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #28a745, #20c997);
+  border-radius: 50%;
+  color: white;
+  box-shadow: 0 6px 16px rgba(40, 167, 69, 0.3);
+}
+
+.fssai-logo {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+
+.fssai-text {
+  font-size: 10px;
+  font-weight: 600;
+  margin-top: 2px;
+  opacity: 0.95;
+}
+
+.fssai-details {
+  flex: 1;
+}
+
+.fssai-details h4 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #28a745;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fssai-details p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.fssai-details p strong {
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+
+.fssai-note {
+  font-size: 12px !important;
+  color: var(--muted) !important;
+  font-style: italic;
+  margin-top: 8px !important;
+}
+
+@media (max-width: 768px) {
+  .fssai-certification {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+    padding: 16px;
+  }
+  
+  .fssai-badge {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .fssai-logo {
+    font-size: 14px;
+  }
+  
+  .fssai-details h4 {
+    font-size: 16px;
+    justify-content: center;
+  }
+  
+  .fssai-details p {
+    font-size: 13px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .fssai-certification {
+    background: linear-gradient(135deg, var(--card-alt), var(--card));
+    border-color: #28a745;
+  }
+  
+  .fssai-details p {
+    color: var(--text);
+  }
+  
+  .fssai-note {
+    color: var(--muted) !important;
+  }
+}
+
 /* ================= FOOTER & INFO ================= */
 .about-section { text-align: center; }
 .about-text { max-width: 720px; margin: 0 auto 14px; font-size: 15px; line-height: 1.6; color: var(--text); }
@@ -1446,9 +1602,42 @@ body.past-hero .filter-controls select {
   font-weight: 700;
 }
 
+.modal-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--muted);
+  padding: 4px;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.modal-close-btn:hover {
+  background: var(--card-alt);
+  color: var(--text);
+}
+
 /* ================= REGISTRATION UI ================= */
 .registration-step {
   display: block;
+}
+
+.registration-step h3 {
+  margin: 0 0 20px 0;
+  font-family: 'Playfair Display', serif;
+  color: var(--accent-strong);
+  font-size: 22px;
+  text-align: center;
+  font-weight: 600;
 }
 
 .user-info {

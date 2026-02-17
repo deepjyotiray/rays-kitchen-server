@@ -30,8 +30,16 @@ async function writeJson(filePath, data) {
 }
 
 function requireAdmin(req, res, next) {
+  // Check session first
+  if (req.session && req.session.isAdmin) return next();
+  
+  // Fallback to API key for backward compatibility
   const key = req.headers["x-admin-key"];
-  if (key && key === ADMIN_KEY) return next();
+  if (key && key === ADMIN_KEY) {
+    req.session.isAdmin = true;
+    return next();
+  }
+  
   res.status(401).json({ error: "Unauthorized" });
 }
 

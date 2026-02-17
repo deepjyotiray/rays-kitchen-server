@@ -2,6 +2,7 @@ const express = require("express");
 const path = require("path");
 const fs = require("fs").promises;
 const fsSync = require("fs");
+const session = require("express-session");
 
 const app = express();
 app.disable("x-powered-by");
@@ -14,6 +15,17 @@ app.use(
     },
   })
 );
+
+/* Session middleware */
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'frontend-session-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { 
+    secure: false,
+    maxAge: 24 * 60 * 60 * 1000
+  }
+}));
 
 function createRateLimiter({ windowMs = 60_000, max = 300 } = {}) {
   const buckets = new Map();
@@ -305,9 +317,14 @@ app.get("/rtc", (_req, res) => {
 /* 1️⃣ Serve static assets */
 app.use(express.static(publicPath));
 
-/* Admin console */
-app.get(["/admin", "/admin/"], (_req, res) => {
-  res.sendFile(path.join(publicPath, "admin.html"));
+/* Admin console with auth protection */
+app.get(["/admin", "/admin/"], (req, res) => {
+  // Check if user is authenticated via session or redirect to backend admin
+  if (req.session && req.session.isAdmin) {
+    res.redirect(`${BACKEND_BASE}/admin/`);
+  } else {
+    res.redirect(`${BACKEND_BASE}/admin/`);
+  }
 });
 
 /* 2️⃣ API routes */

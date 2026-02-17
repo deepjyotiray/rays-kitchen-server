@@ -949,7 +949,8 @@ function getFreeEligibleSubtotal() {
   return total;
 }
 
-window.loginUser = async function() {
+/* ---------- STREAMLINED USER FLOW ---------- */
+window.proceedWithMobile = async function() {
   const mobile = document.getElementById("reg-mobile").value.trim();
   
   if (!mobile) {
@@ -958,42 +959,51 @@ window.loginUser = async function() {
   }
   
   try {
+    // First, try to find existing user
     const res = await fetch(`https://api.healthymealspot.com/users/${mobile}`);
     
-    if (!res.ok) {
-      if (res.status === 404) {
-        alert("No account found with this mobile number. Please register first.");
-        return;
+    if (res.ok) {
+      // User exists - login directly
+      const data = await res.json();
+      currentUser = data.user;
+      customerName = currentUser.name;
+      customerPhone = currentUser.mobile;
+      customerAddress = currentUser.address || "";
+      
+      localStorage.setItem("user_mobile", mobile);
+      showOrderStep();
+      
+      if (typeof showToast === "function") {
+        showToast(`Welcome back, ${currentUser.name}!`);
       }
-      throw new Error("Login failed");
-    }
-    
-    const data = await res.json();
-    currentUser = data.user;
-    customerName = currentUser.name;
-    customerPhone = currentUser.mobile;
-    customerAddress = currentUser.address || "";
-    
-    localStorage.setItem("user_mobile", mobile);
-    
-    showOrderStep();
-    
-    if (typeof showToast === "function") {
-      showToast(`Welcome back, ${currentUser.name}!`);
+    } else if (res.status === 404) {
+      // User doesn't exist - show name field and register
+      document.getElementById("reg-name").style.display = "block";
+      document.getElementById("reg-name").focus();
+      
+      // Change button to register
+      const continueBtn = document.querySelector("#registration-step button");
+      continueBtn.textContent = "Register";
+      continueBtn.onclick = registerNewUser;
+      
+      if (typeof showToast === "function") {
+        showToast("Please enter your name to complete registration");
+      }
+    } else {
+      throw new Error("Server error");
     }
   } catch (e) {
-    console.error("Login error:", e);
-    alert("Login failed. Please try again.");
+    console.error("Error checking user:", e);
+    alert("Something went wrong. Please try again.");
   }
 };
 
-/* ---------- USER REGISTRATION ---------- */
-window.registerUser = async function() {
+window.registerNewUser = async function() {
   const name = document.getElementById("reg-name").value.trim();
   const mobile = document.getElementById("reg-mobile").value.trim();
   
-  if (!name || !mobile) {
-    alert("Please enter both name and mobile number");
+  if (!name) {
+    alert("Please enter your name");
     return;
   }
   
@@ -1012,13 +1022,11 @@ window.registerUser = async function() {
     customerPhone = currentUser.mobile;
     customerAddress = currentUser.address || "";
     
-    // Store in localStorage for future visits
     localStorage.setItem("user_mobile", mobile);
-    
     showOrderStep();
     
     if (typeof showToast === "function") {
-      showToast(data.updated ? "Welcome back!" : "Registration successful!");
+      showToast("Registration successful!");
     }
   } catch (e) {
     console.error("Registration error:", e);
@@ -1031,6 +1039,48 @@ window.editUser = function() {
   if (currentUser) {
     document.getElementById("reg-name").value = currentUser.name;
     document.getElementById("reg-mobile").value = currentUser.mobile;
+    
+    // Show name field and change button for editing
+    document.getElementById("reg-name").style.display = "block";
+    const continueBtn = document.querySelector("#registration-step button");
+    continueBtn.textContent = "Update";
+    continueBtn.onclick = updateUser;
+  }
+};
+
+window.updateUser = async function() {
+  const name = document.getElementById("reg-name").value.trim();
+  const mobile = document.getElementById("reg-mobile").value.trim();
+  
+  if (!name || !mobile) {
+    alert("Please enter both name and mobile number");
+    return;
+  }
+  
+  try {
+    const res = await fetch("https://api.healthymealspot.com/users/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, mobile })
+    });
+    
+    if (!res.ok) throw new Error("Update failed");
+    
+    const data = await res.json();
+    currentUser = data.user;
+    customerName = currentUser.name;
+    customerPhone = currentUser.mobile;
+    customerAddress = currentUser.address || "";
+    
+    localStorage.setItem("user_mobile", mobile);
+    showOrderStep();
+    
+    if (typeof showToast === "function") {
+      showToast("Profile updated successfully!");
+    }
+  } catch (e) {
+    console.error("Update error:", e);
+    alert("Update failed. Please try again.");
   }
 };
 
@@ -1225,6 +1275,15 @@ window.closeBulkOrderModal = function() {
 function showRegistrationStep() {
   document.getElementById("registration-step").style.display = "block";
   document.getElementById("order-step").style.display = "none";
+  
+  // Reset form to initial state
+  document.getElementById("reg-name").style.display = "none";
+  document.getElementById("reg-name").value = "";
+  document.getElementById("reg-mobile").value = "";
+  
+  const continueBtn = document.querySelector("#registration-step button");
+  continueBtn.textContent = "Continue";
+  continueBtn.onclick = proceedWithMobile;
 }
 
 function showOrderStep() {
@@ -1283,8 +1342,19 @@ window.orderOnWhatsApp = function () {
   document.getElementById("customer-modal").classList.add("show");
 };
 
-window.closeCustomerModal = () =>
+window.closeCustomerModal = () => {
   document.getElementById("customer-modal").classList.remove("show");
+};
+
+// Add escape key listener
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    const modal = document.getElementById("customer-modal");
+    if (modal && modal.classList.contains("show")) {
+      closeCustomerModal();
+    }
+  }
+});
 
 window.confirmOrder = function () {
   customerAddress = document.getElementById("cust-address").value.trim();
@@ -1664,6 +1734,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupParallax();
   setupCartTouch();
   setupCartFocusGuards();
+  setupCartOutsideTouch();
   bindSectionContextListeners();
 });
 window.addEventListener("scroll", handleCartScroll, { passive: true });
@@ -1899,12 +1970,23 @@ function setupParallax() {
   handle();
 }
 
+function setupCartOutsideTouch() {
+  document.addEventListener("touchstart", (e) => {
+    if (!isMobileView() || cartMinimized || !cartHasItems) return;
+    
+    const cart = document.getElementById("floating-cart");
+    if (!cart || cart.contains(e.target)) return;
+    
+    minimizeCart();
+  }, { passive: true });
+}
+
 function setupCartTouch() {
   const cart = document.getElementById("floating-cart");
   if (!cart) return;
 
   cart.addEventListener("touchstart", handleCartTouchStart, { passive: true });
-  cart.addEventListener("touchmove", handleCartTouchMove, { passive: true });
+  cart.addEventListener("touchmove", handleCartTouchMove, { passive: false });
   cart.addEventListener("touchend", handleCartTouchEnd, { passive: true });
 }
 
@@ -1928,7 +2010,11 @@ function handleCartTouchMove(e) {
   const cartBody = document.querySelector("#floating-cart .cart-body");
   const atTop = !cartBody || cartBody.scrollTop <= 0;
 
-  if (deltaY > 28 && atTop) {
+  if (deltaY > 10 && atTop) {
+    e.preventDefault();
+  }
+
+  if (deltaY > 80 && atTop) {
     minimizeCart();
     cartTouchActive = false;
   }
