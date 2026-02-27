@@ -91,6 +91,11 @@ async function loadMenuOfTheDay() {
       renderMotdItems(availableItems);
     }
     
+    // Listen for cart updates to refresh MOTD display
+    if (typeof window.addEventListener === "function") {
+      window.addEventListener('cartUpdated', refreshMotdDisplay);
+    }
+    
     // Auto-open if session key implies it (logic in init) or triggered manually later
     if (sessionStorage.getItem(MOTD_SESSION_KEY) === "true" && document.readyState === "complete") {
        // logic to open if needed, currently we only set key
@@ -98,6 +103,13 @@ async function loadMenuOfTheDay() {
 
   } catch (e) {
     disableMotd();
+  }
+}
+
+/* ---------- REFRESH MOTD DISPLAY ---------- */
+function refreshMotdDisplay() {
+  if (motdEnabled && motdData && motdData.items) {
+    renderMotdItems(motdData.items);
   }
 }
 
@@ -162,9 +174,17 @@ function renderMotdItems(items) {
         <div class="item-price">Rs. ${item.price}</div>
       </div>
       <div class="qty-box">
-        <button class="qty-btn qty-minus" data-item-key="${domKey}" data-action="minus" ${minusDisabled} aria-label="Remove ${item.name}" onclick="updateMotdQty('${encodedId}','${item.name}',${item.price},-1)">−</button>
-        <span class="menu-qty" data-id="${id}">${qty}</span>
-        <button class="qty-btn qty-plus${plusActive}" data-item-key="${domKey}" data-action="plus" ${plusDisabled} aria-label="Add ${item.name}" onclick="updateMotdQty('${encodedId}','${item.name}',${item.price},1)">+</button>
+        ${qty === 0 ? 
+          `<button class="add-btn" data-item-key="${domKey}" ${plusDisabled} onclick="updateMotdQty('${encodedId}','${item.name}',${item.price},1)" aria-label="Add ${item.name}">
+            <span class="add-text">ADD</span>
+            <span class="add-plus">+</span>
+          </button>` :
+          `<div class="qty-control">
+            <span class="qty-minus" onclick="updateMotdQty('${encodedId}','${item.name}',${item.price},-1)">−</span>
+            <span class="qty-count">${qty}</span>
+            <span class="qty-plus" onclick="updateMotdQty('${encodedId}','${item.name}',${item.price},1)">+</span>
+          </div>`
+        }
       </div>
     `;
 
@@ -181,5 +201,36 @@ function updateMotdQty(safeId, name, price, delta) {
   // Calls global function from menu.js
   if (typeof updateQty === "function") {
     updateQty(id, name, price, delta);
+    // Update the MOTD UI after cart update
+    updateMotdQtyDisplay(id);
+  }
+}
+
+/* ---------- UPDATE MOTD QTY DISPLAY ---------- */
+function updateMotdQtyDisplay(itemId) {
+  const qty = (typeof selectedItems !== "undefined" && selectedItems[itemId]?.qty) || 0;
+  const domKey = typeof safeItemKey === "function" ? safeItemKey(itemId) : itemId.replace(/\W+/g, "_");
+  const qtyBox = document.querySelector(`[data-item-key="${domKey}"] .qty-box`);
+  
+  if (qtyBox) {
+    const encodedId = encodeURIComponent(itemId);
+    const [, itemName] = itemId.split('__');
+    const item = motdData?.items?.find(i => i.name === itemName);
+    const itemPrice = item?.price || 0;
+    
+    if (qty === 0) {
+      qtyBox.innerHTML = `
+        <button class="add-btn" onclick="updateMotdQty('${encodedId}','${itemName}',${itemPrice},1)" aria-label="Add item">
+          <span class="add-text">ADD</span>
+          <span class="add-plus">+</span>
+        </button>`;
+    } else {
+      qtyBox.innerHTML = `
+        <div class="qty-control">
+          <span class="qty-minus" onclick="updateMotdQty('${encodedId}','${itemName}',${itemPrice},-1)">−</span>
+          <span class="qty-count">${qty}</span>
+          <span class="qty-plus" onclick="updateMotdQty('${encodedId}','${itemName}',${itemPrice},1)">+</span>
+        </div>`;
+    }
   }
 }

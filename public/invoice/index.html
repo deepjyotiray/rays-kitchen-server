@@ -179,6 +179,22 @@ th {
   color: red;
   text-align: center;
 }
+
+#couponBox {
+  margin-top: 6px;
+  padding: 4px 0;
+  border-top: 1px solid var(--border);
+  background: var(--card);
+}
+
+#couponBox strong {
+  color: var(--text);
+}
+
+#couponCode {
+  color: #d32f2f;
+  font-weight: bold;
+}
 </style>
 </head>
 
@@ -215,9 +231,6 @@ th {
       <strong>Invoice No:</strong> <span id="orderId"></span><br>
       <strong>Invoice Date:</strong> <span id="date"></span><br>
       <strong>Place of Supply:</strong> Maharashtra
-      <div id="couponBox" style="margin-top:6px;display:none;">
-        <strong>Coupon:</strong> <span id="couponCode"></span>
-      </div>
     </div>
   </div>
 
@@ -471,6 +484,10 @@ function renderInvoice(o) {
   if (Array.isArray(o.extras)) {
     o.extras.forEach(ex => {
       const amt = Number(ex.amount) || 0;
+      // Skip if this is a coupon discount (already handled separately)
+      if (ex.label && ex.label.toLowerCase().includes('coupon')) {
+        return;
+      }
       extrasTotal += amt;
       table.insertAdjacentHTML("beforeend", `
         <tr>
@@ -479,6 +496,19 @@ function renderInvoice(o) {
         </tr>
       `);
     });
+  }
+
+  // Add coupon discount as a line item if it exists
+  const couponCode = (o.couponCode || "").toString().trim();
+  const couponDiscount = Number(o.couponDiscount) || 0;
+  if (couponCode && couponDiscount > 0) {
+    table.insertAdjacentHTML("beforeend", `
+      <tr>
+        <td colspan="3" class="num">Coupon Discount (${couponCode})</td>
+        <td class="num">-₹${formatCurrency(couponDiscount)}</td>
+      </tr>
+    `);
+    extrasTotal -= couponDiscount;
   }
 
   const breakdownTotal = itemsTotal + extrasTotal;
@@ -532,28 +562,7 @@ function normalizeLines(val) {
 }
 
 function showCoupon(o) {
-  const couponBox = document.getElementById("couponBox");
-  const couponCodeEl = document.getElementById("couponCode");
-  if (!couponBox || !couponCodeEl) return;
-
-  const code =
-    (o.couponCode || o.coupon || o.coupon_name || "").toString().trim();
-  const discount =
-    Number(o.couponDiscount ?? o.discount ?? o.coupon_amount ?? 0) || 0;
-
-  if (!code) {
-    couponBox.style.display = "none";
-    return;
-  }
-
-  let text = code;
-  if (discount !== 0) {
-    const sign = discount > 0 ? "-" : "";
-    text += ` (${sign}₹${formatCurrency(Math.abs(discount))})`;
-  }
-
-  couponCodeEl.innerText = text;
-  couponBox.style.display = "block";
+  // Coupon is displayed as a line item in the table
 }
 
 function formatSignedCurrency(val, label) {

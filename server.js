@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const path = require("path");
 const fs = require("fs").promises;
@@ -329,6 +330,7 @@ app.get(["/admin", "/admin/"], (req, res) => {
 
 /* 2️⃣ API routes */
 app.use("/api", require("./routes/delivery.routes"));
+app.use("/api", require("./routes/deliveryEta.routes"));
 app.use("/api", require("./routes/admin.routes"));
 
 /* 3️⃣ SPA routes we actually serve */

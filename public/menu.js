@@ -633,6 +633,11 @@ function updateQty(id, name, price, delta) {
 
   updateCart();
   updateMenuQtyUI(id);
+  
+  // Dispatch cart update event for MOTD
+  if (typeof window.dispatchEvent === "function") {
+    window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { itemId: id, qty: selectedItems[id]?.qty || 0 } }));
+  }
 }
 
 function updateMenuQtyUI(itemId) {
@@ -951,7 +956,9 @@ function getFreeEligibleSubtotal() {
 
 /* ---------- STREAMLINED USER FLOW ---------- */
 window.proceedWithMobile = async function() {
-  const mobile = document.getElementById("reg-mobile").value.trim();
+  const mobileEl = document.getElementById("reg-mobile");
+  mobileEl.readOnly = false;
+  const mobile = mobileEl.value.trim();
   
   if (!mobile) {
     alert("Please enter your mobile number");
@@ -982,7 +989,7 @@ window.proceedWithMobile = async function() {
       document.getElementById("reg-name").focus();
       
       // Change button to register
-      const continueBtn = document.querySelector("#registration-step button");
+      const continueBtn = document.getElementById("reg-continue-btn");
       continueBtn.textContent = "Register";
       continueBtn.onclick = registerNewUser;
       
@@ -1036,45 +1043,71 @@ window.registerNewUser = async function() {
 
 window.editUser = function() {
   showRegistrationStep();
+  const nameEl = document.getElementById("reg-name");
+  const mobileEl = document.getElementById("reg-mobile");
+  const continueBtn = document.getElementById("reg-continue-btn");
+  const changeBtn = document.getElementById("change-mobile-btn");
+
   if (currentUser) {
-    document.getElementById("reg-name").value = currentUser.name;
-    document.getElementById("reg-mobile").value = currentUser.mobile;
-    
-    // Show name field and change button for editing
-    document.getElementById("reg-name").style.display = "block";
-    const continueBtn = document.querySelector("#registration-step button");
-    continueBtn.textContent = "Update";
-    continueBtn.onclick = updateUser;
+    nameEl.value = currentUser.name;
+    nameEl.style.display = "block";
+    nameEl.focus();
+    mobileEl.value = currentUser.mobile;
+    mobileEl.readOnly = true;
   }
+  continueBtn.textContent = "Update Name";
+  continueBtn.onclick = updateUser;
+  if (changeBtn) changeBtn.style.display = "inline-block";
+};
+
+window.changeMobile = function() {
+  const nameEl = document.getElementById("reg-name");
+  const mobileEl = document.getElementById("reg-mobile");
+  const continueBtn = document.getElementById("reg-continue-btn");
+  const changeBtn = document.getElementById("change-mobile-btn");
+
+  nameEl.style.display = "none";
+  nameEl.value = "";
+  mobileEl.readOnly = false;
+  mobileEl.value = currentUser ? currentUser.mobile : "";
+  mobileEl.focus();
+  continueBtn.textContent = "Continue";
+  continueBtn.onclick = proceedWithMobile;
+  if (changeBtn) changeBtn.style.display = "none";
 };
 
 window.updateUser = async function() {
   const name = document.getElementById("reg-name").value.trim();
   const mobile = document.getElementById("reg-mobile").value.trim();
-  
+  const oldMobile = currentUser ? currentUser.mobile : mobile;
+
   if (!name || !mobile) {
     alert("Please enter both name and mobile number");
     return;
   }
-  
+
   try {
-    const res = await fetch("https://api.healthymealspot.com/users/register", {
-      method: "POST",
+    const res = await fetch(`https://api.healthymealspot.com/users/${oldMobile}`, {
+      method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, mobile })
     });
-    
+
+    if (res.status === 409) {
+      alert("That mobile number is already registered to another account.");
+      return;
+    }
     if (!res.ok) throw new Error("Update failed");
-    
+
     const data = await res.json();
     currentUser = data.user;
     customerName = currentUser.name;
     customerPhone = currentUser.mobile;
     customerAddress = currentUser.address || "";
-    
-    localStorage.setItem("user_mobile", mobile);
+
+    localStorage.setItem("user_mobile", currentUser.mobile);
     showOrderStep();
-    
+
     if (typeof showToast === "function") {
       showToast("Profile updated successfully!");
     }
@@ -1118,19 +1151,31 @@ window.showMyOrders = async function() {
       document.body.appendChild(ordersModal);
     }
     
-    const ordersHtml = orders.map(order => `
-      <div class="order-item">
-        <div class="order-header">
-          <strong>${order.id}</strong>
-          <span class="order-date">${new Date(order.order_date).toLocaleDateString()}</span>
-        </div>
-        <div class="order-details">
-          <div>Order For: ${order.order_for || 'N/A'}</div>
-          <div>Total: ₹${order.total}</div>
-          <div>Status: ${order.status || 'Confirmed'}</div>
-        </div>
-        <div class="order-items">${order.items}</div>
-        <button class="repeat-order-btn" onclick="addOrderToCart('${order.id}', '${order.items.replace(/'/g, "\\'").replace(/\n/g, "\\n")}')">➕ Add to Current Order</button>
+    const grouped = orders.reduce((acc, order) => {
+      const d = new Date(order.order_date);
+      const key = d.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+      (acc[key] ||= []).push(order);
+      return acc;
+    }, {});
+
+    const ordersHtml = Object.entries(grouped).map(([month, monthOrders]) => `
+      <div class="orders-month-group">
+        <div class="orders-month-header">${month}</div>
+        ${monthOrders.map(order => `
+          <div class="order-item">
+            <div class="order-header">
+              <strong>${order.id}</strong>
+              <span class="order-date">${new Date(order.order_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</span>
+            </div>
+            <div class="order-details">
+              <div>Order For: ${order.order_for || 'N/A'}</div>
+              <div>Total: ₹${order.total}</div>
+              <div>Status: ${order.status || 'Confirmed'}</div>
+            </div>
+            <div class="order-items">${order.items}</div>
+            <button class="repeat-order-btn" onclick="addOrderToCart('${order.id}', '${order.items.replace(/'/g, "\\'").replace(/\n/g, "\\n")}')">➕ Add to Current Order</button>
+          </div>
+        `).join('')}
       </div>
     `).join('');
     
@@ -1916,30 +1961,62 @@ function syncOrderTypeRadios() {
 function computeExpectedDelivery() {
   const today = orderDay === "today";
   if (today) {
-    const eta = new Date();
-    eta.setMinutes(eta.getMinutes() + TODAY_PREP_MINUTES);
-    const labelDay = isSameDay(eta, new Date()) ? "Today" : "Tomorrow";
-    return {
-      label: `${labelDay} · ${formatTime12(eta)}`,
-      iso: eta.toISOString(),
-    };
+    const now = new Date();
+    const t = now.getHours() * 60 + now.getMinutes();
+    const lunchEnd = 13 * 60 + 30; // 1:30 PM
+    if (t < lunchEnd) {
+      const eta = new Date(now);
+      eta.setMinutes(eta.getMinutes() + TODAY_PREP_MINUTES);
+      const labelDay = isSameDay(eta, now) ? "Today" : "Tomorrow";
+      return { label: `${labelDay} · ${formatTime12(eta)}`, iso: eta.toISOString() };
+    }
+    // Past lunch — AI will fill in; return placeholder
+    return { label: "Dinner · estimating…", iso: null };
   }
 
   const type = getSelectedOrderType() || "Lunch";
-  const windowLabel = FUTURE_WINDOWS[type] || "Scheduled delivery";
-  return {
-    label: `${type} window · ${windowLabel}`,
-    iso: null,
-  };
+  return { label: `${type} window · ${FUTURE_WINDOWS[type] || "Scheduled delivery"}`, iso: null };
+}
+
+async function fetchAiDeliveryEta() {
+  const items = Object.values(selectedItems).map(i => ({
+    name: i.name,
+    qty: i.qty,
+    category: Object.keys(selectedItems).find(k => selectedItems[k] === i)?.split("__")[0] || ""
+  }));
+
+  try {
+    const res = await fetch("/api/delivery-eta", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ items, orderDay })
+    });
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    return data.label;
+  } catch {
+    return null;
+  }
 }
 
 function updateExpectedDeliveryUI() {
   const el = document.getElementById("expected-delivery");
   if (!el) return;
+
   const info = computeExpectedDelivery();
-  el.textContent = "";
   el.innerHTML = `<strong>Expected Delivery Time:</strong> ${info.label}`;
   el.setAttribute("data-eta-iso", info.iso || "");
+
+  // If placeholder, fetch AI estimate and update
+  if (info.label.includes("estimating")) {
+    fetchAiDeliveryEta().then(label => {
+      if (label) {
+        el.innerHTML = `<strong>Expected Delivery Time:</strong> ${label}`;
+      } else {
+        el.innerHTML = `<strong>Expected Delivery Time:</strong> Dinner · 8:00 PM`;
+      }
+    });
+  }
 }
 
 let toastTimer = null;
