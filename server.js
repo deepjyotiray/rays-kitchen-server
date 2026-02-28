@@ -285,13 +285,6 @@ app.get("/users/:mobile/orders", async (req, res) => {
   }
 });
 
-/* Webhooks */
-app.use(
-  "/webhooks/whatsapp",
-  apiLimiter,
-  require("./routes/whatsapp.routes")
-);
-
 // Serve hosted invoice/receipt pages
 app.get(["/invoice", "/invoice/"], (_req, res) => {
   res.sendFile(path.join(publicPath, "invoice", "index.html"));
