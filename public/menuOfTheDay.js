@@ -213,24 +213,34 @@ function updateMotdQtyDisplay(itemId) {
   const qtyBox = document.querySelector(`[data-item-key="${domKey}"] .qty-box`);
   
   if (qtyBox) {
-    const encodedId = encodeURIComponent(itemId);
     const [, itemName] = itemId.split('__');
     const item = motdData?.items?.find(i => i.name === itemName);
     const itemPrice = item?.price || 0;
-    
+
+    qtyBox.innerHTML = "";
     if (qty === 0) {
-      qtyBox.innerHTML = `
-        <button class="add-btn" onclick="updateMotdQty('${encodedId}','${itemName}',${itemPrice},1)" aria-label="Add item">
-          <span class="add-text">ADD</span>
-          <span class="add-plus">+</span>
-        </button>`;
+      const btn = document.createElement("button");
+      btn.className = "add-btn";
+      btn.setAttribute("aria-label", "Add item");
+      btn.innerHTML = '<span class="add-text">ADD</span><span class="add-plus">+</span>';
+      btn.addEventListener("click", () => updateMotdQty(encodeURIComponent(itemId), itemName, itemPrice, 1));
+      qtyBox.appendChild(btn);
     } else {
-      qtyBox.innerHTML = `
-        <div class="qty-control">
-          <span class="qty-minus" onclick="updateMotdQty('${encodedId}','${itemName}',${itemPrice},-1)">−</span>
-          <span class="qty-count">${qty}</span>
-          <span class="qty-plus" onclick="updateMotdQty('${encodedId}','${itemName}',${itemPrice},1)">+</span>
-        </div>`;
+      const ctrl = document.createElement("div");
+      ctrl.className = "qty-control";
+      const minus = document.createElement("span");
+      minus.className = "qty-minus";
+      minus.textContent = "\u2212";
+      minus.addEventListener("click", () => updateMotdQty(encodeURIComponent(itemId), itemName, itemPrice, -1));
+      const count = document.createElement("span");
+      count.className = "qty-count";
+      count.textContent = qty;
+      const plus = document.createElement("span");
+      plus.className = "qty-plus";
+      plus.textContent = "+";
+      plus.addEventListener("click", () => updateMotdQty(encodeURIComponent(itemId), itemName, itemPrice, 1));
+      ctrl.append(minus, count, plus);
+      qtyBox.appendChild(ctrl);
     }
   }
 }

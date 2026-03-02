@@ -526,15 +526,15 @@ function renderMenu() {
                       }
                     </div>
                     <div class="qty-box">
-                      ${qty === 0 ? 
-                        `<button class="add-btn" data-item-key="${itemDomKey}" data-available="${available}" ${plusDisabledAttr} onclick="updateQty('${itemId}','${i.name}',${i.price},1)" aria-label="Add ${i.name}">
+                      ${qty === 0 ?
+                        `<button class="add-btn" data-item-key="${itemDomKey}" data-available="${available}" data-item-id="${itemDomKey}" ${plusDisabledAttr} aria-label="Add">
                           <span class="add-text">ADD</span>
                           <span class="add-plus">+</span>
                         </button>` :
                         `<div class="qty-control" data-item-key="${itemDomKey}" data-available="${available}">
-                        <span class="qty-minus" onclick="updateQty('${itemId}','${i.name}',${i.price},-1)">−</span>
+                        <span class="qty-minus" data-item-id="${itemDomKey}">\u2212</span>
                         <span class="qty-count">${qty}</span>
-                        <span class="qty-plus" onclick="updateQty('${itemId}','${i.name}',${i.price},1)">+</span>
+                        <span class="qty-plus" data-item-id="${itemDomKey}">+</span>
                         </div>`
                       }
                     </div>
@@ -549,8 +549,10 @@ function renderMenu() {
                               (ex) => `
                                 <label class="extra-option">
                                   <input type="checkbox"
-                                    onchange="toggleExtra('${itemId}','${ex.item}',${ex.price},this.checked)">
-                                  ${ex.item} (+₹${ex.price})
+                                    data-item-id="${itemDomKey}"
+                                    data-extra-name="${encodeURIComponent(ex.item)}"
+                                    data-extra-price="${Number(ex.price)}">
+                                  ${ex.item} (+\u20b9${ex.price})
                                 </label>
                               `
                             )
@@ -580,6 +582,59 @@ function renderMenu() {
   }
   updateCart();
   updateSectionContext();
+  bindMenuItemEvents(c);
+}
+
+function bindMenuItemEvents(container) {
+  container.addEventListener("click", (e) => {
+    const btn = e.target.closest(".add-btn[data-item-id]");
+    if (btn) {
+      const domKey = btn.dataset.itemId;
+      const itemEl = btn.closest(".menu-item");
+      if (!itemEl) return;
+      const [sectionKey] = domKey.split("__");
+      const realId = Object.keys(menuData).reduce((found, k) => {
+        if (found) return found;
+        const item = (menuData[k]?.items || []).find(i => safeItemKey(`${k}__${i.name}`) === domKey);
+        return item ? `${k}__${item.name}` : null;
+      }, null);
+      if (!realId) return;
+      const [sk, ...nameParts] = realId.split("__");
+      const itemName = nameParts.join("__");
+      const menuItem = (menuData[sk]?.items || []).find(i => i.name === itemName);
+      if (menuItem) updateQty(realId, menuItem.name, menuItem.price, 1);
+      return;
+    }
+    const minus = e.target.closest(".qty-minus[data-item-id]");
+    const plus = e.target.closest(".qty-plus[data-item-id]");
+    const target = minus || plus;
+    if (target) {
+      const domKey = target.dataset.itemId;
+      const realId = Object.keys(menuData).reduce((found, k) => {
+        if (found) return found;
+        const item = (menuData[k]?.items || []).find(i => safeItemKey(`${k}__${i.name}`) === domKey);
+        return item ? `${k}__${item.name}` : null;
+      }, null);
+      if (!realId) return;
+      const [sk, ...nameParts] = realId.split("__");
+      const itemName = nameParts.join("__");
+      const menuItem = (menuData[sk]?.items || []).find(i => i.name === itemName);
+      if (menuItem) updateQty(realId, menuItem.name, menuItem.price, minus ? -1 : 1);
+    }
+  });
+  container.addEventListener("change", (e) => {
+    const input = e.target.closest("input[data-item-id][data-extra-name]");
+    if (!input) return;
+    const domKey = input.dataset.itemId;
+    const extraName = decodeURIComponent(input.dataset.extraName);
+    const extraPrice = Number(input.dataset.extraPrice);
+    const realId = Object.keys(menuData).reduce((found, k) => {
+      if (found) return found;
+      const item = (menuData[k]?.items || []).find(i => safeItemKey(`${k}__${i.name}`) === domKey);
+      return item ? `${k}__${item.name}` : null;
+    }, null);
+    if (realId) toggleExtra(realId, extraName, extraPrice, input.checked);
+  });
 }
 
 window.toggleSection = function (key) {
@@ -657,19 +712,33 @@ function updateMenuQtyUI(itemId) {
     const itemName2 = menuItem?.name || '';
     const itemPrice = menuItem?.price || 0;
     
+    qtyBox.innerHTML = "";
     if (qty === 0) {
-      qtyBox.innerHTML = `
-        <button class="add-btn" data-available="${available}" ${!available ? 'disabled' : ''} onclick="updateQty('${itemId}','${itemName2}',${itemPrice},1)" aria-label="Add item">
-          <span class="add-text">ADD</span>
-          <span class="add-plus">+</span>
-        </button>`;
+      const btn = document.createElement("button");
+      btn.className = "add-btn";
+      btn.dataset.available = available;
+      if (!available) btn.disabled = true;
+      btn.setAttribute("aria-label", "Add item");
+      btn.innerHTML = '<span class="add-text">ADD</span><span class="add-plus">+</span>';
+      btn.addEventListener("click", () => updateQty(itemId, itemName2, itemPrice, 1));
+      qtyBox.appendChild(btn);
     } else {
-      qtyBox.innerHTML = `
-        <div class="qty-control" data-available="${available}">
-          <span class="qty-minus" onclick="updateQty('${itemId}','${itemName2}',${itemPrice},-1)">−</span>
-          <span class="qty-count">${qty}</span>
-          <span class="qty-plus" onclick="updateQty('${itemId}','${itemName2}',${itemPrice},1)">+</span>
-        </div>`;
+      const ctrl = document.createElement("div");
+      ctrl.className = "qty-control";
+      ctrl.dataset.available = available;
+      const minus = document.createElement("span");
+      minus.className = "qty-minus";
+      minus.textContent = "\u2212";
+      minus.addEventListener("click", () => updateQty(itemId, itemName2, itemPrice, -1));
+      const count = document.createElement("span");
+      count.className = "qty-count";
+      count.textContent = qty;
+      const plus = document.createElement("span");
+      plus.className = "qty-plus";
+      plus.textContent = "+";
+      plus.addEventListener("click", () => updateQty(itemId, itemName2, itemPrice, 1));
+      ctrl.append(minus, count, plus);
+      qtyBox.appendChild(ctrl);
     }
   }
 
@@ -799,25 +868,40 @@ function updateCart() {
       freeEligibleSubtotal += i.qty * i.price + extrasCost;
     }
 
-    c.innerHTML += `
-      <div class="cart-row${highlightClass}">
-        <div class="cart-item">
-          <div class="cart-item-title">${i.name}</div>
-          ${
-            i.extras && Object.keys(i.extras).length
-              ? `<div class="cart-item-extras">${Object.keys(i.extras)
-                  .map((n) => `+ ${n}`)
-                  .join(", ")}</div>`
-              : ""
-          }
-        </div>
-        <div class="cart-rate">₹${i.price}</div>
-        <div class="cart-qty">
-          <button onclick="updateQty('${itemId}','${i.name}',${i.price},-1)">−</button>
-          <span>${i.qty}</span>
-          <button onclick="updateQty('${itemId}','${i.name}',${i.price},1)">+</button>
-        </div>
-      </div>`;
+    const row = document.createElement("div");
+    row.className = `cart-row${highlightClass}`;
+
+    const cartItem = document.createElement("div");
+    cartItem.className = "cart-item";
+    const title = document.createElement("div");
+    title.className = "cart-item-title";
+    title.textContent = i.name;
+    cartItem.appendChild(title);
+    if (i.extras && Object.keys(i.extras).length) {
+      const extrasEl = document.createElement("div");
+      extrasEl.className = "cart-item-extras";
+      extrasEl.textContent = Object.keys(i.extras).map((n) => `+ ${n}`).join(", ");
+      cartItem.appendChild(extrasEl);
+    }
+
+    const rate = document.createElement("div");
+    rate.className = "cart-rate";
+    rate.textContent = `\u20b9${i.price}`;
+
+    const qtyDiv = document.createElement("div");
+    qtyDiv.className = "cart-qty";
+    const minusBtn = document.createElement("button");
+    minusBtn.textContent = "\u2212";
+    minusBtn.addEventListener("click", () => updateQty(itemId, i.name, i.price, -1));
+    const qtySpan = document.createElement("span");
+    qtySpan.textContent = i.qty;
+    const plusBtn = document.createElement("button");
+    plusBtn.textContent = "+";
+    plusBtn.addEventListener("click", () => updateQty(itemId, i.name, i.price, 1));
+    qtyDiv.append(minusBtn, qtySpan, plusBtn);
+
+    row.append(cartItem, rate, qtyDiv);
+    c.appendChild(row);
   });
 
   validateCoupon(total);
@@ -978,6 +1062,7 @@ window.proceedWithMobile = async function() {
       customerAddress = currentUser.address || "";
       
       localStorage.setItem("user_mobile", mobile);
+      if (data.token) localStorage.setItem("user_token", data.token);
       showOrderStep();
       
       if (typeof showToast === "function") {
@@ -1030,6 +1115,7 @@ window.registerNewUser = async function() {
     customerAddress = currentUser.address || "";
     
     localStorage.setItem("user_mobile", mobile);
+    if (data.token) localStorage.setItem("user_token", data.token);
     showOrderStep();
     
     if (typeof showToast === "function") {
@@ -1089,7 +1175,10 @@ window.updateUser = async function() {
   try {
     const res = await fetch(`https://api.healthymealspot.com/users/${oldMobile}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-User-Token": localStorage.getItem("user_token") || ""
+      },
       body: JSON.stringify({ name, mobile })
     });
 
@@ -1106,6 +1195,7 @@ window.updateUser = async function() {
     customerAddress = currentUser.address || "";
 
     localStorage.setItem("user_mobile", currentUser.mobile);
+    if (data.token) localStorage.setItem("user_token", data.token);
     showOrderStep();
 
     if (typeof showToast === "function") {
@@ -1361,6 +1451,7 @@ async function loadExistingUser() {
     customerName = currentUser.name;
     customerPhone = currentUser.mobile;
     customerAddress = currentUser.address || "";
+    if (data.token) localStorage.setItem("user_token", data.token);
   } catch (e) {
     console.warn("Failed to load existing user:", e);
   }
