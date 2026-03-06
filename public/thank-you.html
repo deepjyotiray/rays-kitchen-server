@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
-  <title>Thank You • Mr & Mrs Ray’s Kitchen</title>
+  <title>Thank You • Mr & Mrs Ray's Kitchen</title>
   <link rel="stylesheet" href="/style.css">
-  <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-TE81BJG5TS"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -22,12 +21,12 @@
       --muted: #4b5563;
       --border: #e5e7eb;
       --accent: #2563eb;
-      --badge-bg: #ecfdf3;
-      --badge-text: #166534;
+      --green-bg: #ecfdf3;
+      --green-text: #166534;
+      --wa-green: #25d366;
       --shadow: 0 20px 48px rgba(15,23,42,0.12);
       --pre-bg: #f9fafb;
     }
-
     @media (prefers-color-scheme: dark) {
       :root {
         --bg: #0b1220;
@@ -37,277 +36,138 @@
         --muted: #94a3b8;
         --border: #1f2937;
         --accent: #60a5fa;
-        --badge-bg: rgba(34,197,94,0.12);
-        --badge-text: #bbf7d0;
+        --green-bg: rgba(34,197,94,0.12);
+        --green-text: #bbf7d0;
         --shadow: 0 22px 52px rgba(0,0,0,0.4);
         --pre-bg: #111827;
       }
     }
-
+    * { box-sizing: border-box; }
     body {
       background: linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
       min-height: 100vh;
-      padding: 18px 14px 48px;
+      padding: 16px 12px 48px;
       color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
     }
-    .thanks-card {
-      max-width: 680px;
+    .card {
+      max-width: 560px;
       margin: 0 auto;
       background: var(--card);
-      border-radius: 18px;
+      border-radius: 20px;
       box-shadow: var(--shadow);
-      padding: 20px;
       border: 1px solid var(--border);
+      overflow: hidden;
     }
-    .thanks-head {
-      display:flex;
-      align-items:center;
-      gap:12px;
-      margin-bottom:14px;
+    .card-hero {
+      background: var(--green-bg);
+      padding: 28px 20px 20px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
     }
-    .badge {
-      padding:6px 10px;
-      border-radius:999px;
-      background: var(--badge-bg);
-      color: var(--badge-text);
-      font-weight:700;
-      font-size:12px;
+    .card-hero .icon { font-size: 48px; line-height: 1; margin-bottom: 10px; }
+    .card-hero h1 { margin: 0 0 6px; font-size: 22px; color: var(--green-text); }
+    .card-hero p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+    .wa-notice {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: rgba(37,211,102,0.08);
+      border: 1px solid rgba(37,211,102,0.25);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin: 16px 16px 0;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--text);
     }
-    .order-meta {
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      color: var(--muted);
-      font-size:13px;
-      margin-bottom:10px;
+    .wa-notice .wa-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+    .card-body { padding: 16px; }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
     }
-    .section {
-      margin-top:12px;
-      padding-top:12px;
-      border-top:1px solid var(--border);
+    .meta-item {
+      background: var(--pre-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
     }
-    .section h3 {
-      margin:0 0 6px;
-      font-size:16px;
-    }
+    .meta-item.full { grid-column: 1 / -1; }
+    .meta-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 2px; }
+    .meta-value { font-size: 14px; font-weight: 600; word-break: break-word; }
+    .section { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+    .section-title { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
     pre {
       background: var(--pre-bg);
-      padding:12px;
-      border-radius:10px;
-      font-size:13px;
-      white-space:pre-wrap;
-      border:1px solid var(--border);
-      color: var(--text);
-    }
-    .actions {
-      margin-top:14px;
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-    .btn {
-      border:0;
-      border-radius:12px;
-      padding:12px 14px;
-      font-weight:700;
-      cursor:pointer;
-      font-size:14px;
-    }
-    .btn.primary { background: var(--accent); color:#0b1220; }
-    .btn.secondary { background: var(--pre-bg); color: var(--text); border:1px solid var(--border); }
-    .hint {
-      margin-top:8px;
-      color: var(--muted);
-      font-size:13px;
-    }
-    .payment-section {
-      background: var(--pre-bg);
-      border: 1px solid var(--border);
-      border-radius: 14px;
       padding: 12px;
-      margin-top: 10px;
-    }
-    .upi-row {
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      align-items:flex-start;
-      flex-wrap:wrap;
-    }
-    .upi-id {
-      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-      background: rgba(37,99,235,0.08);
-      color: var(--text);
-      border: 1px solid var(--border);
-      padding: 8px 10px;
       border-radius: 10px;
       font-size: 13px;
-      word-break: break-all;
+      white-space: pre-wrap;
+      border: 1px solid var(--border);
+      color: var(--text);
+      margin: 0;
+      font-family: inherit;
     }
-    .upi-sub {
-      color: var(--muted);
-      font-size: 13px;
-      margin-top: 2px;
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+    .btn {
+      flex: 1;
+      min-width: 120px;
+      border: 0;
+      border-radius: 12px;
+      padding: 14px 12px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 15px;
+      text-align: center;
     }
-    .upi-actions {
-      display:flex;
-      gap:10px;
-      margin-top:10px;
-      flex-wrap:wrap;
-    }
+    .btn.primary { background: var(--accent); color: #fff; }
+    .btn.secondary { background: var(--pre-bg); color: var(--text); border: 1px solid var(--border); }
+    .help { text-align: center; color: var(--muted); font-size: 13px; margin-top: 14px; }
   </style>
 </head>
 <body>
-  <div class="thanks-card">
-    <div class="thanks-head">
-      <div style="font-size:32px;">✅</div>
-      <div>
-        <h2 style="margin:0;">Thank you for your order!</h2>
-        <div class="badge">Order placed on WhatsApp</div>
+  <div class="card">
+    <div class="card-hero">
+      <div class="icon">🎉</div>
+      <h1>Order Placed!</h1>
+      <p>We've received your order and will get back to you shortly.</p>
+    </div>
+
+    <div class="wa-notice">
+      <span class="wa-icon">💬</span>
+      <span>We'll contact you on <strong>WhatsApp</strong> to confirm your order and keep you updated on delivery status.</span>
+    </div>
+
+    <div class="card-body">
+      <div id="order-meta" class="meta-grid"></div>
+
+      <div class="section">
+        <div class="section-title">Items Ordered</div>
+        <pre id="order-items">Loading…</pre>
       </div>
-    </div>
-    <div id="order-meta" class="order-meta"></div>
 
-    <div class="section">
-      <h3>Items</h3>
-      <pre id="order-items">Loading…</pre>
-    </div>
-
-    <div class="section" id="extras-section" style="display:none;">
-      <h3>Extras</h3>
-      <pre id="order-extras"></pre>
-    </div>
-
-    <div class="section">
-      <h3>Instructions</h3>
-      <ul style="margin:0 0 6px 18px;padding:0; color:#4b5563; font-size:14px;">
-        <li>We’ll confirm your order on WhatsApp soon.</li>
-        <li>Please keep your phone available for delivery updates.</li>
-        <li>You can reply to the WhatsApp thread for any changes or notes.</li>
-      </ul>
-      <div class="hint">Need help? Call/WhatsApp: +91 88505 45924</div>
-    </div>
-
-    <div class="section payment-section" id="upi-section" style="display:none;">
-      <div class="upi-row">
-        <div>
-          <h3 style="margin:0;">Pay via UPI</h3>
-          <div class="upi-sub" id="upi-subtext">
-            Opens your UPI app with the amount prefilled.
-          </div>
-        </div>
-        <div class="upi-id" id="upi-id"></div>
+      <div class="section" id="extras-section" style="display:none;">
+        <div class="section-title">Charges & Discounts</div>
+        <pre id="order-extras"></pre>
       </div>
-      <div class="upi-actions">
-        <button class="btn primary" id="upi-pay-btn" type="button">Pay via UPI</button>
-        <button class="btn secondary" id="upi-copy-btn" type="button">Copy payment link</button>
-      </div>
-    </div>
 
-    <div class="actions">
-      <button class="btn primary" onclick="goHome()">Back to menu</button>
-      <button class="btn secondary" onclick="openWhatsApp()">Open WhatsApp</button>
+
+      <div class="btn-row">
+        <button class="btn primary" onclick="window.location.href='/'">Back to menu</button>
+      </div>
+
+      <div class="help">Need help? Call / WhatsApp: <strong>+91 88505 45924</strong></div>
     </div>
   </div>
 
   <script>
-    function goHome() { window.location.href = "/"; }
-    function openWhatsApp() {
-      window.open("https://wa.me/919326492088", "_blank");
-    }
-
-    const UPI_ID = "9594614752@pthdfc";
-    const UPI_NAME = "Mr & Mrs Ray";
-
-    function formatAmount(amount) {
-      const val = Math.max(Number(amount) || 0, 0);
-      const formatted = val.toFixed(2);
-      return {
-        number: val,
-        label: "₹" + formatted.replace(/\.00$/, ""),
-        withPaise: "₹" + formatted
-      };
-    }
-
-    function buildUpiLink(amount, orderId) {
-      const amt = Math.max(Number(amount) || 0, 0).toFixed(2);
-      const params = new URLSearchParams({
-        pa: UPI_ID,
-        pn: UPI_NAME,
-        am: amt,
-        cu: "INR",
-        tn: orderId ? `Order ${orderId}` : "Order payment"
-      });
-      return `upi://pay?${params.toString()}`;
-    }
-
-    function openUpiLink(link) {
-      if (!link) return;
-      window.location.href = link;
-      setTimeout(() => window.open(link, "_blank"), 150);
-    }
-
-    function fallbackCopy(value, successMsg) {
-      const ta = document.createElement("textarea");
-      ta.value = value;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand("copy");
-      document.body.removeChild(ta);
-      if (successMsg) alert(successMsg);
-    }
-
-    function copyText(value, successMsg) {
-      if (!value) return;
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(value)
-          .then(() => { if (successMsg) alert(successMsg); })
-          .catch(() => fallbackCopy(value, successMsg));
-      } else {
-        fallbackCopy(value, successMsg);
-      }
-    }
-
-    function setupUpiPayment(data) {
-      const section = document.getElementById("upi-section");
-      const payBtn = document.getElementById("upi-pay-btn");
-      const copyBtn = document.getElementById("upi-copy-btn");
-      const upiIdEl = document.getElementById("upi-id");
-      const subtextEl = document.getElementById("upi-subtext");
-
-      if (!section || !data) return;
-
-      const amount = Number(data.total || 0);
-      if (!Number.isFinite(amount) || amount <= 0) {
-        section.style.display = "none";
-        return;
-      }
-
-      const link = buildUpiLink(amount, data.orderId || "");
-      const amt = formatAmount(amount);
-
-      upiIdEl.textContent = UPI_ID;
-      subtextEl.textContent =
-        `Tap to open your UPI app with ${amt.label} prefilled.`;
-
-      if (payBtn) {
-        payBtn.textContent = `Pay ${amt.label} via UPI`;
-        payBtn.onclick = () => openUpiLink(link);
-      }
-
-      if (copyBtn) {
-        copyBtn.onclick = () =>
-          copyText(link, "UPI payment link copied. Paste it if the app does not open automatically.");
-      }
-
-      section.style.display = "block";
-    }
-
-    (function loadSummary() {
+    (function () {
       let data = null;
-      try {
-        data = JSON.parse(sessionStorage.getItem("LAST_ORDER") || "null");
-      } catch (e) { data = null; }
+      try { data = JSON.parse(sessionStorage.getItem("LAST_ORDER") || "null"); } catch (_) {}
 
       if (!data) {
         document.getElementById("order-items").textContent = "Order details unavailable.";
@@ -315,24 +175,34 @@
       }
 
       const meta = document.getElementById("order-meta");
-      meta.innerHTML = `
-        <div><strong>Order:</strong> ${data.orderId || "-"}</div>
-        <div><strong>For:</strong> ${data.orderFor || ""}${data.orderForDateISO ? " (" + data.orderForDateISO + ")" : ""}</div>
-        <div><strong>Name:</strong> ${data.name || "-"}</div>
-        <div><strong>Phone:</strong> ${data.phone || "-"}</div>
-        <div><strong>Address:</strong> ${data.address || "-"}</div>
-      `;
+      const rows = [
+        ["Order ID", data.orderId],
+        ["For", (data.orderFor || "") + (data.orderForDateISO ? " (" + data.orderForDateISO + ")" : "")],
+        ["Name", data.name],
+        ["Phone", data.phone],
+        ["Address", data.address, true],
+      ];
+      // Build meta grid with DOM APIs to prevent XSS from sessionStorage data
+      rows.filter(r => r[1]).forEach(([label, value, full]) => {
+        const cell = document.createElement("div");
+        cell.className = "meta-item" + (full ? " full" : "");
+        const lbl = document.createElement("div");
+        lbl.className = "meta-label";
+        lbl.textContent = label;
+        const val = document.createElement("div");
+        val.className = "meta-value";
+        val.textContent = value;
+        cell.append(lbl, val);
+        meta.appendChild(cell);
+      });
 
-      document.getElementById("order-items").textContent =
-        data.items || "No items captured.";
+      document.getElementById("order-items").textContent = data.items || "No items captured.";
 
       if (data.extras) {
-        const extrasWrap = document.getElementById("extras-section");
         document.getElementById("order-extras").textContent = data.extras;
-        extrasWrap.style.display = "block";
+        document.getElementById("extras-section").style.display = "block";
       }
 
-      setupUpiPayment(data);
     })();
   </script>
 </body>

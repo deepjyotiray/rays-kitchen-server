@@ -8,6 +8,26 @@ const session = require("express-session");
 const app = express();
 app.disable("x-powered-by");
 app.set("trust proxy", true);
+
+/* Security headers */
+app.use((_req, res, next) => {
+  res.set({
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "X-XSS-Protection": "0",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "geolocation=(self), camera=(), microphone=()",
+    "Content-Security-Policy":
+      "default-src 'self'; " +
+      "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://cdnjs.cloudflare.com; " +
+      "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; " +
+      "img-src 'self' data: https:; " +
+      "font-src 'self' https://cdnjs.cloudflare.com; " +
+      "connect-src 'self' https://api.healthymealspot.com https://www.google-analytics.com; " +
+      "frame-ancestors 'none';",
+  });
+  next();
+});
 app.use(
   express.json({
     limit: "100kb",
@@ -19,11 +39,13 @@ app.use(
 
 /* Session middleware */
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'frontend-session-secret-key',
+  secret: process.env.SESSION_SECRET || (process.env.NODE_ENV === 'production' ? (() => { throw new Error('SESSION_SECRET is required in production'); })() : 'dev-only-insecure-secret'),
   resave: false,
   saveUninitialized: false,
-  cookie: { 
-    secure: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    sameSite: 'strict',
     maxAge: 24 * 60 * 60 * 1000
   }
 }));
@@ -266,6 +288,7 @@ app.post("/users/register", async (req, res) => {
 });
 
 app.get("/users/:mobile", async (req, res) => {
+  if (!/^[0-9]{7,15}$/.test(req.params.mobile)) return res.status(400).json({ error: "Invalid mobile" });
   try {
     const resp = await fetchWithFallback(`/users/${req.params.mobile}`);
     const data = await resp.json();
@@ -276,6 +299,7 @@ app.get("/users/:mobile", async (req, res) => {
 });
 
 app.get("/users/:mobile/orders", async (req, res) => {
+  if (!/^[0-9]{7,15}$/.test(req.params.mobile)) return res.status(400).json({ error: "Invalid mobile" });
   try {
     const resp = await fetchWithFallback(`/users/${req.params.mobile}/orders`);
     const data = await resp.json();
@@ -308,6 +332,18 @@ app.get("/rtc", (_req, res) => {
   res.sendFile(path.join(publicPath, "rtc.html"));
 });
 
+/* Menu PDF — must be before static middleware */
+const { getMenuPdf, invalidateCache } = require("./services/menuPdf.service");
+app.get("/menu.pdf", apiLimiter, async (_req, res) => {
+  try {
+    const pdfBytes = await getMenuPdf();
+    res.set({ "Content-Type": "application/pdf", "Content-Disposition": "inline; filename=\"menu.pdf\"", "Cache-Control": "no-store" });
+    res.send(Buffer.from(pdfBytes));
+  } catch (e) {
+    res.status(500).json({ error: "PDF generation failed" });
+  }
+});
+
 /* 1️⃣ Serve static assets */
 app.use(express.static(publicPath));
 
@@ -325,6 +361,13 @@ app.get(["/admin", "/admin/"], (req, res) => {
 app.use("/api", require("./routes/delivery.routes"));
 app.use("/api", require("./routes/deliveryEta.routes"));
 app.use("/api", require("./routes/admin.routes"));
+
+app.post("/api/admin/menu-pdf/invalidate", (req, res) => {
+  const key = req.headers["x-admin-key"];
+  if (!key || !process.env.ADMIN_API_KEY || key !== process.env.ADMIN_API_KEY) return res.status(401).end();
+  invalidateCache();
+  res.json({ ok: true });
+});
 
 /* 3️⃣ SPA routes we actually serve */
 app.get(["/", "/corporate"], (_req, res) => {

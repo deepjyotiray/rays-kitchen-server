@@ -1,10 +1,11 @@
 const express = require("express");
 const fs = require("fs").promises;
 const path = require("path");
+const { invalidateCache } = require("../services/menuPdf.service");
 
 const router = express.Router();
 
-const ADMIN_KEY = process.env.ADMIN_API_KEY || "mrsray";
+const ADMIN_KEY = process.env.ADMIN_API_KEY || (process.env.NODE_ENV === "production" ? (() => { throw new Error("ADMIN_API_KEY required in production"); })() : "dev-only-admin-key");
 
 const publicDir = path.join(__dirname, "..", "public");
 const configPath = path.join(__dirname, "..", "config", "app-state.json");
@@ -82,6 +83,7 @@ router.put("/admin/menu", requireAdmin, async (req, res) => {
     return res.status(400).json({ error: "Menu payload missing" });
 
   await writeJson(file, menu);
+  if (type === "main") invalidateCache();
   res.json({ success: true, type });
 });
 

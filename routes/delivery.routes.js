@@ -12,8 +12,6 @@ const REST_LNG = 73.023252;
 router.post("/delivery-charge", (req, res) => {
   const { lat, lng } = req.body;
 
-  console.log("Delivery API hit:", lat, lng);
-
   const latNum = Number(lat);
   const lngNum = Number(lng);
 
@@ -26,6 +24,11 @@ router.post("/delivery-charge", (req, res) => {
       deliveryCharge,
       freeDeliveryThreshold,
     });
+  }
+
+  // Validate coordinate ranges
+  if (latNum < -90 || latNum > 90 || lngNum < -180 || lngNum > 180) {
+    return res.status(400).json({ error: "Invalid coordinates" });
   }
 
   const distanceKm = getDistanceKm(REST_LAT, REST_LNG, latNum, lngNum);

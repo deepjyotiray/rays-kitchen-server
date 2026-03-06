@@ -28,8 +28,6 @@
 </head>
 <body>
 
-<div class="fssai-reg-number">FSSAI: 21526071000648</div>
-
 <header class="header header-slideshow">
   <div class="slideshow">
     <img src="/images/home-cooked-food.jpg" class="slide active" alt="Home cooked" fetchpriority="high">
@@ -54,14 +52,13 @@
   <section class="action-bar">
     <div class="date-picker">
       <button class="action-btn secondary calendar-btn" onclick="toggleCalendar()">
-        <i class="fa-solid fa-calendar-days"></i>
         <span id="selected-date-label"></span>
       </button>
     </div>
 
     <button class="action-btn primary motd-btn" onclick="openMotd()">🍽️ Menu of the Day</button>
-    <button class="action-btn secondary" onclick="downloadMenuPDF()">⬇️ Menu PDF</button>
     <button class="action-btn primary" onclick="bulkOrder()"><i class="fa-brands fa-whatsapp"></i> Bulk Order</button>
+    <button class="action-btn secondary" onclick="viewMenuPdf()">📄 View Menu</button>
   </section>
 
   <section class="filter-bar">
@@ -199,8 +196,15 @@
 
 <footer class="footer">
   © 2026 Mr & Mrs Ray’s Home Kitchen • Navi Mumbai<br>
-  Contact: <a href="mailto:kitchen@healthymealspot.com">kitchen@healthymealspot.com</a>
+  Contact: <a href="mailto:kitchen@healthymealspot.com">kitchen@healthymealspot.com</a> •
+  <a href="/menu.pdf" download="Mr_Mrs_Ray_Menu.pdf" style="color:rgba(255,255,255,0.8);">⬇️ Menu PDF</a>
 </footer>
+
+<script>
+function viewMenuPdf() {
+  window.open('/menu.pdf', '_blank');
+}
+</script>
 
 <div id="floating-cart">
   <div class="cart-handle"><span>🍽️ Your Plate</span><button class="cart-minimize-btn" onclick="minimizeCart()" aria-label="Minimize cart">▾</button></div>
@@ -221,7 +225,7 @@
     </div>
     <div class="cart-footer"><span>Total</span><strong id="cart-total">₹0</strong></div>
     <div id="cart-eta" class="cart-eta" aria-live="polite"></div>
-    <button id="cart-order-btn" class="cart-order-btn" onclick="orderOnWhatsApp()" disabled><i class="fa-brands fa-whatsapp"></i> Order on WhatsApp</button>
+    <button id="cart-order-btn" class="cart-order-btn" onclick="orderOnWhatsApp()" disabled>Place Order</button>
   </div>
 </div>
 <div id="cart-mini-summary" class="cart-mini-summary" aria-live="polite"></div>
@@ -258,7 +262,7 @@
       </div>
       <div id="expected-delivery" class="expected-delivery" aria-live="polite"></div>
       <div class="modal-actions">
-        <button onclick="confirmOrder()">Place Order</button>
+        <button class="primary" onclick="confirmOrder()">Place Order</button>
         <button onclick="closeCustomerModal()">Cancel</button>
       </div>
     </div>
@@ -310,12 +314,23 @@
         const r = data.reviews[index];
         card.classList.remove("show");
         setTimeout(() => {
-          card.innerHTML = `
-            <img src="${r.image||'/images/reviewers/default.jpg'}" class="review-avatar">
-            <div class="review-content">
-              <div class="review-text">“${r.text}”</div>
-              <div class="review-meta">${r.name} · ${"★".repeat(r.stars)}</div>
-            </div>`;
+          card.innerHTML = "";
+          const img = document.createElement("img");
+          img.className = "review-avatar";
+          img.alt = "Reviewer";
+          img.src = (r.image && /^https:\/\//.test(r.image))
+            ? r.image : "/images/reviewers/default.jpg";
+          const content = document.createElement("div");
+          content.className = "review-content";
+          const text = document.createElement("div");
+          text.className = "review-text";
+          text.textContent = "“" + (r.text || "") + "”";
+          const meta = document.createElement("div");
+          meta.className = "review-meta";
+          meta.textContent = (r.name || "Anonymous") + " · " +
+            "★".repeat(Math.min(5, Math.max(0, Number(r.stars) || 0)));
+          content.append(text, meta);
+          card.append(img, content);
           card.classList.add("show");
         }, 250);
         index = (index + 1) % data.reviews.length;
@@ -363,9 +378,11 @@ function toggleCalendar() {
 
 
   function formatLabel(date) {
-    if (isSameDay(date, getToday())) return "Ordering for Today";
-    if (isSameDay(date, getTomorrow())) return "Ordering for Tomorrow";
-    return `Ordering for ${date.toLocaleDateString("en-IN", {day:"numeric",month:"short"})}`;
+    const short = window.innerWidth <= 768;
+    if (isSameDay(date, getToday())) return short ? "📅 Today" : "Ordering for Today";
+    if (isSameDay(date, getTomorrow())) return short ? "📅 Tomorrow" : "Ordering for Tomorrow";
+    const d = date.toLocaleDateString("en-IN", {day:"numeric",month:"short"});
+    return short ? `📅 ${d}` : `Ordering for ${d}`;
   }
 
   function updateSelectedLabel() {
@@ -528,7 +545,7 @@ function toggleCalendar() {
     <input id="bulk-dates" type="date" placeholder="Delivery Date *">
     <textarea id="bulk-requirements" rows="3" placeholder="Requirements (number of people, meal preferences, etc.)"></textarea>
     <div class="modal-actions">
-      <button onclick="submitBulkOrder()">Submit Request</button>
+      <button class="primary" onclick="submitBulkOrder()">Submit Request</button>
       <button onclick="closeBulkOrderModal()">Cancel</button>
     </div>
   </div>

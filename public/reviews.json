@@ -1,6 +1,6 @@
 {
-  "rating": 5.0,
-  "totalReviews": 11,
+  "rating": 5,
+  "totalReviews": 14,
   "reviews": [
     {
       "name": "Neelam Moorjani",
@@ -67,6 +67,24 @@
       "stars": 5,
       "text": "Ordered the Chicken Biryani, Shami Kabab, and Green Pahadi Chicken from HealthyMealSpot and was thoroughly impressed. The food is high quality, healthy, and incredibly reasonably priced. It’s hard to find good Pahadi Chicken and authentic Shami Kababs at these rates. Definitely my new go-to for a guilt-free meal!",
       "image": "https://lh3.googleusercontent.com/a/ACg8ocJLOX7M0xBhRXX6cD3D_cx7ttSkqTPcqqxrBfbfPkSyNE6eJw=s72-c-rp-mo-br100"
+    },
+    {
+      "name": "Mangesh Kumkar",
+      "stars": 5,
+      "text": "Food was home made & very tasty 😋 …",
+      "image": "https://lh3.googleusercontent.com/a-/ALV-UjWW3hpiWhCPkxzW5CxKXQjJbpqJ0GpyylRjYCZZbvC5i0Zu0pi7=w36-h36-p-rp-mo-br100"
+    },
+    {
+      "name": "Nagma",
+      "stars": 5,
+      "text": "The aim to provide the healthy and tasty home like food ...",
+      "image": "https://lh3.googleusercontent.com/a/ACg8ocLW1uPEAyV0Ip7vmmfWfZb7tONdwdg1qtsnTEJdcWn96QrvFg=w36-h36-p-rp-mo-ba3-br100"
+    },
+    {
+      "name": "Amol Patil",
+      "stars": 5,
+      "text": "The meal was delicious,",
+      "image": "https://lh3.googleusercontent.com/a-/ALV-UjXfW6GUL1r2xQJVKU1SjSBIxATYT50_c1ZU-uCHZ8tgyytlUUgkQw=w36-h36-p-rp-mo-br100"
     }
   ]
 }

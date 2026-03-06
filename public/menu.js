@@ -1248,39 +1248,58 @@ window.showMyOrders = async function() {
       return acc;
     }, {});
 
-    const ordersHtml = Object.entries(grouped).map(([month, monthOrders]) => `
-      <div class="orders-month-group">
-        <div class="orders-month-header">${month}</div>
-        ${monthOrders.map(order => `
-          <div class="order-item">
-            <div class="order-header">
-              <strong>${order.id}</strong>
-              <span class="order-date">${new Date(order.order_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</span>
-            </div>
-            <div class="order-details">
-              <div>Order For: ${order.order_for || 'N/A'}</div>
-              <div>Total: ₹${order.total}</div>
-              <div>Status: ${order.status || 'Confirmed'}</div>
-            </div>
-            <div class="order-items">${order.items}</div>
-            <button class="repeat-order-btn" onclick="addOrderToCart('${order.id}', '${order.items.replace(/'/g, "\\'").replace(/\n/g, "\\n")}')">➕ Add to Current Order</button>
-          </div>
-        `).join('')}
-      </div>
-    `).join('');
-    
-    ordersModal.innerHTML = `
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>My Orders</h3>
-          <button onclick="closeOrdersModal()" class="close-btn">×</button>
-        </div>
-        <div class="orders-list">
-          ${ordersHtml}
-        </div>
-      </div>
-    `;
-    
+        // Build orders modal with DOM APIs to prevent XSS
+    ordersModal.innerHTML = "";
+    const _mc = document.createElement("div");
+    _mc.className = "modal-content";
+    const _mh = document.createElement("div");
+    _mh.className = "modal-header";
+    const _h3 = document.createElement("h3");
+    _h3.textContent = "My Orders";
+    const _cb = document.createElement("button");
+    _cb.className = "close-btn";
+    _cb.textContent = "×";
+    _cb.onclick = () => closeOrdersModal();
+    _mh.append(_h3, _cb);
+    const _ol = document.createElement("div");
+    _ol.className = "orders-list";
+    Object.entries(grouped).forEach(([month, monthOrders]) => {
+      const _g = document.createElement("div");
+      _g.className = "orders-month-group";
+      const _gh = document.createElement("div");
+      _gh.className = "orders-month-header";
+      _gh.textContent = month;
+      _g.appendChild(_gh);
+      monthOrders.forEach(order => {
+        const _oi = document.createElement("div");
+        _oi.className = "order-item";
+        const _oh = document.createElement("div");
+        _oh.className = "order-header";
+        const _st = document.createElement("strong");
+        _st.textContent = String(order.id || "");
+        const _ds = document.createElement("span");
+        _ds.className = "order-date";
+        _ds.textContent = new Date(order.order_date).toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
+        _oh.append(_st, _ds);
+        const _det = document.createElement("div");
+        _det.className = "order-details";
+        ["Order For: " + (order.order_for || "N/A"), "Total: ₹" + order.total, "Status: " + (order.status || "Confirmed")].forEach(t => {
+          const _d = document.createElement("div"); _d.textContent = t; _det.appendChild(_d);
+        });
+        const _it = document.createElement("div");
+        _it.className = "order-items";
+        _it.textContent = String(order.items || "");
+        const _rb = document.createElement("button");
+        _rb.className = "repeat-order-btn";
+        _rb.textContent = "➕ Add to Current Order";
+        _rb.addEventListener("click", () => addOrderToCart(order.id, order.items || ""));
+        _oi.append(_oh, _det, _it, _rb);
+        _g.appendChild(_oi);
+      });
+      _ol.appendChild(_g);
+    });
+    _mc.append(_mh, _ol);
+    ordersModal.appendChild(_mc);
     ordersModal.classList.add("show");
     
   } catch (e) {
@@ -1368,38 +1387,33 @@ window.submitBulkOrder = async function() {
   const address = document.getElementById('bulk-address').value.trim();
   const dates = document.getElementById('bulk-dates').value.trim();
   const requirements = document.getElementById('bulk-requirements').value.trim();
-  
+
   if (!name || !mobile || !address || !dates) {
     alert('Please fill all required fields');
     return;
   }
-  
+
+  const btn = document.querySelector('#bulk-order-modal .primary');
+  if (btn) { btn.disabled = true; btn.textContent = 'Submitting…'; }
+
   try {
     const res = await fetch('https://api.healthymealspot.com/bulk-orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, mobile, address, dates, requirements })
     });
-    
+
     if (!res.ok) throw new Error('Failed to submit');
-    
-    // Send WhatsApp message
-    const waMessage = `🍽️ *New Bulk Order Request*\n\n*Name:* ${name}\n*Mobile:* ${mobile}\n*Address:* ${address}\n*Delivery Dates:* ${dates}\n*Requirements:* ${requirements || 'None specified'}`;
-    window.open('https://wa.me/919326492088?text=' + encodeURIComponent(waMessage), '_blank');
-    
+
     closeBulkOrderModal();
-    if (typeof showToast === 'function') {
-      showToast('Bulk order request submitted successfully!');
-    }
-    
-    // Clear form
-    document.getElementById('bulk-name').value = '';
-    document.getElementById('bulk-mobile').value = '';
-    document.getElementById('bulk-address').value = '';
-    document.getElementById('bulk-dates').value = '';
-    document.getElementById('bulk-requirements').value = '';
+    if (typeof showToast === 'function') showToast('Bulk order request submitted successfully!');
+
+    ['bulk-name','bulk-mobile','bulk-address','bulk-dates','bulk-requirements']
+      .forEach(id => { document.getElementById(id).value = ''; });
   } catch (e) {
     alert('Failed to submit request. Please try again.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Submit Request'; }
   }
 };
 
@@ -1513,8 +1527,7 @@ window.confirmOrder = function () {
 
   closeCustomerModal();
 
-  const waWindow = window.open("", "_blank");
-  setTimeout(() => placeFinalOrder(waWindow), 50);
+  setTimeout(() => placeFinalOrder(), 50);
 };
 
 async function updateUserAddress(address) {
@@ -1566,7 +1579,7 @@ async function persistOrder(payload) {
   }
 }
 
-async function placeFinalOrder(waWindow) {
+async function placeFinalOrder() {
   let subtotal = 0;
   let itemsText = "";
   const eligibleSubtotal = Math.max(getFreeEligibleSubtotal() - discountAmount, 0);
@@ -1702,9 +1715,6 @@ Total: ₹${finalTotal}`;
     };
     sessionStorage.setItem("LAST_ORDER", JSON.stringify(summary));
   } catch (_) {}
-
-  waWindow.location.href =
-    "https://wa.me/919326492088?text=" + encodeURIComponent(message);
 
   selectedItems = {};
   updateCart();
