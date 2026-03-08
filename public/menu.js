@@ -189,6 +189,12 @@ async function initDeliveryCharge() {
     const data = await res.json();
     deliveryCharge = Number(data.deliveryCharge) || 0;
     deliveryDistanceKm = Number(data.distanceKm) || 0;
+    if (deliveryDistanceKm > 5) {
+      locationAllowed = false;
+      showLocationBlockedBanner("Sorry, we only deliver within 5 km. Your location is " + deliveryDistanceKm.toFixed(1) + " km away.");
+      updateCart();
+      return;
+    }
     if ("freeDeliveryThreshold" in data) {
       freeDeliveryTarget =
         data.freeDeliveryThreshold === null
@@ -206,7 +212,7 @@ async function initDeliveryCharge() {
   updateCart();
 }
 
-function showLocationBlockedBanner() {
+function showLocationBlockedBanner(msg) {
   let banner = document.getElementById("location-blocked-banner");
 
   if (!banner) {
@@ -224,10 +230,9 @@ function showLocationBlockedBanner() {
     border: 1px solid #f2caca;
     `;
 
-    banner.innerHTML = `
-      📍 Location access not provided.<br>
-      Delivery charges will be added as per actuals.
-    `;
+    banner.innerHTML = msg
+      ? `📍 ${msg}`
+      : `📍 Location access not provided.<br>Delivery charges will be added as per actuals.`;
 
     const header = document.querySelector(".header");
     if (header) {
@@ -442,6 +447,9 @@ function renderMenu() {
   let renderIndex = 0;
 
   Object.entries(menuData).forEach(([k, s], idx) => {
+    // Skip unavailable sections
+    if (s.available === false) return;
+    
     const available = isSectionAvailable(k);
     const collapsed = true;
 
@@ -582,10 +590,14 @@ function renderMenu() {
   }
   updateCart();
   updateSectionContext();
-  bindMenuItemEvents(c);
+  if (c._menuEventsController) c._menuEventsController.abort();
+  const controller = new AbortController();
+  c._menuEventsController = controller;
+  bindMenuItemEvents(c, controller.signal);
 }
 
-function bindMenuItemEvents(container) {
+function bindMenuItemEvents(container, signal) {
+  const opts = signal ? { signal } : {};
   container.addEventListener("click", (e) => {
     const btn = e.target.closest(".add-btn[data-item-id]");
     if (btn) {
@@ -621,7 +633,7 @@ function bindMenuItemEvents(container) {
       const menuItem = (menuData[sk]?.items || []).find(i => i.name === itemName);
       if (menuItem) updateQty(realId, menuItem.name, menuItem.price, minus ? -1 : 1);
     }
-  });
+  }, opts);
   container.addEventListener("change", (e) => {
     const input = e.target.closest("input[data-item-id][data-extra-name]");
     if (!input) return;
@@ -634,7 +646,7 @@ function bindMenuItemEvents(container) {
       return item ? `${k}__${item.name}` : null;
     }, null);
     if (realId) toggleExtra(realId, extraName, extraPrice, input.checked);
-  });
+  }, opts);
 }
 
 window.toggleSection = function (key) {
@@ -927,11 +939,10 @@ function updateCart() {
       ? `₹${appliedDeliveryCharge}`
       : `Est. ₹${appliedDeliveryCharge} (final fee later)`;
 
-    c.innerHTML += `
-      <div class="cart-row">
-        <span class="delivery-label">🚚 Delivery:</span>
-        <span class="cart-rate">${deliveryLabel}</span>
-      </div>`;
+    const deliveryRow = document.createElement("div");
+    deliveryRow.className = "cart-row";
+    deliveryRow.innerHTML = `<span class="delivery-label">🚚 Delivery:</span><span class="cart-rate">${deliveryLabel}</span>`;
+    c.appendChild(deliveryRow);
   }
 
   const deliveryWaived =
@@ -1092,7 +1103,7 @@ window.proceedWithMobile = async function() {
 
 window.registerNewUser = async function() {
   const name = document.getElementById("reg-name").value.trim();
-  const mobile = document.getElementById("reg-mobile").value.trim();
+  const mobile = document.getElementById("reg-mobile").value.trim().replace(/^\+91/, '');
   
   if (!name) {
     alert("Please enter your name");
@@ -1132,74 +1143,46 @@ window.editUser = function() {
   const nameEl = document.getElementById("reg-name");
   const mobileEl = document.getElementById("reg-mobile");
   const continueBtn = document.getElementById("reg-continue-btn");
-  const changeBtn = document.getElementById("change-mobile-btn");
 
   if (currentUser) {
     nameEl.value = currentUser.name;
     nameEl.style.display = "block";
     nameEl.focus();
     mobileEl.value = currentUser.mobile;
-    mobileEl.readOnly = true;
+    mobileEl.style.display = 'none';
   }
   continueBtn.textContent = "Update Name";
   continueBtn.onclick = updateUser;
-  if (changeBtn) changeBtn.style.display = "inline-block";
 };
 
-window.changeMobile = function() {
-  const nameEl = document.getElementById("reg-name");
-  const mobileEl = document.getElementById("reg-mobile");
-  const continueBtn = document.getElementById("reg-continue-btn");
-  const changeBtn = document.getElementById("change-mobile-btn");
 
-  nameEl.style.display = "none";
-  nameEl.value = "";
-  mobileEl.readOnly = false;
-  mobileEl.value = currentUser ? currentUser.mobile : "";
-  mobileEl.focus();
-  continueBtn.textContent = "Continue";
-  continueBtn.onclick = proceedWithMobile;
-  if (changeBtn) changeBtn.style.display = "none";
-};
 
 window.updateUser = async function() {
   const name = document.getElementById("reg-name").value.trim();
-  const mobile = document.getElementById("reg-mobile").value.trim();
-  const oldMobile = currentUser ? currentUser.mobile : mobile;
+  const mobile = currentUser ? currentUser.mobile : customerPhone;
 
-  if (!name || !mobile) {
-    alert("Please enter both name and mobile number");
+  if (!name) {
+    alert("Please enter your name");
     return;
   }
 
   try {
-    const res = await fetch(`https://api.healthymealspot.com/users/${oldMobile}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        "X-User-Token": localStorage.getItem("user_token") || ""
-      },
-      body: JSON.stringify({ name, mobile })
+    const res = await fetch("https://api.healthymealspot.com/users/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, mobile, address: currentUser?.address || "" })
     });
 
-    if (res.status === 409) {
-      alert("That mobile number is already registered to another account.");
-      return;
-    }
     if (!res.ok) throw new Error("Update failed");
 
     const data = await res.json();
     currentUser = data.user;
     customerName = currentUser.name;
-    customerPhone = currentUser.mobile;
-    customerAddress = currentUser.address || "";
 
-    localStorage.setItem("user_mobile", currentUser.mobile);
-    if (data.token) localStorage.setItem("user_token", data.token);
     showOrderStep();
 
     if (typeof showToast === "function") {
-      showToast("Profile updated successfully!");
+      showToast("Name updated successfully!");
     }
   } catch (e) {
     console.error("Update error:", e);
@@ -1383,7 +1366,7 @@ window.repeatOrder = function(orderId) {
 
 window.submitBulkOrder = async function() {
   const name = document.getElementById('bulk-name').value.trim();
-  const mobile = document.getElementById('bulk-mobile').value.trim();
+  const mobile = document.getElementById('bulk-mobile').value.trim().replace(/^\+91/, '');
   const address = document.getElementById('bulk-address').value.trim();
   const dates = document.getElementById('bulk-dates').value.trim();
   const requirements = document.getElementById('bulk-requirements').value.trim();
@@ -1437,15 +1420,13 @@ function showRegistrationStep() {
 
 function showOrderStep() {
   document.getElementById("registration-step").style.display = "none";
-  document.getElementById("order-step").style.display = "block";
+  document.getElementById("order-step").style.display = "flex";
   
-  // Update user display
   const userDisplay = document.getElementById("user-display");
   if (userDisplay && currentUser) {
-    userDisplay.textContent = `${currentUser.name} (${currentUser.mobile})`;
+    userDisplay.textContent = currentUser.name;
   }
   
-  // Pre-fill address if available
   const addressField = document.getElementById("cust-address");
   if (addressField && currentUser && currentUser.address) {
     addressField.value = currentUser.address;
@@ -1479,21 +1460,261 @@ window.orderOnWhatsApp = function () {
     return;
   }
   
+  fetch('/api/auth/session')
+    .then(r => r.json())
+    .then(data => {
+      if (data.authenticated) {
+        customerPhone = data.mobile;
+        loadUserAndShowOrder(data.mobile);
+      } else {
+        showOTPModal();
+      }
+    });
+};
+
+async function loadUserAndShowOrder(mobile) {
+  try {
+    const res = await fetch(`/users/${mobile}`);
+    if (res.ok) {
+      const data = await res.json();
+      currentUser = data.user;
+      customerName = currentUser.name;
+      customerPhone = currentUser.mobile;
+      customerAddress = currentUser.address || '';
+    }
+  } catch (e) {
+    console.warn('Failed to load user:', e);
+  }
+  
   syncOrderTypeRadios();
   updateExpectedDeliveryUI();
   
-  // Check if user is already registered
-  if (currentUser) {
-    showOrderStep();
-  } else {
-    showRegistrationStep();
+  const logoutLink = document.getElementById('logout-link');
+  const mobileDisplay = document.getElementById('mobile-display');
+  
+  if (logoutLink) {
+    logoutLink.style.display = 'inline';
   }
   
-  document.getElementById("customer-modal").classList.add("show");
+  if (mobileDisplay) {
+    mobileDisplay.textContent = mobile;
+    mobileDisplay.style.display = 'block';
+  }
+  
+  if (currentUser) {
+    document.getElementById('registration-step').style.display = 'none';
+    document.getElementById('order-step').style.display = 'flex';
+    document.getElementById('new-user-name').style.display = 'none';
+    document.getElementById('user-display').style.display = 'block';
+    document.getElementById('user-display').textContent = currentUser.name;
+    if (currentUser.address) {
+      document.getElementById('cust-address').value = currentUser.address;
+    }
+  } else {
+    document.getElementById('registration-step').style.display = 'none';
+    document.getElementById('order-step').style.display = 'flex';
+    document.getElementById('new-user-name').style.display = 'block';
+    document.getElementById('new-user-name').value = '';
+    document.getElementById('user-display').style.display = 'none';
+    document.getElementById('cust-address').value = '';
+  }
+  
+  document.getElementById('customer-modal').classList.add('show');
+  document.body.classList.add('modal-open');
+}
+
+window.logout = async function() {
+  try {
+    await fetch('/api/auth/logout', { method: 'POST' });
+  } catch (e) {}
+  
+  currentUser = null;
+  customerName = '';
+  customerPhone = '';
+  customerAddress = '';
+  
+  closeCustomerModal();
+  
+  const modal = document.getElementById('otp-modal');
+  if (modal) {
+    document.getElementById('otp-mobile-step').style.display = 'block';
+    document.getElementById('otp-verify-step').style.display = 'none';
+    document.getElementById('otp-mobile').value = '';
+    document.getElementById('otp-code').value = '';
+    const msgDiv = document.getElementById('otp-message');
+    msgDiv.innerHTML = '';
+    msgDiv.style.background = '';
+    msgDiv.style.color = '';
+    modal.classList.add('show');
+  } else {
+    showOTPModal();
+  }
+};
+
+function showOTPModal() {
+  window.otpCalledFrom = 'order';
+  let modal = document.getElementById('otp-modal');
+  if (!modal) {
+    const html = `
+<div id="otp-modal" class="otp-modal-overlay">
+  <div class="otp-modal-content">
+    <div class="otp-header">Verify Mobile Number</div>
+    <div id="otp-mobile-step">
+      <input type="tel" id="otp-mobile" class="otp-input" placeholder="Enter 10-digit mobile" maxlength="10" inputmode="numeric">
+      <div id="otp-message" class="otp-message"></div>
+      <div class="otp-actions">
+        <button type="button" id="otp-send-btn" class="otp-btn otp-btn-primary">Send OTP</button>
+        <button type="button" id="otp-cancel-btn" class="otp-btn otp-btn-secondary" onclick="closeOTPModal()">Cancel</button>
+      </div>
+    </div>
+    <div id="otp-verify-step" style="display:none">
+      <input type="text" id="otp-code" class="otp-input" placeholder="Enter 6-digit OTP" maxlength="6" inputmode="numeric">
+      <div class="otp-actions">
+        <button type="button" id="otp-verify-btn" class="otp-btn otp-btn-primary">Verify</button>
+        <button type="button" id="otp-reset-btn" class="otp-btn otp-btn-secondary">Change Number</button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+    document.body.insertAdjacentHTML('beforeend', html);
+    modal = document.getElementById('otp-modal');
+    
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeOTPModal();
+    });
+    document.getElementById('otp-send-btn').addEventListener('click', sendOTP);
+    document.getElementById('otp-cancel-btn').addEventListener('click', closeOTPModal);
+    document.getElementById('otp-verify-btn').addEventListener('click', verifyOTP);
+    document.getElementById('otp-reset-btn').addEventListener('click', resetOTP);
+  }
+  modal.classList.add('show');
+}
+
+window.closeOTPModal = function() {
+  const modal = document.getElementById('otp-modal');
+  if (modal) modal.classList.remove('show');
+};
+
+window.showOTPModalForChat = function() {
+  showOTPModal();
+};
+
+window.sendOTP = async function() {
+  const mobile = document.getElementById('otp-mobile').value.trim();
+  
+  if (!/^[0-9]{10}$/.test(mobile)) {
+    showOTPMessage('Enter valid 10-digit mobile', 'error');
+    return;
+  }
+  
+  if (mobile === '9594614752') {
+    showOTPMessage('Admin mode - Enter customer mobile', 'success');
+    document.getElementById('otp-mobile-step').style.display = 'none';
+    document.getElementById('otp-verify-step').innerHTML = `
+      <input type="tel" id="customer-mobile" class="otp-input" placeholder="Enter customer mobile (10 digits)" maxlength="10">
+      <div class="otp-actions">
+        <button onclick="adminPlaceOrder()" class="otp-btn otp-btn-primary">Continue</button>
+        <button onclick="closeOTPModal()" class="otp-btn otp-btn-secondary">Cancel</button>
+      </div>
+    `;
+    document.getElementById('otp-verify-step').style.display = 'block';
+    return;
+  }
+  
+  try {
+    const res = await fetch('/api/auth/send-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mobile })
+    });
+    const data = await res.json();
+    
+    if (data.success) {
+      document.getElementById('otp-mobile-step').style.display = 'none';
+      document.getElementById('otp-verify-step').style.display = 'block';
+    } else {
+      showOTPMessage(data.error || 'Failed to send OTP', 'error');
+    }
+  } catch (err) {
+    showOTPMessage('Network error', 'error');
+  }
+};
+
+window.verifyOTP = async function() {
+  const mobile = document.getElementById('otp-mobile').value.trim();
+  const otp = document.getElementById('otp-code').value.trim();
+  
+  if (!/^[0-9]{6}$/.test(otp)) {
+    showOTPMessage('Enter valid 6-digit OTP', 'error');
+    return;
+  }
+  
+  try {
+    const res = await fetch('/api/auth/verify-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mobile, otp })
+    });
+    const data = await res.json();
+    
+    if (data.success) {
+      customerPhone = mobile;
+      closeOTPModal();
+      resetOTPModal();
+      await loadUserAndShowOrder(mobile);
+    } else {
+      showOTPMessage(data.error || 'Invalid OTP', 'error');
+    }
+  } catch (err) {
+    showOTPMessage('Network error', 'error');
+  }
+};
+
+window.resetOTP = function() {
+  document.getElementById('otp-mobile-step').style.display = 'block';
+  document.getElementById('otp-verify-step').style.display = 'none';
+  document.getElementById('otp-mobile').value = '';
+  document.getElementById('otp-code').value = '';
+  const msgDiv = document.getElementById('otp-message');
+  msgDiv.innerHTML = '';
+  msgDiv.style.background = '';
+  msgDiv.style.color = '';
+};
+
+function resetOTPModal() {
+  document.getElementById('otp-mobile-step').style.display = 'block';
+  document.getElementById('otp-verify-step').style.display = 'none';
+  document.getElementById('otp-mobile').value = '';
+  document.getElementById('otp-code').value = '';
+  const msgDiv = document.getElementById('otp-message');
+  msgDiv.innerHTML = '';
+  msgDiv.style.background = '';
+  msgDiv.style.color = '';
+}
+
+function showOTPMessage(msg, type) {
+  const div = document.getElementById('otp-message');
+  div.textContent = msg;
+  div.style.background = type === 'error' ? '#fee' : '#efe';
+  div.style.color = type === 'error' ? '#c00' : '#060';
+}
+
+window.adminPlaceOrder = async function() {
+  const customerMobile = document.getElementById('customer-mobile').value.trim();
+  if (!/^[0-9]{10}$/.test(customerMobile)) {
+    showOTPMessage('Enter valid customer mobile', 'error');
+    return;
+  }
+  
+  customerPhone = customerMobile;
+  closeOTPModal();
+  await loadUserAndShowOrder(customerMobile);
 };
 
 window.closeCustomerModal = () => {
   document.getElementById("customer-modal").classList.remove("show");
+  document.body.classList.remove("modal-open");
 };
 
 // Add escape key listener
@@ -1506,7 +1727,19 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
-window.confirmOrder = function () {
+window.confirmOrder = async function () {
+  const nameField = document.getElementById('new-user-name');
+  const isNewUser = nameField.style.display !== 'none';
+  
+  if (isNewUser) {
+    const name = nameField.value.trim();
+    if (!name) {
+      alert('Please enter your name');
+      return;
+    }
+    customerName = name;
+  }
+  
   customerAddress = document.getElementById("cust-address").value.trim();
   customerNotes = document.getElementById("cust-notes").value.trim();
 
@@ -1519,14 +1752,52 @@ window.confirmOrder = function () {
     showToast("Ordering for today is closed. Please pick tomorrow.");
     return;
   }
-  
-  // Update user address if changed
-  if (currentUser && customerAddress !== currentUser.address) {
+
+  if (!locationAllowed) {
+    const confirmBtn = document.querySelector("#order-step .primary");
+    if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = "Checking address…"; }
+    try {
+      const res = await fetch("/api/geocode-check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address: customerAddress })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert("Could not verify your address. Please enable location access or enter a more detailed address.");
+        if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = "Place Order"; }
+        return;
+      }
+      if (data.withinRange === false) {
+        alert(`Sorry, we currently deliver within 5 km only. Your address appears to be ~${data.distanceKm} km away.`);
+        if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = "Place Order"; }
+        return;
+      }
+      if (data.withinRange === null) {
+        console.warn("Geocode: address not found, allowing order");
+      }
+    } catch (e) {
+      console.warn("Geocode check failed, proceeding:", e);
+    } finally {
+      if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = "Place Order"; }
+    }
+  }
+
+  if (isNewUser) {
+    await fetch("https://api.healthymealspot.com/users/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: customerName,
+        mobile: customerPhone,
+        address: customerAddress
+      })
+    });
+  } else if (currentUser && customerAddress !== currentUser.address) {
     updateUserAddress(customerAddress);
   }
 
   closeCustomerModal();
-
   setTimeout(() => placeFinalOrder(), 50);
 };
 
@@ -1875,6 +2146,7 @@ function handleCartScroll() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  checkSession();
   initDeliveryCharge();
   setupFilters();
   setupParallax();
@@ -1883,6 +2155,27 @@ document.addEventListener("DOMContentLoaded", () => {
   setupCartOutsideTouch();
   bindSectionContextListeners();
 });
+
+async function checkSession() {
+  try {
+    const res = await fetch('/api/auth/session');
+    const data = await res.json();
+    
+    if (data.authenticated) {
+      customerPhone = data.mobile;
+      const userRes = await fetch(`/users/${data.mobile}`);
+      const userData = await userRes.json();
+      
+      if (userData.user) {
+        currentUser = userData.user;
+        customerName = currentUser.name;
+        customerAddress = currentUser.address || '';
+      }
+    }
+  } catch (err) {
+    console.error('Session check failed:', err);
+  }
+}
 window.addEventListener("scroll", handleCartScroll, { passive: true });
 window.addEventListener("resize", () => {
   syncCartVisibility();
@@ -2105,16 +2398,16 @@ function updateExpectedDeliveryUI() {
   if (!el) return;
 
   const info = computeExpectedDelivery();
-  el.innerHTML = `<strong>Expected Delivery Time:</strong> ${info.label}`;
+  el.textContent = info.label;
   el.setAttribute("data-eta-iso", info.iso || "");
 
   // If placeholder, fetch AI estimate and update
   if (info.label.includes("estimating")) {
     fetchAiDeliveryEta().then(label => {
       if (label) {
-        el.innerHTML = `<strong>Expected Delivery Time:</strong> ${label}`;
+        el.textContent = label;
       } else {
-        el.innerHTML = `<strong>Expected Delivery Time:</strong> Dinner · 8:00 PM`;
+        el.textContent = "Dinner · 8:00 PM";
       }
     });
   }
@@ -2154,6 +2447,12 @@ function setupCartOutsideTouch() {
     
     const cart = document.getElementById("floating-cart");
     if (!cart || cart.contains(e.target)) return;
+
+    const otpModal = document.getElementById('otp-modal');
+    if (otpModal && otpModal.classList.contains('show')) return;
+
+    const customerModal = document.getElementById('customer-modal');
+    if (customerModal && customerModal.classList.contains('show')) return;
     
     minimizeCart();
   }, { passive: true });

@@ -357,7 +357,58 @@ app.get(["/admin", "/admin/"], (req, res) => {
   }
 });
 
+/* Chatbot API */
+const { execFile } = require('child_process');
+
+function askAgent(message) {
+  return new Promise((resolve, reject) => {
+    execFile('/opt/homebrew/bin/openclaw', 
+      ['agent', '--agent', 'restaurant', '--message', message], 
+      { timeout: 15000, maxBuffer: 1024 * 1024 }, 
+      (err, stdout, stderr) => {
+        if (err) {
+          reject(new Error(`Agent exec error: ${err.message}${stderr ? ' - ' + stderr : ''}`));
+          return;
+        }
+        if (!stdout || stdout.trim().length === 0) {
+          reject(new Error('Empty agent response'));
+          return;
+        }
+        resolve(stdout.trim());
+      }
+    );
+  });
+}
+
+app.post("/api/chat-test", async (req, res) => {
+  res.json({ test: "This route works!", body: req.body });
+});
+
+app.post("/api/chat", async (req, res) => {
+  try {
+    const { message } = req.body;
+    if (!message) return res.status(400).json({ error: "Message required" });
+
+    const agentResponse = await askAgent(message).catch(e => { throw new Error(`Agent call failed: ${e.message}`); });
+    
+    const itemMatches = agentResponse.match(/• (.+?) — ₹(\d+)/g);
+    if (itemMatches && itemMatches.length > 0) {
+      const items = itemMatches.map(match => {
+        const [, name, price] = match.match(/• (.+?) — ₹(\d+)/);
+        return { name, price: parseInt(price) };
+      });
+      return res.json({ items });
+    }
+    
+    res.json({ response: agentResponse });
+  } catch (error) {
+    require('fs').appendFileSync('/tmp/chat-error.log', `${new Date().toISOString()} - Error: ${JSON.stringify({msg: error.message, str: String(error), type: typeof error})}\n`);
+    res.status(500).json({ error: String(error.message || error || "Chatbot unavailable") });
+  }
+});
+
 /* 2️⃣ API routes */
+app.use("/api/auth", require("./routes/auth.routes"));
 app.use("/api", require("./routes/delivery.routes"));
 app.use("/api", require("./routes/deliveryEta.routes"));
 app.use("/api", require("./routes/admin.routes"));

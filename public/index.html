@@ -17,6 +17,7 @@
   
   <link rel="icon" href="/favicon.ico" sizes="any">
   <script>document.write(`<link rel="stylesheet" href="/style.css?v=${APP_VERSION}">`);</script>
+  <link rel="stylesheet" href="/chatbot.css">
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-TE81BJG5TS"></script>
   <script>
@@ -56,7 +57,6 @@
       </button>
     </div>
 
-    <button class="action-btn primary motd-btn" onclick="openMotd()">🍽️ Menu of the Day</button>
     <button class="action-btn primary" onclick="bulkOrder()"><i class="fa-brands fa-whatsapp"></i> Bulk Order</button>
     <button class="action-btn secondary" onclick="viewMenuPdf()">📄 View Menu</button>
   </section>
@@ -197,7 +197,6 @@
 <footer class="footer">
   © 2026 Mr & Mrs Ray’s Home Kitchen • Navi Mumbai<br>
   Contact: <a href="mailto:kitchen@healthymealspot.com">kitchen@healthymealspot.com</a> •
-  <a href="/menu.pdf" download="Mr_Mrs_Ray_Menu.pdf" style="color:rgba(255,255,255,0.8);">⬇️ Menu PDF</a>
 </footer>
 
 <script>
@@ -233,37 +232,65 @@ function viewMenuPdf() {
 
 <div id="customer-modal" class="modal">
   <div class="modal-content">
-    <button class="modal-close-btn" onclick="closeCustomerModal()" aria-label="Close modal">×</button>
     <div id="registration-step" class="registration-step">
+      <button class="modal-close-btn" onclick="closeCustomerModal()" aria-label="Close modal">×</button>
       <h3>Enter Details</h3>
       <input id="reg-name" type="text" placeholder="Your Name *" style="display:none;">
-      <input id="reg-mobile" type="tel" placeholder="Mobile Number *">
+      <input id="reg-mobile" type="tel" placeholder="Mobile Number (+91XXXXXXXXXX)" maxlength="13" value="+91">
       <div class="modal-actions">
         <button id="reg-continue-btn" onclick="proceedWithMobile()">Continue</button>
-        <button id="change-mobile-btn" class="edit-user-btn" onclick="changeMobile()" style="display:none;">Change number</button>
       </div>
     </div>
     
-    <div id="order-step" class="registration-step" style="display:none;">
-      <h3>Complete Your Order</h3>
-      <div class="user-info">
-        <span id="user-display"></span>
-        <button class="edit-user-btn" onclick="editUser()">Edit</button>
-        <button class="edit-user-btn" onclick="showMyOrders()" style="margin-left:8px;">My Orders</button>
+    <div id="order-step" class="checkout-step" style="display:none;">
+      <div class="checkout-header">
+        <h3>Complete Your Order</h3>
+        <button class="checkout-close-btn" onclick="closeCustomerModal()" aria-label="Close modal">×</button>
       </div>
-      <textarea id="cust-address" rows="3" placeholder="Delivery Address *"></textarea>
-      <textarea id="cust-notes" rows="2" placeholder="Notes for kitchen"></textarea>
-      <div class="order-type-group">
-        <div class="order-type-label">Order For</div>
-        <div class="order-type-options">
-          <label class="order-type-pill"><input type="radio" name="orderType" value="Lunch"><span>Lunch</span></label>
-          <label class="order-type-pill"><input type="radio" name="orderType" value="Dinner"><span>Dinner</span></label>
+      <div class="checkout-body">
+        <div class="checkout-section user-summary-section">
+          <div class="user-summary-row">
+            <div class="user-summary-info">
+              <div id="user-display" class="user-summary-name"></div>
+              <div class="user-summary-secondary">
+                <div id="mobile-display" class="user-summary-phone"></div>
+                <div class="user-summary-actions">
+                  <a href="#" onclick="showMyOrders(); return false;" class="user-link">My Orders</a>
+                  <span class="user-link-sep">|</span>
+                  <a href="#" id="logout-link" onclick="logout(); return false;" class="user-link" style="display:none;">Logout</a>
+                </div>
+              </div>
+              <input id="new-user-name" type="text" placeholder="Your Name *" class="user-summary-name-input" style="display:none;">
+            </div>
+          </div>
+        </div>
+
+        <div class="checkout-section">
+          <label class="checkout-label">Delivery Address</label>
+          <input id="cust-address" type="text" placeholder="Enter delivery address" class="address-card-input">
+        </div>
+
+        <div class="checkout-section">
+          <label class="checkout-label">Notes for Kitchen</label>
+          <textarea id="cust-notes" rows="2" placeholder="Add instructions for the chef..." class="checkout-notes"></textarea>
+        </div>
+
+        <div class="checkout-section">
+          <label class="checkout-label">Order Time</label>
+          <div class="order-time-options">
+            <label class="order-type-pill"><input type="radio" name="orderType" value="Lunch"><span>Lunch</span></label>
+            <label class="order-type-pill"><input type="radio" name="orderType" value="Dinner"><span>Dinner</span></label>
+          </div>
+        </div>
+
+        <div class="checkout-section">
+          <label class="checkout-label">Expected Delivery</label>
+          <div id="expected-delivery" class="expected-delivery-card" aria-live="polite"></div>
         </div>
       </div>
-      <div id="expected-delivery" class="expected-delivery" aria-live="polite"></div>
-      <div class="modal-actions">
-        <button class="primary" onclick="confirmOrder()">Place Order</button>
-        <button onclick="closeCustomerModal()">Cancel</button>
+      <div class="checkout-btn-row">
+        <button class="checkout-primary-btn" onclick="confirmOrder()">Place Order</button>
+        <button class="checkout-cancel-btn" onclick="closeCustomerModal()">Cancel</button>
       </div>
     </div>
   </div>
@@ -286,6 +313,7 @@ function viewMenuPdf() {
 <script src="/delivery.js?v=${APP_VERSION}"></script>
 <script src="/menu.js?v=${APP_VERSION}"></script>
 <script src="/menuOfTheDay.js?v=${APP_VERSION}"></script>
+<script src="/chatbot.js"></script>
 
 <script>
   /* --- Slideshow --- */
@@ -540,7 +568,7 @@ function toggleCalendar() {
   <div class="modal-content">
     <h3>Bulk Order Request</h3>
     <input id="bulk-name" type="text" placeholder="Your Name *">
-    <input id="bulk-mobile" type="tel" placeholder="Mobile Number *">
+    <input id="bulk-mobile" type="tel" placeholder="Mobile Number (+91XXXXXXXXXX)" maxlength="13" value="+91">
     <textarea id="bulk-address" rows="2" placeholder="Delivery Address *"></textarea>
     <input id="bulk-dates" type="date" placeholder="Delivery Date *">
     <textarea id="bulk-requirements" rows="3" placeholder="Requirements (number of people, meal preferences, etc.)"></textarea>

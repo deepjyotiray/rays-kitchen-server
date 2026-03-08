@@ -1011,20 +1011,137 @@ body.past-hero .filter-controls select {
   position: fixed; inset: 0;
   display: none;
   align-items: center; justify-content: center;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(3px);
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
   z-index: 9999;
+  padding: 0;
 }
 .modal.show, .motd-modal.show { display: flex; }
 
 .modal-content, .motd-card {
-  background: var(--card);
-  width: 92%; max-width: 380px;
-  padding: 22px 20px;
-  border-radius: 18px;
-  box-shadow: var(--shadow-strong);
-  animation: modalPop 0.25s ease-out;
+  background: var(--glass-pane);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  width: min(92vw, 520px);
+  padding: 0;
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  box-shadow: 0 18px 45px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.28);
+  animation: modalPop 0.22s cubic-bezier(0.32, 0.72, 0, 1);
   position: relative;
+  overflow: hidden;
+}
+
+
+.checkout-close-btn {
+  background: none;
+  border: none;
+  font-size: 22px;
+  color: var(--action-text);
+  cursor: pointer;
+}
+
+/* BODY SCROLL AREA */
+.checkout-body {
+  padding: 20px 24px;
+  overflow: hidden;
+}
+
+.checkout-label {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  display: block;
+  color: var(--muted);
+}
+
+/* address card */
+.address-card {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+
+
+.address-edit-btn {
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* order type pills */
+.order-time-options {
+  display: flex;
+  gap: 10px;
+}
+
+/* footer buttons */
+.checkout-footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+
+/* cancel button */
+.checkout-cancel-btn {
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+/* Customer modal: fit viewport, scrollable body */
+#customer-modal .modal-content {
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+}
+
+#customer-modal .registration-step {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+#customer-modal .registration-step::-webkit-scrollbar {
+  width: 6px;
+}
+
+#customer-modal .registration-step::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#customer-modal .registration-step::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.2);
+  border-radius: 3px;
+}
+
+#customer-modal .registration-step::-webkit-scrollbar-thumb:hover {
+  background: rgba(0,0,0,0.3);
+}
+
+body.modal-open {
+  overflow: hidden;
+}
+
+@keyframes modalPop {
+  from { transform: scale(0.95); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+
+/* Reset h3 inside header */
+.checkout-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 /* MOTD Specifics */
@@ -1041,19 +1158,46 @@ body.past-hero .filter-controls select {
   font-size: 20px; display: flex; align-items: center; justify-content: center;
 }
 
-@keyframes modalPop {
-  from { transform: scale(0.95); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
+
 
 .modal-content input, .modal-content textarea {
-  width: 100%; padding: 12px 14px; margin-bottom: 12px;
+  width: 100%; padding: 8px 10px; margin-bottom: 12px;
   border-radius: 12px; border: 1px solid var(--border);
   font-size: 16px; font-family: 'Inter', sans-serif;
   background: var(--card-alt);
   color: var(--text);
   touch-action: manipulation;
   -webkit-text-size-adjust: 100%;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.modal-content input:focus, .modal-content textarea:focus { border-color: var(--action-end); }
+
+.modal-content > *:not(.checkout-step):not(.registration-step) {
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.modal-content > *:first-child:not(h3):not(.registration-step) {
+  padding-top: 20px;
+}
+
+.modal-content > *:last-child:not(.registration-step) {
+  padding-bottom: 28px;
+}
+/* Fix checkout modal padding issue */
+
+#order-step.checkout-step {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* ensure header touches modal edges */
+
+#order-step .checkout-header {
+  margin: 0;
+  width: 100%;
+  border-radius: 20px 20px 0 0;
 }
 
 #reg-mobile[readonly] {
@@ -1062,18 +1206,52 @@ body.past-hero .filter-controls select {
   cursor: default;
 }
 
-.modal-actions { display: flex; gap: 10px; margin-top: 8px; }
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+  align-items: stretch;
+}
 .modal-actions button {
-  flex: 1; padding: 12px; border-radius: 999px; border: none;
-  cursor: pointer; font-weight: 600; font-size: 14px;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 48px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .modal-actions .primary {
   background: linear-gradient(135deg, var(--action-start), var(--action-end));
   color: var(--action-text);
-  box-shadow: 0 8px 20px var(--action-shadow);
+  box-shadow: 0 10px 25px var(--action-shadow);
+}
+.modal-actions button:not(.primary) {
+  background: rgba(255,255,255,0.08);
+  border-color: var(--glass-border);
+  color: var(--text);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
 }
 
 /* Order Type Pills */
+.order-type-group {
+  margin-bottom: 16px;
+}
+
+.order-type-label {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+}
+
 .order-type-options { display: flex; gap: 12px; }
 .order-type-pill {
   flex: 1; position: relative;
@@ -1462,11 +1640,11 @@ body.past-hero .filter-controls select {
 .motd-card h3 {
   background: linear-gradient(135deg, var(--accent-strong), var(--accent));
   color: var(--accent-contrast);
-  margin: -22px -20px 18px -20px; 
+  margin: 0;
   padding: 18px 50px 18px 20px;
   border-radius: 18px 18px 0 0;
   text-align: left;
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-size: 20px;
   line-height: 1.2;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
@@ -1478,9 +1656,24 @@ body.past-hero .filter-controls select {
   font-weight: 500;
   font-style: italic;
   color: var(--muted);
-  margin-bottom: 16px;
-  margin-top: -6px;
+  margin: 16px 20px;
   line-height: 1.4;
+}
+
+.motd-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  border-bottom: 1px dashed var(--border);
+}
+
+.motd-empty {
+  text-align: center;
+  font-size: 15px;
+  padding: 30px 20px;
+  color: var(--muted);
+  font-style: italic;
 }
 
 .motd-close {
@@ -1607,62 +1800,525 @@ body.past-hero .filter-controls select {
   right: 12px;
   background: transparent;
   border: none;
-  font-size: 24px;
+  font-size: 22px;
   cursor: pointer;
-  color: var(--muted);
+  color: var(--action-text);
   padding: 4px;
-  border-radius: 50%;
   width: 32px;
   height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1;
+  opacity: 0.9;
 }
 
 .modal-close-btn:hover {
-  background: var(--card-alt);
-  color: var(--text);
+  opacity: 1;
+  color: white;
 }
 
 /* ================= REGISTRATION UI ================= */
 .registration-step {
   display: block;
+  padding: 20px;
+  position: relative;
 }
 
 .registration-step h3 {
-  margin: 0 0 20px 0;
-  font-family: 'Playfair Display', serif;
-  color: var(--accent-strong);
-  font-size: 22px;
-  text-align: center;
+  background: linear-gradient(135deg, var(--action-start), var(--action-end));
+  color: var(--action-text);
+  margin: -20px -20px 16px -20px;
+  padding: 14px 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
   font-weight: 600;
+  text-align: center;
+}
+
+.registration-step .modal-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
 }
 
 .user-info {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 12px 14px;
-  background: var(--card-alt);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  margin-bottom: 12px;
+  gap: 8px;
+  padding: 12px;
+  background: rgba(0,0,0,0.03);
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+#user-display {
+  flex: 1;
+  font-weight: 500;
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
 }
 
 .edit-user-btn {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--accent-strong);
   padding: 6px 12px;
-  border-radius: 8px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 6px;
+  font-size: 13px;
   cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
+  transition: all 0.2s;
+  color: inherit;
+  font-weight: 500;
 }
 
 .edit-user-btn:hover {
-  background: var(--pill);
+  background: rgba(255,255,255,0.2);
+}
+
+/* ================= CHECKOUT STEP (Complete Your Order) ================= */
+.checkout-step {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+}
+
+.checkout-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: calc(100% + 2px);
+  margin-left: -1px;
+
+  padding: 12px 20px;
+
+  background: linear-gradient(135deg, var(--action-start), var(--action-end));
+  color: var(--action-text);
+
+  border-radius: 20px 20px 0 0;
+}
+
+.checkout-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  text-align: center;
+  flex: 1;
+}
+
+.checkout-close-btn {
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  color: var(--action-text);
+  cursor: pointer;
+}
+
+.checkout-close-btn:hover {
+  opacity: 1;
+  color: white;
+}
+
+.checkout-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: 14px 20px;
+}
+
+
+
+.checkout-footer {
+  flex-shrink: 0;
+}
+
+.checkout-section {
+  margin-bottom: 24px;
+}
+
+.checkout-section:last-of-type {
+  margin-bottom: 0;
+}
+
+.checkout-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 10px;
+  font-family: 'Inter', sans-serif;
+}
+
+/* User Summary */
+.user-summary-section {
+  margin-bottom: 24px;
+}
+
+.user-summary-row {
+  display: block;
+}
+
+.user-summary-info {
+  min-width: 0;
+}
+
+.user-summary-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.3;
+  margin-bottom: 4px;
+}
+
+.user-summary-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.user-summary-phone {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.user-summary-name,
+.user-summary-phone {
+  font-family: 'Inter', sans-serif;
+}
+
+.user-summary-name-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  background: var(--card-alt);
+  color: var(--text);
+  margin-bottom: 8px;
+  box-sizing: border-box;
+}
+
+.user-summary-actions {
+  flex-shrink: 0;
+  font-size: 12px;
+  margin-left: auto;
+}
+
+.user-link {
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.user-link:hover {
+  color: var(--accent);
+}
+
+.user-link-sep {
+  color: var(--muted);
+  margin: 0 6px;
+  opacity: 0.6;
+}
+
+/* Delivery Address Card */
+.address-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 8px 12px;
+
+  background: var(--card-alt);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+.address-card:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(198,31,58,0.12);
+}
+
+
+.address-edit-btn {
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.address-card-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  height: 34px;
+  line-height: 18px;
+  overflow: hidden;
+  resize: none;
+}
+
+.address-card-input::placeholder {
+  color: var(--muted);
+}
+
+.address-edit-btn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 0;
+  align-self: flex-start;
+}
+
+.address-edit-btn:hover {
+  text-decoration: underline;
+}
+
+/* Kitchen Notes */
+.checkout-notes {
+  width: 100%;
+  height: 36px;
+
+  padding: 8px 12px;
+
+  border-radius: 10px;
+  border: 1px solid var(--border);
+
+  font-size: 14px;
+
+  resize: none;
+  overflow-y: auto;
+}
+
+.checkout-notes::placeholder {
+  color: var(--muted);
+}
+
+.checkout-notes:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* Order Time */
+.order-time-options {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-start;
+}
+
+.order-time-options .order-type-pill {
+  flex: 0 1 auto;
+  min-width: 100px;
+}
+
+/* Expected Delivery Card */
+#customer-modal .expected-delivery-card {
+  padding: 10px 12px;
+  font-size: 13px;
+  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.22);
+  border-radius: 12px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.expected-delivery-card::before {
+  content: "⏱";
+  font-size: 14px;
+}
+
+/* Checkout Footer - match cart modal */
+.checkout-footer {
+  flex-shrink: 0;
+  margin-top: 0;
+  padding: 14px 20px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  background: var(--card);
+}
+
+.checkout-primary-btn {
+  width: auto;
+  min-width: 220px;
+  height: 46px;
+  font-size: 14px;
+  border-radius: 999px;
+  border: none;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--action-start), var(--action-end));
+  color: var(--action-text);
+  box-shadow: 0 8px 20px var(--action-shadow);
+  transition: opacity 0.15s, transform 0.15s;
+  margin-bottom: 10px;
+}
+
+.checkout-primary-btn:hover {
+  opacity: 0.95;
+}
+
+.checkout-primary-btn:active {
+  transform: scale(0.98);
+}
+
+.checkout-cancel-btn {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 12px;
+  background: transparent;
+  height: 48px;
+  font-size: 14px;
+  border-radius: 999px;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: color 0.15s;
+}
+
+.checkout-cancel-btn:hover {
+  color: var(--text);
+}
+
+/* ================= OTP MODAL ================= */
+.otp-modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(4px);
+  z-index: 10020;
+}
+
+.otp-modal-overlay.show {
+  display: flex;
+}
+
+.otp-modal-content {
+  background: var(--glass-pane);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  width: 92%;
+  max-width: 330px;
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  box-shadow:
+    0 18px 45px rgba(0,0,0,0.22),
+    inset 0 1px 0 rgba(255,255,255,0.28);
+  animation: modalPop 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+  overflow: hidden;
+}
+
+.otp-header {
+  background: linear-gradient(135deg, var(--action-start), var(--action-end));
+  color: var(--action-text);
+  padding: 14px 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+}
+
+#otp-mobile-step,
+#otp-verify-step {
+  padding: 20px;
+}
+
+.otp-input {
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  font-size: 16px;
+  font-family: 'Inter', sans-serif;
+  background: rgba(255,255,255,0.08);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  -webkit-text-size-adjust: 100%;
+  box-sizing: border-box;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.otp-input:focus {
+  border-color: rgba(198,31,58,0.45);
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.06), 0 0 0 3px rgba(198,31,58,0.1);
+}
+
+.otp-message {
+  font-size: 13px;
+  text-align: center;
+  padding: 8px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  min-height: 20px;
+}
+
+.otp-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+  align-items: stretch;
+}
+
+.otp-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0 14px;
+  height: 48px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.otp-btn:active {
+  opacity: 0.8;
+  transform: scale(0.98);
+}
+
+.otp-btn-primary {
+  background: linear-gradient(135deg, var(--action-start), var(--action-end));
+  color: var(--action-text);
+  border-color: transparent;
+  box-shadow: 0 10px 25px var(--action-shadow);
+}
+
+.otp-btn-secondary {
+  background: rgba(255,255,255,0.08);
+  border-color: var(--glass-border);
+  color: var(--text);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
 }
 
 /* ================= ORDERS MODAL ================= */
@@ -1672,9 +2328,10 @@ body.past-hero .filter-controls select {
   display: none;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(3px);
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
   z-index: 9999;
+  padding: 0;
 }
 
 #orders-modal.show {
@@ -1682,56 +2339,53 @@ body.past-hero .filter-controls select {
 }
 
 #orders-modal .modal-content {
-  background: var(--card);
+  background: var(--glass-pane);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
   width: 92%;
-  max-width: 500px;
+  max-width: 380px;
   max-height: 80vh;
-  border-radius: 18px;
-  box-shadow: var(--shadow-strong);
-  animation: modalPop 0.25s ease-out;
+  padding: 0;
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  box-shadow: 0 18px 45px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.28);
+  animation: modalPop 0.22s cubic-bezier(0.32, 0.72, 0, 1);
   position: relative;
   overflow: hidden;
 }
 
 .modal-header {
+  background: linear-gradient(135deg, var(--action-start), var(--action-end));
+  margin: 0;
+  padding: 14px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 20px 0 20px;
-  margin-bottom: 16px;
 }
 
 .modal-header h3 {
   margin: 0;
-  font-family: 'Playfair Display', serif;
-  color: var(--accent-strong);
-  font-size: 20px;
+  font-family: 'Inter', sans-serif;
+  color: var(--action-text);
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .close-btn {
-  background: transparent;
-  border: none;
-  font-size: 24px;
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.3);
+  font-size: 18px;
   cursor: pointer;
-  color: var(--muted);
-  padding: 4px;
+  color: var(--action-text);
   border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
 }
-
-.close-btn:hover {
-  background: var(--card-alt);
-  color: var(--text);
-}
+.close-btn:hover { background: rgba(255,255,255,0.35); }
 
 .orders-list {
   max-height: 60vh;
   overflow-y: auto;
-  padding: 0 20px 20px 20px;
+  padding: 20px;
 }
 
 .orders-month-header {
@@ -1898,5 +2552,179 @@ body.past-hero .filter-controls select {
   
   .rtc-item {
     padding: 14px 16px;
+  }
+}
+
+/* ================= CHECKOUT MODAL RESPONSIVE ================= */
+/* FIXED HEIGHT CHECKOUT MODAL */
+
+#customer-modal .modal-content {
+  height: auto;
+  max-height: 640px;
+  width: min(92vw, 347px);
+  display: grid;
+  grid-template-rows:
+    auto   /* header */
+    1fr    /* body */
+    auto;  /* footer */
+  overflow: hidden;
+}
+
+/* =========================================================
+CHECKOUT MODAL FIX PATCH
+This block intentionally overrides earlier conflicting rules.
+Do not move this block above existing CSS.
+========================================================= */
+
+/* ---- Force fixed modal layout ---- */
+#customer-modal .modal-content {
+  height: auto !important;
+  max-height: 640px !important;
+  width: min(92vw, 347px);
+  display: grid !important;
+  grid-template-rows: auto 1fr auto;
+  overflow: hidden !important;
+}
+
+/* ---- Remove modal scrolling ---- */
+#customer-modal .checkout-body {
+  overflow: hidden !important;
+  padding: 14px 20px !important;
+}
+
+/* Remove scrollbar styles if they exist */
+#customer-modal .checkout-body::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---- Reduce section spacing ---- */
+#customer-modal .checkout-section {
+  margin-bottom: 10px !important;
+}
+
+/* ---- Compact inputs ---- */
+#customer-modal input,
+#customer-modal textarea {
+  padding: 8px 10px !important;
+  font-size: 14px;
+}
+
+/* ---- Address input ---- */
+#customer-modal .address-card-input {
+  width: 100%;
+  height: 34px !important;
+  overflow: hidden;
+  background: var(--card-alt);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 8px 12px !important;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  color: var(--text);
+  box-sizing: border-box;
+}
+
+/* ---- Notes input ---- */
+#customer-modal .checkout-notes {
+  height: 34px !important;
+  resize: none;
+  overflow-y: auto;
+}
+
+/* ---- Order time pills ---- */
+#customer-modal .order-time-options {
+  display: flex;
+  gap: 12px;
+}
+
+#customer-modal .order-type-pill {
+  height: 44px;
+  border-radius: 28px;
+  border: 1px solid var(--glass-border);
+  background: rgba(255,255,255,0.08);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+#customer-modal .order-type-pill:has(input:checked) {
+  background: linear-gradient(135deg, var(--action-start), var(--action-end));
+  border-color: transparent;
+  color: var(--action-text);
+  box-shadow: 0 8px 20px var(--action-shadow);
+}
+
+#customer-modal .order-type-pill span {
+  padding: 8px 16px;
+  border-radius: 999px;
+}
+
+/* ---- Buttons row ---- */
+#customer-modal .checkout-btn-row {
+  display: flex;
+  gap: 10px;
+  padding: 14px 20px;
+}
+
+/* ---- Place order button ---- */
+#customer-modal .checkout-primary-btn,
+#customer-modal .checkout-cancel-btn {
+  flex: 1 1 0 !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  height: 44px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 28px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#customer-modal .checkout-cancel-btn {
+  border: 1px solid var(--glass-border) !important;
+}
+
+/* ---- Prevent modal body expanding ---- */
+#customer-modal .checkout-step {
+  display: contents;
+}
+
+/* ---- Ensure header does not grow ---- */
+#customer-modal .checkout-header {
+  flex-shrink: 0;
+}
+
+/* ---- Prevent textarea from stretching modal ---- */
+#customer-modal textarea {
+  max-height: 34px;
+}
+
+/* ---- Mobile layout safety ---- */
+@media (max-width: 600px) {
+  #customer-modal .modal-content {
+    height: auto !important;
+    width: 94vw;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  #customer-modal .modal-content,
+  #orders-modal .modal-content,
+  #bulk-order-modal .modal-content,
+  .otp-modal-content {
+    background: #ffffff !important;
+    backdrop-filter: none !important;
+  }
+  .modal-content input,
+  .modal-content textarea,
+  .otp-modal-content input,
+  .otp-input {
+    background: #f0f0f0 !important;
+    border: 1px solid rgba(0,0,0,0.15) !important;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.08) !important;
   }
 }
