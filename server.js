@@ -425,6 +425,28 @@ app.get(["/", "/corporate"], (_req, res) => {
   res.sendFile(path.join(publicPath, "index.html"));
 });
 
+/* Nutrition Hub routes */
+app.get("/nutrition", (_req, res) => {
+  res.sendFile(path.join(publicPath, "nutrition.html"));
+});
+
+/* Category filter pages */
+const NUTRITION_CATEGORIES = new Set(['weight-loss','muscle-gain','medical','recipes','myths']);
+app.get("/nutrition/:slug", (req, res) => {
+  const file = NUTRITION_CATEGORIES.has(req.params.slug) ? "nutrition.html" : "article.html";
+  res.sendFile(path.join(publicPath, file));
+});
+
+/* Consult Nutritionist */
+app.get("/consult-nutritionist", (_req, res) => {
+  res.sendFile(path.join(publicPath, "consult-nutritionist.html"));
+});
+
+/* About */
+app.get("/about", (_req, res) => {
+  res.sendFile(path.join(publicPath, "about.html"));
+});
+
 /* 4️⃣ Everything else: 404 */
 app.use((req, res) => {
   res.status(404).send("Not found");
