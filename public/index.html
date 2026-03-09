@@ -24,6 +24,9 @@
   <meta name="twitter:card" content="summary_large_image" />
   
   <link rel="canonical" href="https://healthymealspot.com/" />
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"Restaurant","name":"Healthy Meal Spot","servesCuisine":"Healthy Indian","priceRange":"$$","url":"https://healthymealspot.com","description":"Healthy Meal Spot offers fresh, nutritious meals and evidence-based nutrition guidance delivered in Navi Mumbai.","address":{"@type":"PostalAddress","addressLocality":"Navi Mumbai","addressRegion":"Maharashtra","addressCountry":"IN"},"email":"kitchen@healthymealspot.com","sameAs":["https://healthymealspot.com"]}
+  </script>
   <link rel="icon" href="/favicon.ico" sizes="any">
   <script>document.write(`<link rel="stylesheet" href="/style.css?v=${APP_VERSION}">`);</script>
   <link rel="stylesheet" href="/chatbot.css">
@@ -53,17 +56,17 @@
       <div id="drawer-user-phone" class="drawer-user-phone"></div>
     </div>
     <div id="drawer-auth-btns" class="drawer-auth-btns">
-      <button class="drawer-login-btn" onclick="closeDrawer(); showOTPModal();">&#128274; Login / Sign Up</button>
+      <button class="drawer-login-btn" onclick="closeDrawer(); showOTPModal();">Sign In</button>
     </div>
   </div>
   <ul class="drawer-links">
-    <li><a href="/" class="drawer-link active">&#127869;&#65039; Menu</a></li>
-    <li id="drawer-my-orders-li" style="display:none"><button class="drawer-link drawer-link-btn" onclick="closeDrawer(); showMyOrders();">&#128203; My Orders</button></li>
-    <li><a href="/nutrition" class="drawer-link">&#129367; Nutrition Hub</a></li>
-    <li><a href="/consult-nutritionist" class="drawer-link">&#128105;&#8205;&#9877;&#65039; Consult Nutritionist</a></li>
-    <li><a href="/about" class="drawer-link">&#8505;&#65039; About</a></li>
-    <li><a href="mailto:kitchen@healthymealspot.com" class="drawer-link">&#9993;&#65039; Contact</a></li>
-    <li id="drawer-logout-li" style="display:none"><button class="drawer-link drawer-link-btn drawer-logout-btn" onclick="closeDrawer(); logout();">&#128275; Logout</button></li>
+    <li><a href="/" class="drawer-link active">Menu</a></li>
+    <li id="drawer-my-orders-li" style="display:none"><button class="drawer-link drawer-link-btn" onclick="closeDrawer(); showMyOrders();">My Orders</button></li>
+    <li><a href="/nutrition" class="drawer-link">Nutrition Hub</a></li>
+    <li><a href="/consult-nutritionist" class="drawer-link">Consult Nutritionist</a></li>
+    <li><a href="/about" class="drawer-link">About</a></li>
+    <li><a href="mailto:kitchen@healthymealspot.com" class="drawer-link">Contact</a></li>
+    <li id="drawer-logout-li" style="display:none"><button class="drawer-link drawer-link-btn drawer-logout-btn" onclick="closeDrawer(); logout();">Sign Out</button></li>
   </ul>
 </nav>
 
@@ -72,12 +75,21 @@
   <button class="hamburger-btn" onclick="openDrawer()" aria-label="Open menu" aria-expanded="false" id="hamburger-btn">
     <span></span><span></span><span></span>
   </button>
-  <div class="app-bar-title">
-    <img src="/favicon.png" alt="" class="app-bar-logo" width="28" height="28">
-    <span>Healthy Meal Spot</span>
-  </div>
+  <nav class="top-nav" aria-label="Main navigation">
+    <a href="/" class="top-nav-link active">
+      <img src="/favicon.png" alt="" class="app-bar-logo" width="20" height="20" style="margin-right:5px">
+      Healthy Meal Menu
+    </a>
+    <a href="/nutrition" class="top-nav-link">Nutrition Hub</a>
+    <a href="/consult-nutritionist" class="top-nav-link">Consult Nutritionist</a>
+    <a href="/about" class="top-nav-link">About</a>
+    <a href="mailto:kitchen@healthymealspot.com" class="top-nav-link">Contact</a>
+    <button class="top-nav-link top-nav-orders-btn" id="top-nav-orders-btn" style="display:none" onclick="showMyOrders()">My Orders</button>
+    <button class="top-nav-link top-nav-logout-btn" id="top-nav-logout-btn" style="display:none" onclick="logout()">Sign Out</button>
+    <button class="top-nav-link top-nav-auth-btn" id="top-nav-auth-btn" onclick="showOTPModal()">Sign In</button>
+  </nav>
   <button class="app-bar-cart-btn" id="app-bar-cart-btn" onclick="expandCart()" aria-label="View cart" style="display:none">
-    &#127869;&#65039; <span id="app-bar-cart-count">0</span>
+    Your Plate <span id="app-bar-cart-count">0</span>
   </button>
 </header>
 
@@ -613,6 +625,28 @@ function syncDrawerUser() {
 // Sync on open
 const _origOpen = openDrawer;
 openDrawer = function() { _origOpen(); syncDrawerUser(); };
+
+/* ===== TOP NAV USER STATE ===== */
+function syncTopNav() {
+  const user = typeof currentUser !== 'undefined' ? currentUser : null;
+  const authBtn = document.getElementById('top-nav-auth-btn');
+  const ordersBtn = document.getElementById('top-nav-orders-btn');
+  const logoutBtn = document.getElementById('top-nav-logout-btn');
+  if (!authBtn) return;
+  if (user) {
+    authBtn.style.display = 'none';
+    if (ordersBtn) ordersBtn.style.display = '';
+    if (logoutBtn) { logoutBtn.style.display = ''; logoutBtn.textContent = 'Sign Out'; }
+  } else {
+    authBtn.style.display = '';
+    if (ordersBtn) ordersBtn.style.display = 'none';
+    if (logoutBtn) logoutBtn.style.display = 'none';
+  }
+}
+// Re-sync whenever drawer syncs (auth state changes)
+const _origSyncDrawer = syncDrawerUser;
+syncDrawerUser = function() { _origSyncDrawer(); syncTopNav(); };
+syncTopNav();
 
 /* ===== APP BAR CART BADGE ===== */
 (function syncAppBarCart() {

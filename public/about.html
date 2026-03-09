@@ -28,15 +28,15 @@
       <div id="drawer-user-phone" class="drawer-user-phone"></div>
     </div>
     <div id="drawer-auth-btns" class="drawer-auth-btns">
-      <button class="drawer-login-btn" onclick="closeDrawer(); showOTPModal();">&#128274; Login / Sign Up</button>
+      <button class="drawer-login-btn" onclick="closeDrawer(); showOTPModal();">Sign In</button>
     </div>
   </div>
   <ul class="drawer-links">
-    <li><a href="/" class="drawer-link">&#127869;&#65039; Menu</a></li>
-    <li><a href="/nutrition" class="drawer-link">&#129367; Nutrition Hub</a></li>
-    <li><a href="/consult-nutritionist" class="drawer-link">&#128105;&#8205;&#9877;&#65039; Consult Nutritionist</a></li>
-    <li><a href="/about" class="drawer-link active">&#8505;&#65039; About</a></li>
-    <li><a href="mailto:kitchen@healthymealspot.com" class="drawer-link">&#9993;&#65039; Contact</a></li>
+    <li><a href="/" class="drawer-link">Menu</a></li>
+    <li><a href="/nutrition" class="drawer-link">Nutrition Hub</a></li>
+    <li><a href="/consult-nutritionist" class="drawer-link">Consult Nutritionist</a></li>
+    <li><a href="/about" class="drawer-link active">About</a></li>
+    <li><a href="mailto:kitchen@healthymealspot.com" class="drawer-link">Contact</a></li>
   </ul>
 </nav>
 
@@ -44,11 +44,18 @@
   <button class="hamburger-btn" onclick="openDrawer()" aria-label="Open menu" aria-expanded="false" id="hamburger-btn">
     <span></span><span></span><span></span>
   </button>
-  <div class="app-bar-title">
-    <img src="/favicon.png" alt="" class="app-bar-logo" width="28" height="28">
-    <span>About</span>
-  </div>
-  <a href="/" class="app-bar-cart-btn" style="display:flex;text-decoration:none">&#127869;&#65039; Order</a>
+  <nav class="top-nav" aria-label="Main navigation">
+    <a href="/" class="top-nav-link">
+      <img src="/favicon.png" alt="" class="app-bar-logo" width="20" height="20" style="margin-right:5px">
+      Healthy Meal Menu
+    </a>
+    <a href="/nutrition" class="top-nav-link">Nutrition Hub</a>
+    <a href="/consult-nutritionist" class="top-nav-link">Consult Nutritionist</a>
+    <a href="/about" class="top-nav-link active">About</a>
+    <a href="mailto:kitchen@healthymealspot.com" class="top-nav-link">Contact</a>
+    <button class="top-nav-link top-nav-auth-btn" id="top-nav-auth-btn" onclick="showOTPModal()">Sign In</button>
+  </nav>
+  
 </header>
 <div class="page-header">
   <h1 class="page-header-title">About Healthy Meal Spot</h1>
@@ -133,5 +140,13 @@ function closeDrawer() {
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
 </script>
 <script src="/drawer-auth.js"></script>
+<script>
+(function() {
+  var user = typeof currentUser !== 'undefined' ? currentUser : null;
+  var authBtn = document.getElementById('top-nav-auth-btn');
+  if (!authBtn) return;
+  if (user) authBtn.style.display = 'none';
+})();
+</script>
 </body>
 </html>

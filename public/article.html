@@ -8,12 +8,28 @@
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="/style.css">
+  <style>
+    .breadcrumb{font-size:13px;color:var(--muted);padding:10px 16px 0;max-width:800px;margin:0 auto}
+    .breadcrumb a{color:var(--accent);text-decoration:none}
+    .breadcrumb a:hover{text-decoration:underline}
+    .faq-section{max-width:800px;margin:32px auto 0;padding:0 16px}
+    .faq-section h2{font-size:20px;margin-bottom:16px}
+    .faq-item{border-top:1px solid #eee;padding:14px 0}
+    .faq-item h3{font-size:16px;margin:0 0 6px;color:var(--text)}
+    .faq-item p{margin:0;color:var(--muted);font-size:14px;line-height:1.6}
+    .related-section{max-width:800px;margin:32px auto 0;padding:0 16px 32px}
+    .related-section h2{font-size:18px;margin-bottom:12px}
+    .related-links{display:flex;flex-direction:column;gap:8px}
+    .related-links a{color:var(--accent);text-decoration:none;font-size:14px;padding:8px 12px;background:#f9fafb;border-radius:6px;border-left:3px solid var(--accent)}
+    .related-links a:hover{background:#ecfdf3}
+    .hub-links{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+    .hub-links a{font-size:13px;padding:6px 14px;border-radius:20px;border:1px solid var(--accent);color:var(--accent);text-decoration:none}
+    .hub-links a:hover{background:var(--accent);color:#fff}
+  </style>
 </head>
 <body>
 
-<!-- Hamburger Drawer Overlay -->
 <div id="drawer-overlay" class="drawer-overlay" onclick="closeDrawer()"></div>
-
 <nav id="nav-drawer" class="nav-drawer" aria-label="Main navigation">
   <div class="drawer-header">
     <span class="drawer-brand">Healthy Meal Spot</span>
@@ -25,15 +41,15 @@
       <div id="drawer-user-phone" class="drawer-user-phone"></div>
     </div>
     <div id="drawer-auth-btns" class="drawer-auth-btns">
-      <button class="drawer-login-btn" onclick="closeDrawer(); showOTPModal();">&#128274; Login / Sign Up</button>
+      <button class="drawer-login-btn" onclick="closeDrawer(); showOTPModal();">Sign In</button>
     </div>
   </div>
   <ul class="drawer-links">
-    <li><a href="/" class="drawer-link">&#127869;&#65039; Menu</a></li>
-    <li><a href="/nutrition" class="drawer-link active">&#129367; Nutrition Hub</a></li>
-    <li><a href="/consult-nutritionist" class="drawer-link">&#128105;&#8205;&#9877;&#65039; Consult Nutritionist</a></li>
-    <li><a href="/about" class="drawer-link">&#8505;&#65039; About</a></li>
-    <li><a href="mailto:kitchen@healthymealspot.com" class="drawer-link">&#9993;&#65039; Contact</a></li>
+    <li><a href="/" class="drawer-link">Menu</a></li>
+    <li><a href="/nutrition" class="drawer-link active">Nutrition Hub</a></li>
+    <li><a href="/consult-nutritionist" class="drawer-link">Consult Nutritionist</a></li>
+    <li><a href="/about" class="drawer-link">About</a></li>
+    <li><a href="mailto:kitchen@healthymealspot.com" class="drawer-link">Contact</a></li>
   </ul>
 </nav>
 
@@ -41,11 +57,22 @@
   <button class="hamburger-btn" onclick="openDrawer()" aria-label="Open menu" aria-expanded="false" id="hamburger-btn">
     <span></span><span></span><span></span>
   </button>
-  <div class="app-bar-title">
-    <a href="/nutrition" style="color:var(--accent-strong);text-decoration:none;font-family:'Playfair Display',serif;font-size:16px">&#8592; Nutrition Hub</a>
-  </div>
-  <a href="/consult-nutritionist" class="app-bar-cart-btn" style="display:flex;text-decoration:none">Book</a>
+  <nav class="top-nav" aria-label="Main navigation">
+    <a href="/" class="top-nav-link">
+      <img src="/favicon.png" alt="" class="app-bar-logo" width="20" height="20" style="margin-right:5px">
+      Healthy Meal Menu
+    </a>
+    <a href="/nutrition" class="top-nav-link active">Nutrition Hub</a>
+    <a href="/consult-nutritionist" class="top-nav-link">Consult Nutritionist</a>
+    <a href="/about" class="top-nav-link">About</a>
+    <a href="mailto:kitchen@healthymealspot.com" class="top-nav-link">Contact</a>
+    <button class="top-nav-link top-nav-auth-btn" id="top-nav-auth-btn" onclick="showOTPModal()">Sign In</button>
+  </nav>
+  
 </header>
+
+<nav class="breadcrumb" id="breadcrumb" aria-label="Breadcrumb"></nav>
+
 <div class="page-header">
   <h1 class="page-header-title" id="article-page-title">Article</h1>
   <p class="page-header-sub" id="article-page-meta"></p>
@@ -84,10 +111,18 @@ const CAT_LABELS = {
 
 const slug = location.pathname.replace(/^\/nutrition\//, '').replace(/\/$/, '');
 
+function injectSchema(obj) {
+  const s = document.createElement('script');
+  s.type = 'application/ld+json';
+  s.textContent = JSON.stringify(obj);
+  document.head.appendChild(s);
+}
+
 fetch('/blogs.json')
   .then(r => r.json())
   .then(data => {
-    const article = (data.articles || []).find(a => a.slug === slug);
+    const articles = data.articles || [];
+    const article = articles.find(a => a.slug === slug);
     const root = document.getElementById('article-root');
 
     if (!article) {
@@ -96,24 +131,17 @@ fetch('/blogs.json')
     }
 
     document.title = article.metaTitle || article.title + ' – Healthy Meal Spot';
-    
-    // Set meta description
-    let metaDesc = document.querySelector('meta[name="description"]');
-    if (!metaDesc) {
-      metaDesc = document.createElement('meta');
-      metaDesc.name = "description";
-      document.head.appendChild(metaDesc);
-    }
-    metaDesc.content = article.metaDescription || "Read expert nutrition advice, diet plans, and wellness articles from Healthy Meal Spot.";
+    document.querySelector('meta[name="description"]').content = article.metaDescription || '';
 
-    // Inject structured data
-    const schemaObj = {
+    // Article schema
+    injectSchema({
       "@context": "https://schema.org",
       "@type": "Article",
       "headline": article.title,
       "author": {
         "@type": "Person",
-        "name": article.author || "Nutrition Team"
+        "name": article.author,
+        "url": article.authorSlug ? window.location.origin + '/nutritionist/' + article.authorSlug : undefined
       },
       "datePublished": article.publishDate,
       "dateModified": article.publishDate,
@@ -121,68 +149,126 @@ fetch('/blogs.json')
       "publisher": {
         "@type": "Organization",
         "name": "Healthy Meal Spot",
-        "logo": {
-          "@type": "ImageObject",
-          "url": window.location.origin + "/favicon.png"
-        }
+        "logo": { "@type": "ImageObject", "url": window.location.origin + "/favicon.png" }
       },
-      "mainEntityOfPage": {
-        "@type": "WebPage",
-        "@id": window.location.href
-      }
-    };
-    const schemaScript = document.createElement("script");
-    schemaScript.type = "application/ld+json";
-    schemaScript.textContent = JSON.stringify(schemaObj);
-    document.head.appendChild(schemaScript);
+      "mainEntityOfPage": { "@type": "WebPage", "@id": window.location.href }
+    });
+
+    // Breadcrumb schema
+    const catLabel = CAT_LABELS[article.category] || article.category;
+    injectSchema({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": window.location.origin + "/" },
+        { "@type": "ListItem", "position": 2, "name": "Nutrition Hub", "item": window.location.origin + "/nutrition" },
+        { "@type": "ListItem", "position": 3, "name": catLabel, "item": window.location.origin + "/nutrition/" + article.category },
+        { "@type": "ListItem", "position": 4, "name": article.title, "item": window.location.href }
+      ]
+    });
+
+    // FAQ schema
+    if (article.faqs && article.faqs.length) {
+      injectSchema({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": article.faqs.map(f => ({
+          "@type": "Question",
+          "name": f.q,
+          "acceptedAnswer": { "@type": "Answer", "text": f.a }
+        }))
+      });
+    }
+
+    // Breadcrumb UI
+    document.getElementById('breadcrumb').innerHTML =
+      `<a href="/">Home</a> › <a href="/nutrition">Nutrition Hub</a> › <a href="/nutrition/${article.category}">${catLabel}</a> › ${article.title}`;
 
     document.getElementById('article-page-title').textContent = article.title;
-    document.getElementById('article-page-meta').textContent = (CAT_LABELS[article.category] || article.category) + ' · ' + article.readingTime + ' min read';
+    document.getElementById('article-page-meta').textContent = catLabel + ' · ' + article.readingTime + ' min read';
 
     const date = new Date(article.publishDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+    const authorLink = article.authorSlug
+      ? `<a href="/nutritionist/${article.authorSlug}" style="color:var(--accent);text-decoration:none">&#9997;&#65039; ${article.author}</a>`
+      : `&#9997;&#65039; ${article.author}`;
+
+    // Related articles (up to 3, same category or different, excluding current)
+    const related = articles.filter(a => a.slug !== slug).slice(0, 3);
 
     root.innerHTML = `
       <article>
-        <img src="${article.image}" alt="${article.title}" class="article-hero" loading="lazy">
+        <img src="${article.image}" alt="${article.title} – healthy meal" class="article-hero" loading="lazy" width="800" height="450">
         <div class="article-container">
-          <span class="article-category-tag">${CAT_LABELS[article.category] || article.category}</span>
+          <span class="article-category-tag">${catLabel}</span>
           <h1 class="article-title">${article.title}</h1>
           <div class="article-meta">
-            <span>&#9997;&#65039; ${article.author}</span>
+            <span>${authorLink}</span>
             <span>&#128197; ${date}</span>
             <span>&#9201;&#65039; ${article.readingTime} min read</span>
           </div>
-          
+
           <div class="article-body">
-            <nav class="table-of-contents" style="background:#f9fafb; padding:15px; border-radius:8px; margin-bottom:24px;">
-              <h3 style="margin-top:0; font-size:16px;">Table of Contents</h3>
-              <ul style="padding-left:20px; font-size:14px;">
+            <nav class="table-of-contents" style="background:#f9fafb;padding:15px;border-radius:8px;margin-bottom:24px;">
+              <h3 style="margin-top:0;font-size:16px;">Table of Contents</h3>
+              <ul style="padding-left:20px;font-size:14px;">
                 <li><a href="#introduction">Introduction</a></li>
                 <li><a href="#key-benefits">Key Benefits</a></li>
                 <li><a href="#summary">Summary</a></li>
               </ul>
             </nav>
             ${article.content}
-            
-            <p style="margin-top: 32px; padding: 16px; background: #ecfdf3; border-radius: 8px;">
+
+            <p style="margin-top:32px;padding:16px;background:#ecfdf3;border-radius:8px;">
               <strong>Ready to eat healthier?</strong> <a href="/">Explore our nutritious menu</a> and get fresh meals delivered to your door!
             </p>
           </div>
-          
-          <div class="article-cta" style="margin-top: 40px; text-align: center; border-top: 1px solid #eee; padding-top: 24px;">
+
+          <div class="article-cta" style="margin-top:40px;text-align:center;border-top:1px solid #eee;padding-top:24px;">
             <h3>Need a personalized diet plan?</h3>
             <p>Consult a certified nutritionist and get a personalized diet plan tailored to your goals.</p>
-            <a href="/consult-nutritionist" class="book-btn" style="display:inline-block; margin-top:12px; padding: 12px 24px; background: var(--accent); color: white; border-radius: 8px; text-decoration: none; font-weight: bold;">Book Consultation</a>
+            <a href="/consult-nutritionist" class="book-btn" style="display:inline-block;margin-top:12px;padding:12px 24px;background:var(--accent);color:white;border-radius:8px;text-decoration:none;font-weight:bold;">Book Consultation</a>
           </div>
         </div>
       </article>
     `;
+
+    // FAQ section
+    if (article.faqs && article.faqs.length) {
+      const faqEl = document.createElement('section');
+      faqEl.className = 'faq-section';
+      faqEl.innerHTML = '<h2>Frequently Asked Questions</h2>' +
+        article.faqs.map(f => `<div class="faq-item"><h3>${f.q}</h3><p>${f.a}</p></div>`).join('');
+      root.appendChild(faqEl);
+    }
+
+    // Related articles + hub links
+    if (related.length) {
+      const relEl = document.createElement('section');
+      relEl.className = 'related-section';
+      relEl.innerHTML = `<h2>Related Articles</h2>
+        <div class="related-links">
+          ${related.map(a => `<a href="/nutrition/${a.slug}">${a.title}</a>`).join('')}
+        </div>
+        <div class="hub-links">
+          <a href="/nutrition">Nutrition Hub</a>
+          <a href="/">Our Menu</a>
+          <a href="/consult-nutritionist">Consult Nutritionist</a>
+        </div>`;
+      root.appendChild(relEl);
+    }
   })
   .catch(() => {
     document.getElementById('article-root').innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted)">Could not load article. <a href="/nutrition">Back to Nutrition Hub</a></div>';
   });
-
 </script>
 <script src="/drawer-auth.js"></script>
+<script>
+(function() {
+  var user = typeof currentUser !== 'undefined' ? currentUser : null;
+  var authBtn = document.getElementById('top-nav-auth-btn');
+  if (!authBtn) return;
+  if (user) authBtn.style.display = 'none';
+})();
+</script>
 </body>
 </html>

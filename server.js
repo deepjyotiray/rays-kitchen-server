@@ -447,6 +447,27 @@ app.get("/about", (_req, res) => {
   res.sendFile(path.join(publicPath, "about.html"));
 });
 
+/* Healthy Meals landing page */
+app.get("/healthy-meals", (_req, res) => {
+  res.sendFile(path.join(publicPath, "healthy-meals.html"));
+});
+
+/* SEO Tool pages */
+app.get("/protein-calculator", (_req, res) => {
+  res.sendFile(path.join(publicPath, "protein-calculator.html"));
+});
+app.get("/calorie-calculator", (_req, res) => {
+  res.sendFile(path.join(publicPath, "calorie-calculator.html"));
+});
+app.get("/bmi-calculator", (_req, res) => {
+  res.sendFile(path.join(publicPath, "bmi-calculator.html"));
+});
+
+/* Author / Nutritionist profile pages */
+app.get("/nutritionist/:slug", (req, res) => {
+  res.sendFile(path.join(publicPath, "nutritionist", "index.html"));
+});
+
 /* 4️⃣ Everything else: 404 */
 app.use((req, res) => {
   res.status(404).send("Not found");
