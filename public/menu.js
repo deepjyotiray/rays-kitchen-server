@@ -2,8 +2,8 @@
 window.ORDER_FOR_DATE = window.ORDER_FOR_DATE || new Date();
 
 const API_URL = "https://api.healthymealspot.com/orders";
-const ORDER_FALLBACK_URL =
-  "https://script.google.com/macros/s/AKfycbzpV6819bR3ta2wkFGL7lpOcO-ZhbOZXUimcvR8XMSRHsAaq1zF7zMinjd82ukbq7ml/exec";
+// const ORDER_FALLBACK_URL =
+//   "https://script.google.com/macros/s/AKfycbzpV6819bR3ta2wkFGL7lpOcO-ZhbOZXUimcvR8XMSRHsAaq1zF7zMinjd82ukbq7ml/exec";
 let freeDeliveryTarget = Number(window.FREE_DELIVERY_TARGET) || 1500;
 let baseFreeDeliveryTarget = freeDeliveryTarget;
 
@@ -45,12 +45,12 @@ let coupons = {};
 let searchQuery = "";
 let priceFilter = "all";
 let defaultSearchPlaceholder = "Search dishes, ingredients...";
-let sectionContextLabel = "";
+// let sectionContextLabel = "";
 let sectionContextRaf = false;
 const TODAY_PREP_MINUTES = 60;
 const FUTURE_WINDOWS = {
-  Lunch: "12:30 – 1:30 PM",
-  Dinner: "7:30 – 8:30 PM",
+  Lunch: "1:30 – 3:30 PM",
+  Dinner: "8:30 – 10:30 PM",
 };
 
 function getStartOfDay(d) {
@@ -97,9 +97,13 @@ function formatTime12(d = new Date()) {
   return `${h}:${pad2(m)} ${ampm}`;
 }
 
+function isPast9PM() {
+  return new Date().getHours() >= 21;
+}
+
 function isDateClosed(date) {
   const day = getStartOfDay(date);
-  if (kitchenClosedToday() && day.getTime() === getTodayStart().getTime()) {
+  if (day.getTime() === getTodayStart().getTime() && (kitchenClosedToday() || isPast9PM())) {
     return true;
   }
   return kitchenClosures.some((c) => {
@@ -147,6 +151,22 @@ async function initDeliveryCharge() {
     return;
   }
 
+  // Use cached location from sessionStorage if available (avoids re-prompting on navigation)
+  const cached = (() => { try { return JSON.parse(sessionStorage.getItem('_loc')); } catch { return null; } })();
+  if (cached && cached.lat) {
+    capturedLocation = cached.loc;
+    deliveryCharge = cached.deliveryCharge;
+    deliveryDistanceKm = cached.deliveryDistanceKm || 0;
+    freeDeliveryTarget = cached.freeDeliveryTarget !== undefined ? cached.freeDeliveryTarget : freeDeliveryTarget;
+    baseFreeDeliveryTarget = freeDeliveryTarget;
+    if (cached.blocked) {
+      locationAllowed = false;
+      showLocationBlockedBanner(cached.blockedMsg || undefined);
+    }
+    updateCart();
+    return;
+  }
+
   let pos;
 
   try {
@@ -162,6 +182,7 @@ async function initDeliveryCharge() {
     capturedLocation = null;
     deliveryCharge = Number(window.DEFAULT_DELIVERY_CHARGE) || 50;
     freeDeliveryTarget = null;
+    try { sessionStorage.setItem('_loc', JSON.stringify({ lat: 0, blocked: true, deliveryCharge, freeDeliveryTarget: null })); } catch {}
     showLocationBlockedBanner();
     updateCart();
     return;
@@ -191,7 +212,9 @@ async function initDeliveryCharge() {
     deliveryDistanceKm = Number(data.distanceKm) || 0;
     if (deliveryDistanceKm > 5) {
       locationAllowed = false;
-      showLocationBlockedBanner("Sorry, we only deliver within 5 km. Your location is " + deliveryDistanceKm.toFixed(1) + " km away.");
+      const blockedMsg = "Sorry, we only deliver within 5 km. Your location is " + deliveryDistanceKm.toFixed(1) + " km away.";
+      try { sessionStorage.setItem('_loc', JSON.stringify({ lat: capturedLocation.lat, loc: capturedLocation, deliveryCharge, deliveryDistanceKm, freeDeliveryTarget: null, blocked: true, blockedMsg })); } catch {}
+      showLocationBlockedBanner(blockedMsg);
       updateCart();
       return;
     }
@@ -209,6 +232,7 @@ async function initDeliveryCharge() {
     baseFreeDeliveryTarget = freeDeliveryTarget;
   }
 
+  try { sessionStorage.setItem('_loc', JSON.stringify({ lat: capturedLocation.lat, loc: capturedLocation, deliveryCharge, deliveryDistanceKm, freeDeliveryTarget })); } catch {}
   updateCart();
 }
 
@@ -279,13 +303,13 @@ function matchesFilters(item) {
   return true;
 }
 
-function formatMinutes(mins) {
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  if (h <= 0) return `${m}m`;
-  if (m === 0) return `${h}h`;
-  return `${h}h ${m}m`;
-}
+// function formatMinutes(mins) {
+//   const h = Math.floor(mins / 60);
+//   const m = mins % 60;
+//   if (h <= 0) return `${m}m`;
+//   if (m === 0) return `${h}h`;
+//   return `${h}h ${m}m`;
+// }
 
 function getAvailabilityLabel(key, available) {
   const selected = getStartOfDay(window.ORDER_FOR_DATE || new Date());
@@ -376,7 +400,7 @@ async function refreshKitchenState() {
     // If selected date falls into a closure, move to the next open day
     const maybeClosed = getStartOfDay(window.ORDER_FOR_DATE || new Date());
     if (isDateClosed(maybeClosed)) {
-      const next = findNextOpenDate(new Date(maybeClosed.getTime() + 86400000));
+      // const next = findNextOpenDate(new Date(maybeClosed.getTime() + 86400000));
       window.ORDER_FOR_DATE = next;
       syncOrderDayFromDate();
       if (typeof selectedDate !== "undefined") {
@@ -423,8 +447,8 @@ async function fetchMenuData() {
 }
 
 (async function initApp() {
-  // Default to today before remote state arrives
-  window.ORDER_FOR_DATE = getTodayStart();
+  // If past 9 PM, pre-select tomorrow
+  window.ORDER_FOR_DATE = isPast9PM() ? getTomorrowStart() : getTodayStart();
   syncOrderDayFromDate();
   try {
     await refreshKitchenState();
@@ -503,7 +527,7 @@ function renderMenu() {
             const hasExtras = s.note && s.note["Extras available"];
             const inCart = selectedItems[itemId]?.qty > 0;
             const qty = selectedItems[itemId]?.qty || 0;
-            const minusDisabledAttr =
+            // const minusDisabledAttr =
               !available || qty <= 0 ? "disabled" : "";
             const plusDisabledAttr = !available ? "disabled" : "";
             const plusActiveClass =
@@ -1402,6 +1426,7 @@ window.submitBulkOrder = async function() {
 
 window.closeBulkOrderModal = function() {
   document.getElementById('bulk-order-modal').classList.remove('show');
+  document.body.classList.remove('modal-open');
 };
 
 function showRegistrationStep() {
@@ -1518,9 +1543,15 @@ async function loadUserAndShowOrder(mobile) {
     document.getElementById('user-display').style.display = 'none';
     document.getElementById('cust-address').value = '';
   }
-  
-  document.getElementById('customer-modal').classList.add('show');
-  document.body.classList.add('modal-open');
+
+  // Only open checkout modal if there are items in the cart
+  if (Object.keys(selectedItems).length > 0) {
+    document.getElementById('customer-modal').classList.add('show');
+    document.body.classList.add('modal-open');
+  } else {
+    if (typeof showToast === 'function') showToast('Welcome back, ' + (currentUser?.name || mobile) + '!');
+    if (typeof syncDrawerUser === 'function') syncDrawerUser();
+  }
 }
 
 window.logout = async function() {
@@ -1836,18 +1867,18 @@ async function persistOrder(payload) {
   }
 
   // Fallback: Google Apps Script sheet logger
-  try {
-    const res = await fetch(ORDER_FALLBACK_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ order: JSON.stringify(payload) }),
-    });
-    if (!res.ok) throw new Error("FALLBACK_SAVE_FAILED_" + res.status);
-    return true;
-  } catch (err) {
-    console.error("Order fallback save failed", err);
-    return false;
-  }
+  // try {
+  //   const res = await fetch(ORDER_FALLBACK_URL, {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify({ order: JSON.stringify(payload) }),
+  //   });
+  //   if (!res.ok) throw new Error("FALLBACK_SAVE_FAILED_" + res.status);
+  //   return true;
+  // } catch (err) {
+  //   console.error("Order fallback save failed", err);
+  //   return false;
+  // }
 }
 
 async function placeFinalOrder() {
@@ -2353,23 +2384,29 @@ function syncOrderTypeRadios() {
 }
 
 function computeExpectedDelivery() {
-  const today = orderDay === "today";
-  if (today) {
+  const orderDate = new Date(window.ORDER_FOR_DATE);
+  orderDate.setHours(0, 0, 0, 0);
+  const today = getTodayStart();
+  const tomorrow = getTomorrowStart();
+  const dateLabel = orderDate.getTime() === today.getTime()
+    ? "Today"
+    : orderDate.getTime() === tomorrow.getTime()
+      ? "Tomorrow"
+      : orderDate.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" });
+
+  if (orderDay === "today") {
     const now = new Date();
     const t = now.getHours() * 60 + now.getMinutes();
-    const lunchEnd = 13 * 60 + 30; // 1:30 PM
-    if (t < lunchEnd) {
+    if (t < 13 * 60 + 30) {
       const eta = new Date(now);
       eta.setMinutes(eta.getMinutes() + TODAY_PREP_MINUTES);
-      const labelDay = isSameDay(eta, now) ? "Today" : "Tomorrow";
-      return { label: `${labelDay} · ${formatTime12(eta)}`, iso: eta.toISOString() };
+      return { label: `${dateLabel} · ${formatTime12(eta)}`, iso: eta.toISOString() };
     }
-    // Past lunch — AI will fill in; return placeholder
-    return { label: "Dinner · estimating…", iso: null };
+    return { label: `${dateLabel} · Dinner · estimating…`, iso: null };
   }
 
   const type = getSelectedOrderType() || "Lunch";
-  return { label: `${type} window · ${FUTURE_WINDOWS[type] || "Scheduled delivery"}`, iso: null };
+  return { label: `${dateLabel} · ${type} · ${FUTURE_WINDOWS[type] || "Scheduled delivery"}`, iso: null };
 }
 
 async function fetchAiDeliveryEta() {
