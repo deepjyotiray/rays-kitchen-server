@@ -13,8 +13,17 @@
   
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
-  <title>Healthy Meal Spot</title>
+  <title>Healthy Meal Spot | Fresh & Nutritious Meals Delivered in Navi Mumbai</title>
+  <meta name="description" content="Order fresh, healthy, and delicious meals delivered straight to your door in Navi Mumbai. Explore our daily menus, nutrition plans, and bulk ordering options." />
+  <meta name="keywords" content="healthy meals, meal delivery Navi Mumbai, fresh food, diet food delivery, bulk meal order, healthy food online" />
+  <meta property="og:title" content="Healthy Meal Spot | Fresh & Nutritious Meals Delivered in Navi Mumbai" />
+  <meta property="og:description" content="Order fresh, healthy, and delicious meals delivered straight to your door in Navi Mumbai." />
+  <meta property="og:image" content="/favicon.png" />
+  <meta property="og:url" content="https://healthymealspot.com" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
   
+  <link rel="canonical" href="https://healthymealspot.com/" />
   <link rel="icon" href="/favicon.ico" sizes="any">
   <script>document.write(`<link rel="stylesheet" href="/style.css?v=${APP_VERSION}">`);</script>
   <link rel="stylesheet" href="/chatbot.css">
@@ -99,6 +108,7 @@
   </section>
 </div>
 
+<main>
 <section class="reviews-unified">
   <div class="reviews-card">
     <div id="review-card" class="review-card-fixed"></div>
@@ -107,6 +117,19 @@
 </section>
 
 <div id="menu-container"></div>
+
+<section class="seo-content" style="padding: 24px 16px; margin: 24px auto; max-width: 800px; line-height: 1.6;">
+  <h1 style="font-size: 24px; color: var(--accent); margin-bottom: 12px;">Healthy Meals for Better Living</h1>
+  <p style="margin-bottom: 12px; color: var(--text);">
+    At Healthy Meal Spot, we believe that healthy meals are the foundation of better living. 
+    Our mission is to bring you fresh, nutritious, and delicious diet-friendly food options delivered straight to your door in Navi Mumbai. 
+    Whether you are looking to lose weight, gain muscle, or simply maintain a balanced lifestyle, our carefully crafted menu ensures you get the right macronutrients without compromising on taste.
+  </p>
+  <p style="color: var(--text);">
+    Beyond just a food delivery service, we have a strong nutrition focus. Explore our <a href="/nutrition" style="color: var(--accent); text-decoration: underline;">Nutrition Hub</a> for evidence-based diet plans, healthy recipes, and wellness advice, or <a href="/consult-nutritionist" style="color: var(--accent); text-decoration: underline;">consult our certified nutritionists</a> to start a personalized journey toward a healthier you.
+  </p>
+</section>
+</main>
 
 <footer class="footer">
   © 2026 Healthy Meal Spot • Navi Mumbai<br>
@@ -269,8 +292,10 @@ function viewMenuPdf() {
     function observeRevealTargets() {
       document.querySelectorAll('.section, .reviews-unified').forEach(function(el) {
         if (!el.classList.contains('scroll-reveal')) {
-          el.classList.add('scroll-reveal');
-          io.observe(el);
+          requestAnimationFrame(function() {
+            el.classList.add('scroll-reveal');
+            io.observe(el);
+          });
         }
       });
     }

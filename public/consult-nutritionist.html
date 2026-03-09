@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+  <title>Consult a Nutritionist in Navi Mumbai | Healthy Meal Spot</title>
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/style.css">
+  <meta name="description" content="Book an appointment with certified nutritionists in Navi Mumbai for personalized diet plans, weight loss, muscle gain, PCOS, diabetes, and general wellness.">
+  <meta name="keywords" content="nutritionist Navi Mumbai, diet plan, weight loss consultation, PCOS diet, muscle gain meal plan" />
+  <meta property="og:title" content="Consult a Nutritionist in Navi Mumbai | Healthy Meal Spot" />
+  <meta property="og:description" content="Book an appointment with certified nutritionists in Navi Mumbai for personalized diet plans." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://healthymealspot.com/consult-nutritionist" />
+  <link rel="canonical" href="https://healthymealspot.com/consult-nutritionist" />
+</head>
+<body>
+
+<!-- Hamburger Drawer Overlay -->
+<div id="drawer-overlay" class="drawer-overlay" onclick="closeDrawer()"></div>
+
+<nav id="nav-drawer" class="nav-drawer" aria-label="Main navigation">
+  <div class="drawer-header">
+    <span class="drawer-brand">Healthy Meal Spot</span>
+    <button class="drawer-close" onclick="closeDrawer()" aria-label="Close menu">&#x2715;</button>
+  </div>
+  <div id="drawer-user-section" class="drawer-user-section">
+    <div id="drawer-user-info" style="display:none">
+      <div id="drawer-user-name" class="drawer-user-name"></div>
+      <div id="drawer-user-phone" class="drawer-user-phone"></div>
+    </div>
+    <div id="drawer-auth-btns" class="drawer-auth-btns">
+      <button class="drawer-login-btn" onclick="closeDrawer(); showOTPModal();">&#128274; Login / Sign Up</button>
+    </div>
+  </div>
+  <ul class="drawer-links">
+    <li><a href="/" class="drawer-link">&#127869;&#65039; Menu</a></li>
+    <li><a href="/nutrition" class="drawer-link">&#129367; Nutrition Hub</a></li>
+    <li><a href="/consult-nutritionist" class="drawer-link active">&#128105;&#8205;&#9877;&#65039; Consult Nutritionist</a></li>
+    <li><a href="/about" class="drawer-link">&#8505;&#65039; About</a></li>
+    <li><a href="mailto:kitchen@healthymealspot.com" class="drawer-link">&#9993;&#65039; Contact</a></li>
+  </ul>
+</nav>
+
+<header class="app-bar">
+  <button class="hamburger-btn" onclick="openDrawer()" aria-label="Open menu" aria-expanded="false" id="hamburger-btn">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="app-bar-title">
+    <img src="/favicon.png" alt="" class="app-bar-logo" width="28" height="28">
+    <span>Consult</span>
+  </div>
+  <div style="width:40px"></div>
+</header>
+
+<div class="page-header">
+  <h1 class="page-header-title">Consult a Certified Nutritionist</h1>
+  <p class="page-header-sub">Book an appointment for personalized diet plans tailored for weight loss, muscle gain, PCOS, diabetes, and general wellness in Navi Mumbai.</p>
+  <div class="page-header-search">
+    <div class="search-field" aria-label="Search nutritionists">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input id="search-nutritionists" type="search" inputmode="search" placeholder="Search nutritionists, specialties..." autocomplete="off">
+      <button id="clear-search" class="clear-search" type="button" aria-label="Clear search">&#x2715;</button>
+    </div>
+  </div>
+</div>
+
+<main>
+  <!-- SEO Content Section -->
+  <section class="seo-content" style="padding: 24px 16px; margin: 0 auto; max-width: 800px; line-height: 1.6; color: var(--text);">
+    <h2 style="font-size: 20px; color: var(--accent); margin-bottom: 8px;">Personalized Diet Plans</h2>
+    <p style="margin-bottom: 16px;">
+      Every body is different, and so are its nutritional needs. Consulting a certified nutritionist helps you move past generic diets and into a sustainable, science-backed eating plan. Whether you're navigating food intolerances, trying to build healthy habits, or seeking a complete lifestyle transformation, our experts provide guidance that fits into your daily routine. We analyze your health history, dietary preferences, and goals to build a personalized diet plan that is easy to follow and genuinely effective.
+    </p>
+
+    <h2 style="font-size: 20px; color: var(--accent); margin-bottom: 8px;">Weight Loss Nutrition</h2>
+    <p style="margin-bottom: 16px;">
+      Struggling with weight loss? Crash diets rarely work long-term. Our nutritionists specialize in weight loss nutrition that focuses on fat loss while preserving muscle mass and energy levels. We emphasize nutrient density, portion control, and healthy metabolism over restrictive eating, making sure you reach your target weight safely and sustainably.
+    </p>
+
+    <h2 style="font-size: 20px; color: var(--accent); margin-bottom: 8px;">PCOS and Diabetes Diet Guidance</h2>
+    <p style="margin-bottom: 24px;">
+      Managing conditions like Polycystic Ovary Syndrome (PCOS) and Diabetes requires a specialized approach to food, focusing on insulin resistance, blood sugar control, and hormonal balance. Our clinical nutrition experts provide targeted PCOS and diabetes diet guidance. By incorporating low-GI foods, the right mix of macros, and anti-inflammatory ingredients, we help you manage your symptoms naturally through the power of food.
+    </p>
+  </section>
+
+  <!-- Nutritionist Cards -->
+<div class="nutritionists-grid" id="nutritionists">
+
+  <div class="nutritionist-card">
+    <div class="nutritionist-photo">&#128104;</div>
+    <div class="nutritionist-info">
+      <div class="nutritionist-name" style="display: flex; align-items: center; gap: 8px;">
+        Deepjyoti Ray
+        <a href="https://www.linkedin.com/in/djray" target="_blank" aria-label="LinkedIn Profile" style="color: #0077b5; font-size: 1.2rem;">
+          <i class="fa-brands fa-linkedin"></i>
+        </a>
+      </div>
+      <div class="nutritionist-specs">Weight Loss &bull; Muscle Gain &bull; General Wellness</div>
+      <div class="nutritionist-exp">Expert Nutritionist</div>
+      <div class="nutritionist-price">&#8377;799 / session</div>
+      <button class="book-btn" onclick="openBooking('Deepjyoti Ray')">Book Appointment</button>
+    </div>
+  </div>
+
+</div>
+</main>
+
+<!-- Booking Modal -->
+<div class="booking-modal" id="booking-modal">
+  <div class="booking-modal-content">
+    <div class="booking-modal-header">
+      <h3 id="booking-modal-title">Book Appointment</h3>
+      <button class="drawer-close" onclick="closeBooking()" aria-label="Close">&#x2715;</button>
+    </div>
+
+    <div class="booking-modal-body" id="booking-form-body">
+      <div class="booking-field">
+        <label for="b-name">Your Name *</label>
+        <input type="text" id="b-name" placeholder="Full name" autocomplete="name">
+      </div>
+      <div class="booking-field">
+        <label for="b-phone">Phone Number *</label>
+        <input type="tel" id="b-phone" placeholder="10-digit mobile number" inputmode="numeric" maxlength="10">
+      </div>
+      <div class="booking-field">
+        <label for="b-email">Email</label>
+        <input type="email" id="b-email" placeholder="your@email.com" autocomplete="email">
+      </div>
+      <div class="booking-field">
+        <label for="b-goal">Health Goal *</label>
+        <select id="b-goal">
+          <option value="">Select your goal</option>
+          <option value="Weight Loss">Weight Loss</option>
+          <option value="Muscle Gain">Muscle Gain</option>
+          <option value="PCOS">PCOS</option>
+          <option value="Diabetes">Diabetes</option>
+          <option value="General Wellness">General Wellness</option>
+        </select>
+      </div>
+      <div class="booking-field">
+        <label for="b-time">Preferred Consultation Time *</label>
+        <input type="datetime-local" id="b-time">
+      </div>
+      <button class="booking-submit-btn" onclick="submitBooking()">Confirm Booking</button>
+    </div>
+
+    <div class="booking-confirmation" id="booking-confirmation">
+      <div class="confirm-icon">&#9989;</div>
+      <h3>Booking Confirmed!</h3>
+      <p id="booking-confirm-msg">We'll reach out to confirm your appointment details via WhatsApp or phone.</p>
+      <button class="book-btn" style="margin-top:16px;width:auto;padding:12px 28px" onclick="closeBooking()">Done</button>
+    </div>
+  </div>
+</div>
+
+<footer class="page-footer">
+  &copy; 2026 Healthy Meal Spot &bull; <a href="/">Order Food</a> &bull; <a href="/nutrition">Nutrition Hub</a>
+</footer>
+
+<script>
+function openDrawer() {
+  document.getElementById('nav-drawer').classList.add('open');
+  document.getElementById('drawer-overlay').classList.add('show');
+  document.getElementById('hamburger-btn').setAttribute('aria-expanded', 'true');
+  document.body.classList.add('drawer-open');
+}
+function closeDrawer() {
+  document.getElementById('nav-drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('show');
+  document.getElementById('hamburger-btn').setAttribute('aria-expanded', 'false');
+  document.body.classList.remove('drawer-open');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeDrawer(); closeBooking(); } });
+
+let selectedNutritionist = '';
+
+function openBooking(name) {
+  selectedNutritionist = name;
+  document.getElementById('booking-modal-title').textContent = 'Book with ' + name;
+  document.getElementById('booking-form-body').style.display = 'flex';
+  document.getElementById('booking-confirmation').classList.remove('show');
+  document.getElementById('booking-modal').classList.add('show');
+  document.body.classList.add('modal-open');
+}
+
+function closeBooking() {
+  document.getElementById('booking-modal').classList.remove('show');
+  document.body.classList.remove('modal-open');
+}
+
+document.getElementById('booking-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeBooking();
+});
+
+function submitBooking() {
+  const name = document.getElementById('b-name').value.trim();
+  const phone = document.getElementById('b-phone').value.trim();
+  const goal = document.getElementById('b-goal').value;
+  const time = document.getElementById('b-time').value;
+
+  if (!name || !phone || !goal || !time) {
+    alert('Please fill in all required fields.');
+    return;
+  }
+  if (!/^[0-9]{10}$/.test(phone)) {
+    alert('Please enter a valid 10-digit phone number.');
+    return;
+  }
+
+  const btn = document.querySelector('.booking-submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Booking…';
+
+  // Send via WhatsApp as fallback (no backend needed yet)
+  const dt = new Date(time).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+  const msg = `Hi! I'd like to book a consultation.\n\nNutritionist: ${selectedNutritionist}\nName: ${name}\nPhone: ${phone}\nGoal: ${goal}\nPreferred Time: ${dt}`;
+
+  // Show confirmation
+  setTimeout(() => {
+    document.getElementById('booking-form-body').style.display = 'none';
+    document.getElementById('booking-confirm-msg').textContent =
+      `Your appointment with ${selectedNutritionist} has been requested for ${dt}. We'll confirm via WhatsApp shortly.`;
+    document.getElementById('booking-confirmation').classList.add('show');
+
+    // Open WhatsApp
+    window.open('https://wa.me/919326492088?text=' + encodeURIComponent(msg), '_blank');
+
+    btn.disabled = false;
+    btn.textContent = 'Confirm Booking';
+  }, 600);
+}
+
+// Search Functionality
+const searchInput = document.getElementById('search-nutritionists');
+const clearSearch = document.getElementById('clear-search');
+const cards = document.querySelectorAll('.nutritionist-card');
+
+function filterNutritionists() {
+  const q = searchInput.value.trim().toLowerCase();
+  clearSearch.style.display = q ? 'block' : 'none';
+  cards.forEach(card => {
+    const text = card.textContent.toLowerCase();
+    card.style.display = text.includes(q) ? 'flex' : 'none';
+  });
+}
+
+if (searchInput) {
+  searchInput.addEventListener('input', filterNutritionists);
+  clearSearch.addEventListener('click', () => {
+    searchInput.value = '';
+    filterNutritionists();
+    searchInput.focus();
+  });
+  // Initial check
+  filterNutritionists();
+}
+</script>
+<script src="/drawer-auth.js"></script>
+</body>
+</html>

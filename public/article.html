@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+  <title>Article – Healthy Meal Spot Nutrition Hub</title>
+  <meta name="description" content="Read expert nutrition advice, diet plans, and wellness articles from Healthy Meal Spot.">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<!-- Hamburger Drawer Overlay -->
+<div id="drawer-overlay" class="drawer-overlay" onclick="closeDrawer()"></div>
+
+<nav id="nav-drawer" class="nav-drawer" aria-label="Main navigation">
+  <div class="drawer-header">
+    <span class="drawer-brand">Healthy Meal Spot</span>
+    <button class="drawer-close" onclick="closeDrawer()" aria-label="Close menu">&#x2715;</button>
+  </div>
+  <div id="drawer-user-section" class="drawer-user-section">
+    <div id="drawer-user-info" style="display:none">
+      <div id="drawer-user-name" class="drawer-user-name"></div>
+      <div id="drawer-user-phone" class="drawer-user-phone"></div>
+    </div>
+    <div id="drawer-auth-btns" class="drawer-auth-btns">
+      <button class="drawer-login-btn" onclick="closeDrawer(); showOTPModal();">&#128274; Login / Sign Up</button>
+    </div>
+  </div>
+  <ul class="drawer-links">
+    <li><a href="/" class="drawer-link">&#127869;&#65039; Menu</a></li>
+    <li><a href="/nutrition" class="drawer-link active">&#129367; Nutrition Hub</a></li>
+    <li><a href="/consult-nutritionist" class="drawer-link">&#128105;&#8205;&#9877;&#65039; Consult Nutritionist</a></li>
+    <li><a href="/about" class="drawer-link">&#8505;&#65039; About</a></li>
+    <li><a href="mailto:kitchen@healthymealspot.com" class="drawer-link">&#9993;&#65039; Contact</a></li>
+  </ul>
+</nav>
+
+<header class="app-bar">
+  <button class="hamburger-btn" onclick="openDrawer()" aria-label="Open menu" aria-expanded="false" id="hamburger-btn">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="app-bar-title">
+    <a href="/nutrition" style="color:var(--accent-strong);text-decoration:none;font-family:'Playfair Display',serif;font-size:16px">&#8592; Nutrition Hub</a>
+  </div>
+  <a href="/consult-nutritionist" class="app-bar-cart-btn" style="display:flex;text-decoration:none">Book</a>
+</header>
+<div class="page-header">
+  <h1 class="page-header-title" id="article-page-title">Article</h1>
+  <p class="page-header-sub" id="article-page-meta"></p>
+</div>
+
+<div id="article-root">
+  <div style="padding:40px;text-align:center;color:var(--muted)">Loading article…</div>
+</div>
+
+<footer class="page-footer">
+  &copy; 2026 Healthy Meal Spot &bull; <a href="/">Order Food</a> &bull; <a href="/consult-nutritionist">Book Consultation</a>
+</footer>
+
+<script>
+function openDrawer() {
+  document.getElementById('nav-drawer').classList.add('open');
+  document.getElementById('drawer-overlay').classList.add('show');
+  document.getElementById('hamburger-btn').setAttribute('aria-expanded', 'true');
+  document.body.classList.add('drawer-open');
+}
+function closeDrawer() {
+  document.getElementById('nav-drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('show');
+  document.getElementById('hamburger-btn').setAttribute('aria-expanded', 'false');
+  document.body.classList.remove('drawer-open');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+
+const CAT_LABELS = {
+  'weight-loss': 'Weight Loss',
+  'muscle-gain': 'Muscle Gain',
+  'medical': 'Medical Nutrition',
+  'recipes': 'Healthy Recipes',
+  'myths': 'Nutrition Myths'
+};
+
+const slug = location.pathname.replace(/^\/nutrition\//, '').replace(/\/$/, '');
+
+fetch('/blogs.json')
+  .then(r => r.json())
+  .then(data => {
+    const article = (data.articles || []).find(a => a.slug === slug);
+    const root = document.getElementById('article-root');
+
+    if (!article) {
+      root.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted)">Article not found. <a href="/nutrition">Back to Nutrition Hub</a></div>';
+      return;
+    }
+
+    document.title = article.metaTitle || article.title + ' – Healthy Meal Spot';
+    
+    // Set meta description
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (!metaDesc) {
+      metaDesc = document.createElement('meta');
+      metaDesc.name = "description";
+      document.head.appendChild(metaDesc);
+    }
+    metaDesc.content = article.metaDescription || "Read expert nutrition advice, diet plans, and wellness articles from Healthy Meal Spot.";
+
+    // Inject structured data
+    const schemaObj = {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": article.title,
+      "author": {
+        "@type": "Person",
+        "name": article.author || "Nutrition Team"
+      },
+      "datePublished": article.publishDate,
+      "dateModified": article.publishDate,
+      "image": window.location.origin + article.image,
+      "publisher": {
+        "@type": "Organization",
+        "name": "Healthy Meal Spot",
+        "logo": {
+          "@type": "ImageObject",
+          "url": window.location.origin + "/favicon.png"
+        }
+      },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": window.location.href
+      }
+    };
+    const schemaScript = document.createElement("script");
+    schemaScript.type = "application/ld+json";
+    schemaScript.textContent = JSON.stringify(schemaObj);
+    document.head.appendChild(schemaScript);
+
+    document.getElementById('article-page-title').textContent = article.title;
+    document.getElementById('article-page-meta').textContent = (CAT_LABELS[article.category] || article.category) + ' · ' + article.readingTime + ' min read';
+
+    const date = new Date(article.publishDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    root.innerHTML = `
+      <article>
+        <img src="${article.image}" alt="${article.title}" class="article-hero" loading="lazy">
+        <div class="article-container">
+          <span class="article-category-tag">${CAT_LABELS[article.category] || article.category}</span>
+          <h1 class="article-title">${article.title}</h1>
+          <div class="article-meta">
+            <span>&#9997;&#65039; ${article.author}</span>
+            <span>&#128197; ${date}</span>
+            <span>&#9201;&#65039; ${article.readingTime} min read</span>
+          </div>
+          
+          <div class="article-body">
+            <nav class="table-of-contents" style="background:#f9fafb; padding:15px; border-radius:8px; margin-bottom:24px;">
+              <h3 style="margin-top:0; font-size:16px;">Table of Contents</h3>
+              <ul style="padding-left:20px; font-size:14px;">
+                <li><a href="#introduction">Introduction</a></li>
+                <li><a href="#key-benefits">Key Benefits</a></li>
+                <li><a href="#summary">Summary</a></li>
+              </ul>
+            </nav>
+            ${article.content}
+            
+            <p style="margin-top: 32px; padding: 16px; background: #ecfdf3; border-radius: 8px;">
+              <strong>Ready to eat healthier?</strong> <a href="/">Explore our nutritious menu</a> and get fresh meals delivered to your door!
+            </p>
+          </div>
+          
+          <div class="article-cta" style="margin-top: 40px; text-align: center; border-top: 1px solid #eee; padding-top: 24px;">
+            <h3>Need a personalized diet plan?</h3>
+            <p>Consult a certified nutritionist and get a personalized diet plan tailored to your goals.</p>
+            <a href="/consult-nutritionist" class="book-btn" style="display:inline-block; margin-top:12px; padding: 12px 24px; background: var(--accent); color: white; border-radius: 8px; text-decoration: none; font-weight: bold;">Book Consultation</a>
+          </div>
+        </div>
+      </article>
+    `;
+  })
+  .catch(() => {
+    document.getElementById('article-root').innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted)">Could not load article. <a href="/nutrition">Back to Nutrition Hub</a></div>';
+  });
+
+</script>
+<script src="/drawer-auth.js"></script>
+</body>
+</html>
