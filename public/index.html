@@ -441,6 +441,7 @@ function toggleCalendar() {
 
   function bulkOrder() {
     document.getElementById('bulk-order-modal').classList.add('show');
+    document.body.classList.add('modal-open');
   }
 
   // Close calendar when clicking outside the popup or button
@@ -466,15 +467,19 @@ function toggleCalendar() {
 
 <div id="bulk-order-modal" class="modal">
   <div class="modal-content">
-    <h3>Bulk Order Request</h3>
-    <input id="bulk-name" type="text" placeholder="Your Name *">
-    <input id="bulk-mobile" type="tel" placeholder="Mobile Number (+91XXXXXXXXXX)" maxlength="13" value="+91">
-    <textarea id="bulk-address" rows="2" placeholder="Delivery Address *"></textarea>
-    <input id="bulk-dates" type="date" placeholder="Delivery Date *">
-    <textarea id="bulk-requirements" rows="3" placeholder="Requirements (number of people, meal preferences, etc.)"></textarea>
-    <div class="modal-actions">
-      <button class="primary" onclick="submitBulkOrder()">Submit Request</button>
-      <button onclick="closeBulkOrderModal()">Cancel</button>
+    <div class="registration-step">
+      <h3>Bulk Order Request
+        <button class="modal-close-btn" onclick="closeBulkOrderModal()" aria-label="Close modal">×</button>
+      </h3>
+      <input id="bulk-name" type="text" placeholder="Your Name *">
+      <input id="bulk-mobile" type="tel" placeholder="Mobile Number (+91XXXXXXXXXX)" maxlength="13" value="+91">
+      <textarea id="bulk-address" rows="2" placeholder="Delivery Address *"></textarea>
+      <input id="bulk-dates" type="date" placeholder="Delivery Date *">
+      <textarea id="bulk-requirements" rows="3" placeholder="Requirements (number of people, meal preferences, etc.)"></textarea>
+      <div class="modal-actions">
+        <button class="primary" onclick="submitBulkOrder()">Submit Request</button>
+        <button onclick="closeBulkOrderModal()">Cancel</button>
+      </div>
     </div>
   </div>
 </div>

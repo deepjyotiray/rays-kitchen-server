@@ -1426,6 +1426,7 @@ window.submitBulkOrder = async function() {
 
 window.closeBulkOrderModal = function() {
   document.getElementById('bulk-order-modal').classList.remove('show');
+  document.body.classList.remove('modal-open');
 };
 
 function showRegistrationStep() {

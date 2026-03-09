@@ -2706,6 +2706,10 @@ Do not move this block above existing CSS.
   }
 }
 
+#bulk-order-modal .modal-content { width: min(92vw, 360px); }
+#bulk-order-modal #bulk-address,
+#bulk-order-modal #bulk-requirements { resize: none; }
+
 @media (prefers-color-scheme: light) {
   #customer-modal .modal-content,
   #orders-modal .modal-content,
