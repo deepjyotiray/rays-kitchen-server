@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+  <title>Healthy Meals for Weight Loss and Fitness | Healthy Meal Spot</title>
+  <meta name="description" content="Order healthy meals for weight loss, muscle gain, and balanced nutrition delivered in Navi Mumbai. High protein, low calorie, and balanced diet options available daily.">
+  <meta name="keywords" content="healthy meals Navi Mumbai, weight loss food delivery, high protein meals, low calorie meals, balanced diet delivery">
+  <meta property="og:title" content="Healthy Meals for Weight Loss and Fitness | Healthy Meal Spot">
+  <meta property="og:description" content="Order healthy meals for weight loss, muscle gain, and balanced nutrition delivered in Navi Mumbai.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://healthymealspot.com/healthy-meals">
+  <link rel="canonical" href="https://healthymealspot.com/healthy-meals">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/style.css">
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://healthymealspot.com/"},{"@type":"ListItem","position":2,"name":"Healthy Meals","item":"https://healthymealspot.com/healthy-meals"}]}
+  </script>
+  <style>
+    .hm-section{max-width:800px;margin:0 auto;padding:24px 16px}
+    .hm-section h2{font-size:20px;color:var(--accent);margin-bottom:10px}
+    .hm-section p{color:var(--text);line-height:1.7;margin-bottom:16px;font-size:15px}
+    .hm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin:16px 0}
+    .hm-card{background:#f9fafb;border-radius:10px;padding:16px;border-left:4px solid var(--accent)}
+    .hm-card h3{font-size:15px;margin:0 0 6px;color:var(--text)}
+    .hm-card p{font-size:13px;color:var(--muted);margin:0;line-height:1.5}
+    .hm-cta{text-align:center;padding:32px 16px;background:#ecfdf3;border-radius:12px;margin:24px 16px}
+    .hm-cta h2{font-size:22px;margin-bottom:8px}
+    .hm-cta p{color:var(--muted);margin-bottom:16px}
+    .hm-btn-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+    .hm-btn{padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px}
+    .hm-btn-primary{background:var(--accent);color:#fff}
+    .hm-btn-secondary{border:2px solid var(--accent);color:var(--accent)}
+    .breadcrumb{font-size:13px;color:var(--muted);padding:10px 16px 0;max-width:800px;margin:0 auto}
+    .breadcrumb a{color:var(--accent);text-decoration:none}
+  </style>
+</head>
+<body>
+
+<div id="drawer-overlay" class="drawer-overlay" onclick="closeDrawer()"></div>
+<nav id="nav-drawer" class="nav-drawer" aria-label="Main navigation">
+  <div class="drawer-header">
+    <span class="drawer-brand">Healthy Meal Spot</span>
+    <button class="drawer-close" onclick="closeDrawer()" aria-label="Close menu">&#x2715;</button>
+  </div>
+  <div id="drawer-user-section" class="drawer-user-section">
+    <div id="drawer-user-info" style="display:none">
+      <div id="drawer-user-name" class="drawer-user-name"></div>
+      <div id="drawer-user-phone" class="drawer-user-phone"></div>
+    </div>
+    <div id="drawer-auth-btns" class="drawer-auth-btns">
+      <button class="drawer-login-btn" onclick="closeDrawer(); showOTPModal();">Sign In</button>
+    </div>
+  </div>
+  <ul class="drawer-links">
+    <li><a href="/" class="drawer-link">Menu</a></li>
+    <li><a href="/nutrition" class="drawer-link">Nutrition Hub</a></li>
+    <li><a href="/consult-nutritionist" class="drawer-link">Consult Nutritionist</a></li>
+    <li><a href="/about" class="drawer-link">About</a></li>
+    <li><a href="mailto:kitchen@healthymealspot.com" class="drawer-link">Contact</a></li>
+  </ul>
+</nav>
+
+<header class="app-bar">
+  <button class="hamburger-btn" onclick="openDrawer()" aria-label="Open menu" aria-expanded="false" id="hamburger-btn">
+    <span></span><span></span><span></span>
+  </button>
+  <nav class="top-nav" aria-label="Main navigation">
+    <a href="/" class="top-nav-link">
+      <img src="/favicon.png" alt="" class="app-bar-logo" width="20" height="20" style="margin-right:5px">
+      Healthy Meal Menu
+    </a>
+    <a href="/nutrition" class="top-nav-link">Nutrition Hub</a>
+    <a href="/consult-nutritionist" class="top-nav-link">Consult Nutritionist</a>
+    <a href="/about" class="top-nav-link">About</a>
+    <a href="mailto:kitchen@healthymealspot.com" class="top-nav-link">Contact</a>
+    <button class="top-nav-link top-nav-auth-btn" id="top-nav-auth-btn" onclick="showOTPModal()">Sign In</button>
+  </nav>
+  
+</header>
+
+<nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Home</a> › Healthy Meals</nav>
+
+<div class="page-header">
+  <h1 class="page-header-title">Healthy Meals for Weight Loss and Fitness</h1>
+  <p class="page-header-sub">Fresh, nutritious, and delicious — delivered to your door in Navi Mumbai</p>
+</div>
+
+<main>
+  <section class="hm-section">
+    <h2>Why Healthy Eating Matters</h2>
+    <p>
+      The food you eat is the single most powerful lever you have over your health. A diet rich in whole foods, lean proteins, complex carbohydrates, and healthy fats reduces the risk of chronic disease, supports a healthy weight, improves energy levels, and enhances mental clarity. At Healthy Meal Spot, every meal is crafted with these principles in mind — so you never have to choose between eating well and eating deliciously.
+    </p>
+    <p>
+      Whether you are trying to lose weight, build muscle, manage a health condition, or simply maintain a balanced lifestyle, the right meals make all the difference. Our kitchen uses fresh, locally sourced ingredients and prepares meals without excessive oil, refined sugar, or artificial additives.
+    </p>
+  </section>
+
+  <section class="hm-section">
+    <h2>High Protein Meals</h2>
+    <p>
+      Protein is essential for muscle repair, satiety, and metabolism. Our high-protein meals are designed to deliver 25–40g of protein per serving, making them ideal for gym-goers, athletes, and anyone looking to preserve muscle while losing fat.
+    </p>
+    <div class="hm-grid">
+      <div class="hm-card"><h3>Egg Curry</h3><p>Rich in complete protein with anti-inflammatory spices. ~28g protein per serving.</p></div>
+      <div class="hm-card"><h3>Chicken Pulao</h3><p>Lean chicken with aromatic basmati rice. Balanced macros, ~32g protein.</p></div>
+      <div class="hm-card"><h3>Paneer Dishes</h3><p>High-protein vegetarian option. Paneer provides ~18g protein per 100g.</p></div>
+      <div class="hm-card"><h3>Prawns</h3><p>Low-fat, high-protein seafood. ~24g protein per serving with minimal calories.</p></div>
+    </div>
+    <p><a href="/" style="color:var(--accent)">View today's high-protein menu →</a></p>
+  </section>
+
+  <section class="hm-section">
+    <h2>Low Calorie Meal Options</h2>
+    <p>
+      Losing weight does not mean eating bland, unsatisfying food. Our low-calorie meals are portion-controlled, fiber-rich, and designed to keep you full for hours. Each option is under 400 calories while still delivering complete nutrition.
+    </p>
+    <div class="hm-grid">
+      <div class="hm-card"><h3>Poha</h3><p>Light, iron-rich breakfast. Under 250 calories with vegetables and peanuts.</p></div>
+      <div class="hm-card"><h3>Boondi Raita</h3><p>Probiotic-rich side dish. Under 100 calories, supports gut health.</p></div>
+      <div class="hm-card"><h3>Dahi Bhalle</h3><p>Fermented, cooling, and satisfying. Under 200 calories per serving.</p></div>
+    </div>
+    <p><a href="/" style="color:var(--accent)">Browse our full menu →</a></p>
+  </section>
+
+  <section class="hm-section">
+    <h2>Balanced Diet Meals</h2>
+    <p>
+      A balanced diet includes the right proportions of protein, carbohydrates, fats, vitamins, and minerals. Our balanced meal options are designed by nutrition experts to hit all the macros without going overboard on any single nutrient. They are perfect for everyday eating and long-term health maintenance.
+    </p>
+    <p>
+      Pair any of our meals with guidance from our <a href="/nutrition" style="color:var(--accent)">Nutrition Hub</a> or get a fully personalized plan from a <a href="/consult-nutritionist" style="color:var(--accent)">certified nutritionist</a>.
+    </p>
+  </section>
+
+  <div class="hm-cta">
+    <h2>Ready to Eat Healthier?</h2>
+    <p>Order fresh, nutritionist-approved meals delivered to your door in Navi Mumbai.</p>
+    <div class="hm-btn-row">
+      <a href="/" class="hm-btn hm-btn-primary">&#127869; Order Now</a>
+      <a href="/consult-nutritionist" class="hm-btn hm-btn-secondary">&#128105;&#8205;&#9877;&#65039; Get a Diet Plan</a>
+    </div>
+  </div>
+
+  <section class="hm-section">
+    <h2>Learn More About Nutrition</h2>
+    <p>Explore our expert-written guides to make smarter food choices every day:</p>
+    <ul style="padding-left:20px;line-height:2;font-size:15px">
+      <li><a href="/nutrition/high-protein-indian-breakfast" style="color:var(--accent)">High-Protein Indian Breakfast Ideas</a></li>
+      <li><a href="/nutrition/weight-loss-without-starving" style="color:var(--accent)">How to Lose Weight Without Starving</a></li>
+      <li><a href="/nutrition/healthy-indian-recipes-for-weight-loss" style="color:var(--accent)">5 Healthy Indian Recipes for Weight Loss</a></li>
+      <li><a href="/nutrition/pcos-diet-guide" style="color:var(--accent)">The Complete PCOS Diet Guide</a></li>
+    </ul>
+  </section>
+</main>
+
+<footer class="page-footer">
+  &copy; 2026 Healthy Meal Spot &bull; <a href="/">Order Food</a> &bull; <a href="/nutrition">Nutrition Hub</a> &bull; <a href="/consult-nutritionist">Book Consultation</a>
+</footer>
+
+<script>
+function openDrawer() {
+  document.getElementById('nav-drawer').classList.add('open');
+  document.getElementById('drawer-overlay').classList.add('show');
+  document.getElementById('hamburger-btn').setAttribute('aria-expanded', 'true');
+  document.body.classList.add('drawer-open');
+}
+function closeDrawer() {
+  document.getElementById('nav-drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('show');
+  document.getElementById('hamburger-btn').setAttribute('aria-expanded', 'false');
+  document.body.classList.remove('drawer-open');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+</script>
+<script src="/drawer-auth.js"></script>
+<script>
+(function() {
+  var user = typeof currentUser !== 'undefined' ? currentUser : null;
+  var authBtn = document.getElementById('top-nav-auth-btn');
+  if (!authBtn) return;
+  if (user) authBtn.style.display = 'none';
+})();
+</script>
+</body>
+</html>
