@@ -66,6 +66,10 @@
   :root { --hero-depth: 420px; }
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -100,6 +104,7 @@ body {
   overflow: hidden;
   pointer-events: none;
   z-index: 0;
+  will-change: transform;
 }
 
 .hero-backdrop .slideshow {
@@ -228,57 +233,21 @@ body {
 /* ================= ACTION BAR ================= */
 .sticky-controls {
   position: sticky;
-  top: 0;
+  top: 56px;
   z-index: 9996;
-  background: transparent;
-  border-bottom: none;
-  box-shadow: none;
-  padding: 8px 0 14px;
-  transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
-  overflow: visible;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  padding: 8px 0 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  transition: top 0.32s cubic-bezier(0.32, 0.72, 0, 1), box-shadow 0.25s ease;
 }
-.sticky-controls::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  top: 4px;
-  bottom: 4px;
-  width: min(900px, 94vw);
-  background:
-    linear-gradient(135deg,
-      rgba(255, 255, 255, 0.16),
-      transparent 32%),
-    linear-gradient(90deg,
-      rgba(255, 255, 255, 0.12),
-      rgba(255, 255, 255, 0.04)),
-    var(--glass-pane);
-  border: 1px solid var(--glass-border);
-  border-radius: 20px;
-  box-shadow:
-    0 14px 38px rgba(0, 0, 0, 0.16),
-    inset 0 1px 0 rgba(255, 255, 255, 0.32);
-  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
-  pointer-events: none;
-  z-index: 1;
-}
-.sticky-controls::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  top: 8px;
-  width: min(880px, 92vw);
-  height: 14px;
-  background: radial-gradient(ellipse at center, var(--glass-sheen), transparent 60%);
-  filter: blur(8px);
-  opacity: 0.75;
-  pointer-events: none;
-  z-index: 1;
-}
+.sticky-controls::before,
+.sticky-controls::after { display: none; }
+
+body.bar-hidden .sticky-controls { top: 0; }
 .action-bar {
   max-width: 900px;
   margin: 0 auto;
@@ -419,33 +388,7 @@ body {
   height: 46px;
 }
 
-/* Switch to solid surfaces once past the hero so content has a clean base */
-body.past-hero .sticky-controls {
-  background: transparent;
-  border-bottom: none;
-  box-shadow: none;
-}
-body.past-hero .sticky-controls::before {
-  background: var(--card);
-  border-color: var(--border);
-  box-shadow: var(--shadow-soft);
-  backdrop-filter: none;
-}
-body.past-hero .action-bar,
-body.past-hero .filter-bar {
-  background: transparent;
-  border: none;
-  box-shadow: none;
-}
-body.past-hero .search-field {
-  background: var(--card-alt);
-  border-color: var(--border);
-}
-body.past-hero .pill-btn,
-body.past-hero .filter-controls select {
-  background: var(--card-alt);
-  border-color: var(--border);
-}
+
 
 @media (max-width: 768px) {
   .action-btn { height: 44px; font-size: 13px; padding: 0 8px; }
@@ -503,6 +446,22 @@ body.past-hero .filter-controls select {
   to { opacity: 1; transform: translateY(0); }
 }
 .reduce-motion .card-appear { animation: none; opacity: 1; transform: none; }
+
+/* Scroll-reveal: sections and cards start invisible, JS adds .revealed */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+.scroll-reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reduce-motion .scroll-reveal {
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
 
 .reduce-motion * {
   transition: none !important;
@@ -1507,6 +1466,13 @@ body.modal-open {
   
   .fssai-details p {
     font-size: 13px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .sticky-controls {
+    background: var(--bg);
+    border-bottom-color: var(--border);
   }
 }
 
@@ -2730,8 +2696,10 @@ Do not move this block above existing CSS.
 
 /* ================= APP BAR ================= */
 .app-bar {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 9997;
   height: 56px;
   display: flex;
@@ -2741,7 +2709,17 @@ Do not move this block above existing CSS.
   background: var(--accent-strong);
   border-bottom: none;
   box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+  transform: translateY(0);
+  transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1), box-shadow 0.25s ease;
 }
+
+.app-bar.bar-hidden {
+  transform: translateY(-100%);
+  box-shadow: none;
+}
+
+/* offset body so fixed app-bar doesn't overlap content */
+body { padding-top: 56px; }
 
 .app-bar-title {
   display: flex;

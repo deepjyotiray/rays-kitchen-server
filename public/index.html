@@ -230,6 +230,69 @@ function viewMenuPdf() {
 <script src="/chatbot.js"></script>
 
 <script>
+/* ===== SCROLL UX ===== */
+(function() {
+  const bar = document.querySelector('.app-bar');
+  let lastY = 0, ticking = false;
+
+  // 1. Hide/show app bar on scroll
+  function onScroll() {
+    if (!ticking) {
+      requestAnimationFrame(function() {
+        const y = window.scrollY;
+        if (y > lastY && y > 80) {
+          bar.classList.add('bar-hidden');
+          document.body.classList.add('bar-hidden');
+        } else {
+          bar.classList.remove('bar-hidden');
+          document.body.classList.remove('bar-hidden');
+        }
+        lastY = y;
+        ticking = false;
+      });
+      ticking = true;
+    }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  // 2. Scroll-reveal for sections and menu items
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) {
+        if (e.isIntersecting) {
+          e.target.classList.add('revealed');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+    function observeRevealTargets() {
+      document.querySelectorAll('.section, .reviews-unified').forEach(function(el) {
+        if (!el.classList.contains('scroll-reveal')) {
+          el.classList.add('scroll-reveal');
+          io.observe(el);
+        }
+      });
+    }
+    // Run now and after menu renders
+    observeRevealTargets();
+    const menuContainer = document.getElementById('menu-container');
+    if (menuContainer) {
+      new MutationObserver(observeRevealTargets).observe(menuContainer, { childList: true, subtree: false });
+    }
+  }
+
+  // 3. Subtle parallax on hero backdrop
+  const heroBackdrop = document.querySelector('.hero-backdrop');
+  if (heroBackdrop) {
+    window.addEventListener('scroll', function() {
+      heroBackdrop.style.transform = 'translateY(' + (window.scrollY * 0.28) + 'px)';
+    }, { passive: true });
+  }
+})();
+</script>
+
+<script>
   /* --- Reviews --- */
   (async function() {
     try {
