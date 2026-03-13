@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+  <title>Nutritionist Profile – Healthy Meal Spot</title>
+  <meta name="description" content="Expert nutritionist profile at Healthy Meal Spot.">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    .author-card{max-width:700px;margin:24px auto;padding:24px 16px;text-align:center}
+    .author-avatar{width:96px;height:96px;border-radius:50%;background:var(--accent);color:#fff;font-size:40px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+    .author-name{font-size:26px;font-weight:700;margin:0 0 4px}
+    .author-title{color:var(--muted);font-size:15px;margin:0 0 16px}
+    .author-meta{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:16px}
+    .author-tag{background:#f0fdf4;color:#166534;font-size:13px;padding:4px 12px;border-radius:20px;border:1px solid #bbf7d0}
+    .author-bio{max-width:600px;margin:0 auto 24px;line-height:1.7;color:var(--text);font-size:15px;text-align:left}
+    .author-articles{max-width:700px;margin:0 auto;padding:0 16px 32px}
+    .author-articles h2{font-size:18px;margin-bottom:12px}
+    .author-article-link{display:block;padding:10px 14px;background:#f9fafb;border-radius:6px;margin-bottom:8px;color:var(--accent);text-decoration:none;border-left:3px solid var(--accent);font-size:14px}
+    .author-article-link:hover{background:#ecfdf3}
+    .breadcrumb{font-size:13px;color:var(--muted);padding:10px 16px 0;max-width:800px;margin:0 auto}
+    .breadcrumb a{color:var(--accent);text-decoration:none}
+  </style>
+</head>
+<body>
+
+<div id="drawer-overlay" class="drawer-overlay" onclick="closeDrawer()"></div>
+
+<nav id="nav-drawer" class="nav-drawer" aria-label="Main navigation">
+  <div class="drawer-header">
+    <span class="drawer-brand">Healthy Meal Spot</span>
+    <button class="drawer-close" onclick="closeDrawer()" aria-label="Close menu">&#x2715;</button>
+  </div>
+  <div id="drawer-user-section" class="drawer-user-section">
+    <div id="drawer-user-info" style="display:none">
+      <div id="drawer-user-name" class="drawer-user-name"></div>
+      <div id="drawer-user-phone" class="drawer-user-phone"></div>
+    </div>
+    <div id="drawer-auth-btns" class="drawer-auth-btns">
+      <button class="drawer-login-btn" onclick="closeDrawer(); showOTPModal();">&#128274; Login / Sign Up</button>
+    </div>
+  </div>
+  <ul class="drawer-links">
+    <li><a href="/" class="drawer-link">&#127869;&#65039; Menu</a></li>
+    <li><a href="/nutrition" class="drawer-link">&#129367; Nutrition Hub</a></li>
+    <li><a href="/consult-nutritionist" class="drawer-link active">&#128105;&#8205;&#9877;&#65039; Consult Nutritionist</a></li>
+    <li><a href="/about" class="drawer-link">&#8505;&#65039; About</a></li>
+    <li><a href="mailto:kitchen@healthymealspot.com" class="drawer-link">&#9993;&#65039; Contact</a></li>
+  </ul>
+</nav>
+
+<header class="app-bar">
+  <button class="hamburger-btn" onclick="openDrawer()" aria-label="Open menu" aria-expanded="false" id="hamburger-btn">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="app-bar-title">
+    <a href="/nutrition" style="color:var(--accent-strong);text-decoration:none;font-family:'Playfair Display',serif;font-size:16px">&#8592; Nutrition Hub</a>
+  </div>
+  <a href="/consult-nutritionist" class="app-bar-cart-btn" style="display:flex;text-decoration:none">Book</a>
+</header>
+
+<nav class="breadcrumb" id="breadcrumb" aria-label="Breadcrumb"></nav>
+
+<div id="author-root">
+  <div style="padding:40px;text-align:center;color:var(--muted)">Loading…</div>
+</div>
+
+<footer class="page-footer">
+  &copy; 2026 Healthy Meal Spot &bull; <a href="/">Order Food</a> &bull; <a href="/consult-nutritionist">Book Consultation</a>
+</footer>
+
+<script>
+function openDrawer() {
+  document.getElementById('nav-drawer').classList.add('open');
+  document.getElementById('drawer-overlay').classList.add('show');
+  document.getElementById('hamburger-btn').setAttribute('aria-expanded', 'true');
+  document.body.classList.add('drawer-open');
+}
+function closeDrawer() {
+  document.getElementById('nav-drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('show');
+  document.getElementById('hamburger-btn').setAttribute('aria-expanded', 'false');
+  document.body.classList.remove('drawer-open');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+
+const authorSlug = location.pathname.replace(/^\/nutritionist\//, '').replace(/\/$/, '');
+
+fetch('/blogs.json')
+  .then(r => r.json())
+  .then(data => {
+    const author = (data.authors || []).find(a => a.slug === authorSlug);
+    const root = document.getElementById('author-root');
+
+    if (!author) {
+      root.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted)">Author not found. <a href="/nutrition">Back to Nutrition Hub</a></div>';
+      return;
+    }
+
+    document.title = author.name + ' – Nutritionist | Healthy Meal Spot';
+    document.querySelector('meta[name="description"]').content =
+      author.name + ', ' + author.title + ' at Healthy Meal Spot. ' + author.bio.slice(0, 120) + '…';
+
+    // Person schema
+    const schema = document.createElement('script');
+    schema.type = 'application/ld+json';
+    schema.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": author.name,
+      "jobTitle": author.title,
+      "description": author.bio,
+      "url": window.location.href,
+      "worksFor": { "@type": "Organization", "name": "Healthy Meal Spot", "url": "https://healthymealspot.com" }
+    });
+    document.head.appendChild(schema);
+
+    // Breadcrumb schema
+    const bc = document.createElement('script');
+    bc.type = 'application/ld+json';
+    bc.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": window.location.origin + "/" },
+        { "@type": "ListItem", "position": 2, "name": "Nutrition Hub", "item": window.location.origin + "/nutrition" },
+        { "@type": "ListItem", "position": 3, "name": author.name, "item": window.location.href }
+      ]
+    });
+    document.head.appendChild(bc);
+
+    document.getElementById('breadcrumb').innerHTML =
+      `<a href="/">Home</a> › <a href="/nutrition">Nutrition Hub</a> › ${author.name}`;
+
+    const authorArticles = (data.articles || []).filter(a => a.authorSlug === authorSlug);
+
+    root.innerHTML = `
+      <div class="author-card">
+        <div class="author-avatar">&#128104;&#8205;&#9877;&#65039;</div>
+        <h1 class="author-name">${author.name}</h1>
+        <p class="author-title">${author.title}</p>
+        <div class="author-meta">
+          <span class="author-tag">&#128197; ${author.experience} experience</span>
+          ${author.specializations.map(s => `<span class="author-tag">${s}</span>`).join('')}
+        </div>
+        <div class="author-bio">
+          <p>${author.bio}</p>
+          <p><strong>Certifications:</strong> ${author.certifications.join(' · ')}</p>
+        </div>
+        <a href="/consult-nutritionist" style="display:inline-block;padding:12px 28px;background:var(--accent);color:#fff;border-radius:8px;text-decoration:none;font-weight:bold;">Book a Consultation</a>
+      </div>
+      ${authorArticles.length ? `
+      <div class="author-articles">
+        <h2>Articles by ${author.name}</h2>
+        ${authorArticles.map(a => `<a href="/nutrition/${a.slug}" class="author-article-link">${a.title}</a>`).join('')}
+      </div>` : ''}
+    `;
+  })
+  .catch(() => {
+    document.getElementById('author-root').innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted)">Could not load profile. <a href="/nutrition">Back to Nutrition Hub</a></div>';
+  });
+</script>
+<script src="/drawer-auth.js"></script>
+</body>
+</html>

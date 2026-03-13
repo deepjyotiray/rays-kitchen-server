@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>if(window.innerWidth<=768)window.location.replace("/?tab=myhealth");</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile | Healthy Meal Spot</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="/favicon.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --accent: #da291c; --accent-strong: #bf1c11;
+      --font: 'Nunito', sans-serif;
+      --text: #1a1a1a; --muted: #666; --border: rgba(0,0,0,0.1);
+      --bg: #f5f5f5; --card: #fff;
+    }
+    body { font-family: var(--font); background: var(--bg); min-height: 100vh; color: var(--text); }
+
+    /* ── App Bar ── */
+    .app-bar {
+      position: sticky; top: 0; z-index: 100;
+      height: 56px; display: flex; align-items: center; gap: 12px;
+      padding: 0 16px; background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    }
+    .back-btn {
+      display: flex; align-items: center; gap: 6px;
+      background: none; border: none; font-size: 14px; font-weight: 700;
+      color: var(--accent); cursor: pointer; font-family: var(--font); padding: 6px 0;
+      text-decoration: none;
+    }
+    .app-bar-title { font-size: 16px; font-weight: 800; color: var(--text); }
+
+    /* ── Hero ── */
+    .profile-hero {
+      background: var(--accent);
+      padding: 32px 20px 64px;
+      text-align: center;
+      color: #fff;
+    }
+    .avatar {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px; font-weight: 800; color: #fff;
+      margin: 0 auto 12px;
+      border: 3px solid rgba(255,255,255,0.5);
+    }
+    .hero-name { font-size: 1.4rem; font-weight: 800; }
+    .hero-phone { font-size: 0.875rem; opacity: 0.85; margin-top: 4px; }
+
+    /* ── Card sheet ── */
+    .sheet {
+      background: var(--card);
+      border-radius: 24px 24px 0 0;
+      margin-top: -28px;
+      padding: 28px 20px 60px;
+      max-width: 520px;
+      margin-left: auto; margin-right: auto;
+      box-shadow: 0 -4px 24px rgba(0,0,0,0.08);
+    }
+
+    /* ── Section ── */
+    .section-title {
+      font-size: 11px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.8px; color: var(--muted); margin-bottom: 12px;
+    }
+    .profile-section { margin-bottom: 28px; }
+
+    /* ── Info rows ── */
+    .info-row {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 0; border-bottom: 1px solid var(--border);
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-icon { width: 36px; height: 36px; border-radius: 50%; background: #fff0ee; display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 15px; flex-shrink: 0; }
+    .info-label { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+    .info-value { font-size: 14px; font-weight: 700; color: var(--text); margin-top: 2px; }
+    .info-edit { margin-left: auto; background: none; border: none; color: var(--accent); font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--font); }
+
+    /* ── Inline edit ── */
+    .info-input {
+      width: 100%; padding: 8px 10px; border-radius: 8px;
+      border: 1.5px solid var(--accent); font-size: 14px;
+      font-family: var(--font); outline: none; margin-top: 4px;
+    }
+    .save-btn {
+      margin-top: 8px; padding: 8px 20px; border-radius: 4px; border: none;
+      background: var(--accent); color: #fff; font-size: 13px; font-weight: 800;
+      cursor: pointer; font-family: var(--font);
+    }
+
+    /* ── Pills ── */
+    .pills { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pill {
+      padding: 8px 16px; border: 1.5px solid var(--border); border-radius: 999px;
+      font-size: 13px; font-family: var(--font); cursor: pointer;
+      background: #fff; color: #444; transition: all 0.15s; user-select: none;
+    }
+    .pill.on { border-color: var(--accent); background: #fff0ee; color: var(--accent); font-weight: 700; }
+
+    /* ── Orders ── */
+    .order-card {
+      background: #f7f6f2; border-radius: 12px; padding: 14px 16px;
+      margin-bottom: 10px; border: 1px solid var(--border);
+    }
+    .order-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .order-id { font-size: 13px; font-weight: 800; color: var(--accent-strong); }
+    .order-date { font-size: 12px; color: var(--muted); }
+    .order-items-text { font-size: 12px; color: var(--muted); white-space: pre-line; margin-bottom: 6px; }
+    .order-total { font-size: 14px; font-weight: 800; color: var(--text); }
+    .order-status { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: #e8f5e9; color: #2e7d32; }
+
+    /* ── Sign out ── */
+    .signout-btn {
+      width: 100%; padding: 14px; border-radius: 4px; border: 1.5px solid var(--border);
+      background: #fff; color: var(--muted); font-size: 14px; font-weight: 700;
+      cursor: pointer; font-family: var(--font); margin-top: 8px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .signout-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(12px);
+      padding: 12px 20px; border-radius: 12px; background: #1a1a1a; color: #fff;
+      font-size: 13px; font-weight: 600; opacity: 0;
+      transition: opacity 0.25s, transform 0.25s; pointer-events: none; z-index: 9999;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── Loading / empty ── */
+    .loading { text-align: center; padding: 40px 0; color: var(--muted); font-size: 14px; }
+    .empty-orders { text-align: center; padding: 24px 0; color: var(--muted); font-size: 14px; }
+
+    @media (max-width: 520px) {
+      .sheet { border-radius: 20px 20px 0 0; padding: 24px 16px 60px; }
+    }
+    @media (max-width: 768px) {
+      body { padding-bottom: 60px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-bar">
+  <a href="/" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Menu</a>
+  <span class="app-bar-title">My Profile</span>
+</div>
+
+<div class="profile-hero">
+  <div class="avatar" id="avatar-initials">?</div>
+  <div class="hero-name" id="hero-name">Loading…</div>
+  <div class="hero-phone" id="hero-phone"></div>
+</div>
+
+<div class="sheet">
+
+  <!-- Personal Info -->
+  <div class="profile-section">
+    <div class="section-title">Personal Info</div>
+
+    <div class="info-row">
+      <div class="info-icon"><i class="fa-solid fa-user"></i></div>
+      <div style="flex:1">
+        <div class="info-label">Full Name</div>
+        <div class="info-value" id="display-name">—</div>
+        <input class="info-input" id="edit-name" type="text" placeholder="Your name" style="display:none">
+        <button class="save-btn" id="save-name-btn" style="display:none" onclick="saveName()">Save</button>
+      </div>
+      <button class="info-edit" onclick="toggleEditName()">Edit</button>
+    </div>
+
+    <div class="info-row">
+      <div class="info-icon"><i class="fa-solid fa-phone"></i></div>
+      <div>
+        <div class="info-label">Mobile</div>
+        <div class="info-value" id="display-phone">—</div>
+      </div>
+    </div>
+
+    <div class="info-row">
+      <div class="info-icon"><i class="fa-solid fa-location-dot"></i></div>
+      <div style="flex:1">
+        <div class="info-label">Saved Address</div>
+        <div class="info-value" id="display-address">—</div>
+        <input class="info-input" id="edit-address" type="text" placeholder="Delivery address" style="display:none">
+        <button class="save-btn" id="save-address-btn" style="display:none" onclick="saveAddress()">Save</button>
+      </div>
+      <button class="info-edit" onclick="toggleEditAddress()">Edit</button>
+    </div>
+  </div>
+
+  <!-- Dietary Preference -->
+  <div class="profile-section">
+    <div class="section-title">Dietary Preference</div>
+    <div class="pills" id="diet-pills">
+      <span class="pill" data-v="veg">🥦 Veg</span>
+      <span class="pill" data-v="non-veg">🍗 Non-Veg</span>
+      <span class="pill" data-v="eggetarian">🥚 Eggetarian</span>
+    </div>
+  </div>
+
+  <!-- Health Goal -->
+  <div class="profile-section">
+    <div class="section-title">Health Goal</div>
+    <div class="pills" id="goal-pills">
+      <span class="pill" data-v="weight-loss">⚖️ Weight Loss</span>
+      <span class="pill" data-v="muscle-gain">💪 Muscle Gain</span>
+      <span class="pill" data-v="balanced">🥗 Balanced</span>
+      <span class="pill" data-v="medical">🏥 Medical Diet</span>
+    </div>
+  </div>
+
+  <!-- Recent Orders -->
+  <div class="profile-section">
+    <div class="section-title">Recent Orders</div>
+    <div id="orders-container"><div class="loading">Loading orders…</div></div>
+  </div>
+
+  <button class="signout-btn" onclick="signOut()"><i class="fa-solid fa-right-from-bracket"></i> Sign Out</button>
+</div>
+
+<nav id="mobile-bottom-nav">
+  <button class="mob-nav-btn" onclick="window.location.href='/'">
+    <i class="fa-solid fa-house"></i>Home
+  </button>
+  <button class="mob-nav-btn" onclick="window.location.href='/?tab=menu'">
+    <i class="fa-solid fa-utensils"></i>Menu
+  </button>
+  <button class="mob-nav-btn" onclick="window.location.href='/nutrition'">
+    <i class="fa-solid fa-leaf"></i>Nutrition
+  </button>
+  <button class="mob-nav-btn" onclick="window.location.href='/consult-nutritionist'">
+    <i class="fa-solid fa-stethoscope"></i>Consult
+  </button>
+  <button class="mob-nav-btn active">
+    <i class="fa-solid fa-heart-pulse"></i>My Health
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let currentUser = null;
+
+async function init() {
+  try {
+    const sessionRes = await fetch('/api/auth/session');
+    const session = await sessionRes.json();
+    if (!session.authenticated) {
+      window.location.href = '/login?redirect=/profile';
+      return;
+    }
+    const userRes = await fetch('/users/' + session.mobile);
+    const userData = await userRes.json();
+    currentUser = userData.user;
+    if (!currentUser) { window.location.href = '/login?redirect=/profile'; return; }
+    renderProfile();
+    loadOrders(session.mobile);
+  } catch (e) {
+    window.location.href = '/login?redirect=/profile';
+  }
+}
+
+function renderProfile() {
+  const u = currentUser;
+  const firstName = (u.name || '').split(' ')[0] || '?';
+  document.getElementById('avatar-initials').textContent = firstName[0].toUpperCase();
+  document.getElementById('hero-name').textContent = u.name || '—';
+  document.getElementById('hero-phone').textContent = u.mobile ? '+91 ' + u.mobile.replace(/^\+91/, '') : '';
+  document.getElementById('display-name').textContent = u.name || '—';
+  document.getElementById('display-phone').textContent = u.mobile || '—';
+  document.getElementById('display-address').textContent = u.address || 'Not set';
+  document.getElementById('edit-name').value = u.name || '';
+  document.getElementById('edit-address').value = u.address || '';
+
+  // Dietary & goal pills
+  if (u.diet) setActivePill('diet-pills', u.diet);
+  if (u.goal) setActivePill('goal-pills', u.goal);
+
+  // Pill click handlers
+  document.getElementById('diet-pills').addEventListener('click', e => {
+    const pill = e.target.closest('.pill');
+    if (!pill) return;
+    setActivePill('diet-pills', pill.dataset.v);
+    savePreferences();
+  });
+  document.getElementById('goal-pills').addEventListener('click', e => {
+    const pill = e.target.closest('.pill');
+    if (!pill) return;
+    setActivePill('goal-pills', pill.dataset.v);
+    savePreferences();
+  });
+}
+
+function setActivePill(groupId, value) {
+  document.querySelectorAll(`#${groupId} .pill`).forEach(p => {
+    p.classList.toggle('on', p.dataset.v === value);
+  });
+}
+
+function toggleEditName() {
+  const input = document.getElementById('edit-name');
+  const btn = document.getElementById('save-name-btn');
+  const display = document.getElementById('display-name');
+  const isEditing = input.style.display !== 'none';
+  input.style.display = isEditing ? 'none' : 'block';
+  btn.style.display = isEditing ? 'none' : 'inline-block';
+  display.style.display = isEditing ? 'block' : 'none';
+  if (!isEditing) input.focus();
+}
+
+function toggleEditAddress() {
+  const input = document.getElementById('edit-address');
+  const btn = document.getElementById('save-address-btn');
+  const display = document.getElementById('display-address');
+  const isEditing = input.style.display !== 'none';
+  input.style.display = isEditing ? 'none' : 'block';
+  btn.style.display = isEditing ? 'none' : 'inline-block';
+  display.style.display = isEditing ? 'block' : 'none';
+  if (!isEditing) input.focus();
+}
+
+async function saveName() {
+  const name = document.getElementById('edit-name').value.trim();
+  if (!name) { showToast('Name cannot be empty'); return; }
+  await patchUser({ name });
+  currentUser.name = name;
+  document.getElementById('display-name').textContent = name;
+  document.getElementById('hero-name').textContent = name;
+  document.getElementById('avatar-initials').textContent = name[0].toUpperCase();
+  toggleEditName();
+  showToast('Name updated');
+}
+
+async function saveAddress() {
+  const address = document.getElementById('edit-address').value.trim();
+  await patchUser({ address });
+  currentUser.address = address;
+  document.getElementById('display-address').textContent = address || 'Not set';
+  toggleEditAddress();
+  showToast('Address saved');
+}
+
+async function savePreferences() {
+  const diet = document.querySelector('#diet-pills .pill.on')?.dataset.v || '';
+  const goal = document.querySelector('#goal-pills .pill.on')?.dataset.v || '';
+  await patchUser({ diet, goal });
+  showToast('Preferences saved');
+}
+
+async function patchUser(fields) {
+  try {
+    await fetch('https://api.healthymealspot.com/users/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...currentUser, ...fields })
+    });
+  } catch (e) { showToast('Could not save. Try again.'); }
+}
+
+async function loadOrders(mobile) {
+  const container = document.getElementById('orders-container');
+  try {
+    const res = await fetch('/users/' + mobile + '/orders');
+    const data = await res.json();
+    const orders = (data.orders || []).slice(0, 5);
+    if (!orders.length) {
+      container.innerHTML = '<div class="empty-orders">No orders yet. Start ordering! 🍱</div>';
+      return;
+    }
+    container.innerHTML = orders.map(o => `
+      <div class="order-card">
+        <div class="order-card-header">
+          <span class="order-id">${o.id || ''}</span>
+          <span class="order-status">${o.status || 'Confirmed'}</span>
+        </div>
+        <div class="order-date">${new Date(o.order_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+        <div class="order-items-text">${(o.items || '').split('\n').slice(0, 3).join('\n')}</div>
+        <div class="order-total">₹${o.total}</div>
+      </div>
+    `).join('');
+  } catch (e) {
+    container.innerHTML = '<div class="empty-orders">Could not load orders.</div>';
+  }
+}
+
+async function signOut() {
+  try { await fetch('/api/auth/logout', { method: 'POST' }); } catch {}
+  window.location.href = '/';
+}
+
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+init();
+</script>
+</body>
+</html>
