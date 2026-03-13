@@ -29,7 +29,6 @@
   </script>
   <link rel="icon" href="/favicon.ico" sizes="any">
   <script>document.write(`<link rel="stylesheet" href="/style.css?v=${APP_VERSION}">`);</script>
-  <link rel="stylesheet" href="/chatbot.css">
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-TE81BJG5TS"></script>
   <script>
@@ -38,129 +37,702 @@
     gtag('js', new Date());
     gtag('config', 'G-TE81BJG5TS');
   </script>
+<script>if(new URLSearchParams(location.search).get('tab')==='menu'){document.addEventListener('DOMContentLoaded',function(){var m=document.getElementById('tab-menu');if(m)m.classList.add('active');var b=document.querySelector('.mob-nav-btn[data-tab="menu"]');if(b){document.querySelectorAll('.mob-nav-btn').forEach(function(x){x.classList.remove('active')});b.classList.add('active');}});}</script>
 </head>
 <body>
 
-<!-- Hamburger Drawer Overlay -->
-<div id="drawer-overlay" class="drawer-overlay" onclick="closeDrawer()"></div>
-
-<!-- Slide-out Drawer -->
-<nav id="nav-drawer" class="nav-drawer" aria-label="Main navigation">
-  <div class="drawer-header">
-    <span class="drawer-brand">Healthy Meal Spot</span>
-    <button class="drawer-close" onclick="closeDrawer()" aria-label="Close menu">&#x2715;</button>
-  </div>
-  <div id="drawer-user-section" class="drawer-user-section">
-    <div id="drawer-user-info" style="display:none">
-      <div id="drawer-user-name" class="drawer-user-name"></div>
-      <div id="drawer-user-phone" class="drawer-user-phone"></div>
-    </div>
-    <div id="drawer-auth-btns" class="drawer-auth-btns">
-      <button class="drawer-login-btn" onclick="closeDrawer(); showOTPModal();">Sign In</button>
-    </div>
-  </div>
-  <ul class="drawer-links">
-    <li><a href="/" class="drawer-link active">Menu</a></li>
-    <li id="drawer-my-orders-li" style="display:none"><button class="drawer-link drawer-link-btn" onclick="closeDrawer(); showMyOrders();">My Orders</button></li>
-    <li><a href="/nutrition" class="drawer-link">Nutrition Hub</a></li>
-    <li><a href="/consult-nutritionist" class="drawer-link">Consult Nutritionist</a></li>
-    <li><a href="/about" class="drawer-link">About</a></li>
-    <li><a href="mailto:kitchen@healthymealspot.com" class="drawer-link">Contact</a></li>
-    <li id="drawer-logout-li" style="display:none"><button class="drawer-link drawer-link-btn drawer-logout-btn" onclick="closeDrawer(); logout();">Sign Out</button></li>
-  </ul>
-</nav>
-
 <!-- Top App Bar -->
 <header class="app-bar">
-  <button class="hamburger-btn" onclick="openDrawer()" aria-label="Open menu" aria-expanded="false" id="hamburger-btn">
-    <span></span><span></span><span></span>
-  </button>
-  <nav class="top-nav" aria-label="Main navigation">
-    <a href="/" class="top-nav-link active">
-      <img src="/favicon.png" alt="" class="app-bar-logo" width="20" height="20" style="margin-right:5px">
-      Healthy Meal Menu
-    </a>
-    <a href="/nutrition" class="top-nav-link">Nutrition Hub</a>
-    <a href="/consult-nutritionist" class="top-nav-link">Consult Nutritionist</a>
-    <a href="/about" class="top-nav-link">About</a>
-    <a href="mailto:kitchen@healthymealspot.com" class="top-nav-link">Contact</a>
-    <button class="top-nav-link top-nav-orders-btn" id="top-nav-orders-btn" style="display:none" onclick="showMyOrders()">My Orders</button>
-    <button class="top-nav-link top-nav-logout-btn" id="top-nav-logout-btn" style="display:none" onclick="logout()">Sign Out</button>
-    <button class="top-nav-link top-nav-auth-btn" id="top-nav-auth-btn" onclick="showOTPModal()">Sign In</button>
-  </nav>
-  <button class="app-bar-cart-btn" id="app-bar-cart-btn" onclick="expandCart()" aria-label="View cart" style="display:none">
-    Your Plate <span id="app-bar-cart-count">0</span>
+  <a href="/" class="app-bar-brand" style="margin-left:-4px">
+    <img src="/favicon.png" alt="" class="app-bar-logo" width="36" height="36">
+  </a>
+
+  <!-- Order type dropdown -->
+  <div class="ab-order-type" id="ab-order-type-wrap">
+    <button class="ab-order-type-btn" onclick="toggleOrderTypeMenu()" aria-haspopup="true">
+      <span id="ab-order-type-label">Healthy Meals Delivery</span>
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M2 4l4 4 4-4"/></svg>
+    </button>
+    <div class="ab-order-type-menu" id="ab-order-type-menu" style="display:none">
+      <button onclick="selectOrderType('Healthy Meals Delivery')">Healthy Meals Delivery</button>
+      <button onclick="selectOrderType('Healthy Meals Take Away')">Healthy Meals Take Away</button>
+      <button onclick="selectOrderType('Bulk Orders')">Bulk Orders</button>
+    </div>
+  </div>
+
+  <!-- Location dropdown -->
+  <div class="ab-location-wrap" id="ab-location-wrap">
+    <button class="ab-location-btn" id="ab-location-btn" onclick="toggleLocationMenu()">
+      <span class="ab-location-icon">📍</span>
+      <span class="ab-location-text">
+        <span class="ab-location-name" id="ab-location-name">Healthy Meal Spot, Mumbai</span>
+        <span class="ab-location-sub" id="ab-location-sub"></span>
+      </span>
+      <svg class="ab-chevron" width="14" height="14" viewBox="0 0 12 12" fill="currentColor"><path d="M2 4l4 4 4-4"/></svg>
+    </button>
+  </div>
+
+  <div class="app-bar-actions" style="margin-left:auto">
+    <span id="app-bar-greeting" class="top-nav-link" style="font-size:16px;font-weight:800;color:var(--accent);letter-spacing:0.3px">Hi there !</span>
+    <!-- search removed from app-bar -->
+    <a href="/nutrition" class="top-nav-link app-bar-nav-link">Nutrition Hub</a>
+    <a href="/consult-nutritionist" class="top-nav-link app-bar-nav-link">Consult</a>
+    <a href="/about" class="top-nav-link app-bar-nav-link">About</a>
+  </div>
+
+  <!-- Clock / delivery time -->
+  <button class="ab-time-btn" onclick="openDeliveryTimeModal()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <span id="ab-time-label">Now</span>
   </button>
 </header>
 
-<div id="kitchen-closed-banner" class="kitchen-closed">🚫 Kitchen is closed.</div>
-
-<div class="sticky-controls">
-  <section class="action-bar">
-    <div class="date-picker">
-      <button class="action-btn secondary calendar-btn" onclick="toggleCalendar()">
-        <span id="selected-date-label"></span>
-      </button>
+<!-- Menu Header Bar -->
+<div id="consult-header-bar" style="display:none">
+  <div class="menu-header-top">
+    <h1 class="menu-header-title">🩺 Consult a Nutritionist</h1>
+  </div>
+  <div class="menu-header-filters">
+    <div class="nutrition-search-pill">
+      <i class="fa-solid fa-magnifying-glass" style="font-size:13px;color:var(--muted)"></i>
+      <input id="consult-header-search" type="search" placeholder="Search nutritionists, specialties..." autocomplete="off" oninput="filterConsultCards(this.value)">
+      <button onclick="filterConsultCards('')" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0;font-size:13px;line-height:1" aria-label="Clear">✕</button>
     </div>
-
-    <button class="action-btn primary" onclick="bulkOrder()"><i class="fa-brands fa-whatsapp"></i> Bulk Order</button>
-    <button class="action-btn secondary" onclick="viewMenuPdf()">📄 View Menu</button>
-  </section>
-
-  <section class="filter-bar">
-    <div class="search-field" aria-label="Search dishes">
-      <i class="fa-solid fa-magnifying-glass"></i>
-      <input id="search-dishes" type="search" inputmode="search" placeholder="Search dishes, ingredients..." autocomplete="off">
-      <button id="clear-search" class="clear-search" type="button" aria-label="Clear search">✕</button>
-      <div id="section-context" class="section-context" aria-hidden="true"></div>
-    </div>
-    <div class="filter-controls">
-      <button id="veg-toggle" class="pill-btn" aria-pressed="false">Veg Only</button>
-    </div>
-  </section>
+  </div>
 </div>
 
-<main>
-<section class="reviews-unified">
-  <div class="reviews-card">
-    <div id="review-card" class="review-card-fixed"></div>
-    <a href="https://maps.app.goo.gl/viSKnour2Eh7QQzx9" target="_blank" class="reviews-link-inline">Read all reviews →</a>
+<div id="myhealth-header-bar" style="display:none !important">
+  <div class="menu-header-top">
+    <h1 class="menu-header-title" id="mhb-title">❤️ My Health</h1>
   </div>
-</section>
+</div>
 
-<div id="menu-container"></div>
+<div id="nutrition-header-bar" style="display:none">
+  <div class="menu-header-top">
+    <h1 class="menu-header-title">🌿 Nutrition Hub</h1>
+    <span id="nutrition-header-tagline" style="margin-left:10px;font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
+  </div>
+  <div class="menu-header-filters">
+    <div class="nutrition-search-pill">
+      <i class="fa-solid fa-magnifying-glass" style="font-size:13px;color:var(--muted)"></i>
+      <input id="nutrition-header-search" type="search" placeholder="Search articles..." autocomplete="off" oninput="onNutritionSearchInput(this.value)">
+      <button onclick="onNutritionSearchInput('')" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0;font-size:13px;line-height:1" aria-label="Clear">✕</button>
+    </div>
+  </div>
+</div>
 
-<section class="seo-content" style="padding: 24px 16px; margin: 24px auto; max-width: 800px; line-height: 1.6;">
-  <h1 style="font-size: 24px; color: var(--accent); margin-bottom: 12px;">Healthy Meals for Better Living</h1>
-  <p style="margin-bottom: 12px; color: var(--text);">
-    At Healthy Meal Spot, we believe that healthy meals are the foundation of better living. 
-    Our mission is to bring you fresh, nutritious, and delicious diet-friendly food options delivered straight to your door in Navi Mumbai. 
-    Whether you are looking to lose weight, gain muscle, or simply maintain a balanced lifestyle, our carefully crafted menu ensures you get the right macronutrients without compromising on taste.
-  </p>
-  <p style="color: var(--text);">
-    Beyond just a food delivery service, we have a strong nutrition focus. Explore our <a href="/nutrition" style="color: var(--accent); text-decoration: underline;">Nutrition Hub</a> for evidence-based diet plans, healthy recipes, and wellness advice, or <a href="/consult-nutritionist" style="color: var(--accent); text-decoration: underline;">consult our certified nutritionists</a> to start a personalized journey toward a healthier you.
-  </p>
-</section>
+<div id="menu-header-bar" style="display:none">
+  <div class="menu-header-top">
+    <h1 class="menu-header-title">Our Menu</h1>
+  </div>
+  <div class="menu-header-filters">
+    <div class="food-toggle-item" id="ft-veg" onclick="toggleFoodFilter('veg',this)">
+      <div class="food-toggle">
+        <div class="food-toggle__toggle-strip"></div>
+        <div class="food-toggle__toggle-thumb">
+          <img src="https://assets.mcdelivery.co.in/icons/veg-filter.svg" alt="ic-veg-filter" loading="lazy" title="ic-veg-filter" style="object-fit:contain;width:16px;min-width:16px;max-width:16px;height:16px;min-height:16px;max-height:16px">
+        </div>
+      </div>
+    </div>
+    <div class="food-toggle-item" id="ft-nonveg" onclick="toggleFoodFilter('nonveg',this)">
+      <div class="food-toggle">
+        <div class="food-toggle__toggle-strip"></div>
+        <div class="food-toggle__toggle-thumb">
+          <img src="https://assets.mcdelivery.co.in/icons/nonveg-filter.svg" alt="ic-nonveg-filter" loading="lazy" title="ic-nonveg-filter" style="object-fit:contain;width:16px;min-width:16px;max-width:16px;height:16px;min-height:16px;max-height:16px">
+        </div>
+      </div>
+    </div>
+    <div class="food-toggle-item" id="ft-egg" onclick="toggleFoodFilter('egg',this)">
+      <div class="food-toggle">
+        <div class="food-toggle__toggle-strip"></div>
+        <div class="food-toggle__toggle-thumb">
+          <img src="https://assets.mcdelivery.co.in/icons/egg-filter.svg" alt="ic-egg-filter" loading="lazy" title="ic-egg-filter" style="object-fit:contain;width:16px;min-width:16px;max-width:16px;height:16px;min-height:16px;max-height:16px">
+        </div>
+      </div>
+    </div>
+    <button class="top-sellers-tab" id="ft-topsellers" onclick="toggleTopSellers(this)" aria-pressed="false">Top Sellers</button>
+    <button id="menu-header-search-btn" class="menu-header-search-btn" onclick="openMenuSearch()" aria-label="Search" style="margin-left:auto">
+      <img src="https://assets.mcdelivery.co.in/icons/search-medium.svg" alt="ic-search-medium" loading="lazy" title="ic-search-medium" style="object-fit:contain;width:20px;min-width:20px;max-width:20px;height:20px;min-height:20px;max-height:20px">
+    </button>
+    <div id="menu-search-pill" class="menu-search-pill" style="display:none;margin-left:auto">
+      <div class="autocomplete-wrapper">
+        <input id="menu-search-inline" type="text" placeholder="Search here" enterkeyhint="search" maxlength="75" oninput="onMenuSearchInput(this.value)">
+        <div class="ghost-text"><span class="suggestion" role="button" tabindex="0"></span></div>
+      </div>
+      <button class="menu-search-clear" onclick="clearMenuSearch()" aria-label="Clear search">✕</button>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- Schedule Picker Modal -->
+<div id="schedule-modal" class="schedule-modal-overlay" onclick="closeScheduleModal(event)">
+  <div class="schedule-modal-glass">
+    <div class="schedule-modal-header">
+      <span>🕐 When do you want delivery?</span>
+      <button onclick="closeScheduleModal()" class="schedule-close-btn">×</button>
+    </div>
+
+    <div class="schedule-now-row">
+      <button id="sched-now-btn" class="sched-now-btn" onclick="selectScheduleNow()">⚡ Now (ASAP)</button>
+    </div>
+
+    <div class="schedule-divider">— or schedule for later —</div>
+
+    <div class="schedule-date-row" id="sched-date-row"></div>
+
+    <div class="schedule-slot-label">Delivery slot</div>
+    <div class="schedule-slots" id="sched-slots">
+      <button class="sched-slot" data-slot="Lunch" onclick="selectSlot(this)">🌤 Lunch<br><small>1:30 – 3:30 PM</small></button>
+      <button class="sched-slot" data-slot="Dinner" onclick="selectSlot(this)">🌙 Dinner<br><small>8:30 – 10:30 PM</small></button>
+    </div>
+
+    <div id="sched-closed-msg" class="sched-closed-msg" style="display:none">🚫 Kitchen is closed on this date</div>
+
+    <button class="sched-confirm-btn" onclick="confirmSchedule()">Confirm</button>
+  </div>
+</div>
+<div class="app-bar-search-row" id="app-bar-search-row" style="display:none">
+  <div id="section-context" class="section-context" aria-hidden="true"></div>
+  <div class="search-field" aria-label="Search dishes">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input id="search-dishes" type="search" inputmode="search" placeholder="Search dishes, ingredients..." autocomplete="off">
+    <button id="clear-search" class="clear-search" type="button" aria-label="Clear search">✕</button>
+  </div>
+  <button id="veg-toggle" class="pill-btn" aria-pressed="false">Veg Only</button>
+</div>
+
+<!-- Category Tabs (horizontal scroll) — desktop only -->
+<div class="category-tabs-wrap">
+  <div class="category-tabs" id="category-tabs"></div>
+</div>
+
+<!-- ── HOME TAB (offers, reviews, info) ── -->
+<div id="tab-home" class="tab-panel">
+
+  <!-- Hero Banner -->
+  <div class="home-hero">
+    <img src="/images/home-cooked-food.jpg" alt="Fresh healthy meals" class="home-hero-img">
+    <div class="home-hero-overlay">
+      <div class="home-hero-badge">🏠 Home Cooked</div>
+      <h2 class="home-hero-title">Fresh &amp; Healthy<br>Meals Delivered</h2>
+      <p class="home-hero-sub">Navi Mumbai's favourite healthy kitchen</p>
+      <button class="home-hero-cta" onclick="switchTab('menu', document.querySelector('.mob-nav-btn[data-tab=menu]'))">Order Now →</button>
+    </div>
+  </div>
+
+  <!-- Offers Strip -->
+  <div class="home-offers-wrap">
+    <div class="home-offers-heading">🎉 Today's Offers</div>
+    <div class="home-offers-scroll" id="home-offers-scroll"></div>
+  </div>
+
+  <!-- Reviews -->
+  <section class="reviews-unified" style="margin-top:8px">
+    <div class="reviews-card snap-scroll" id="review-stack"></div>
+  </section>
+
+  <!-- Nutrition Facts -->
+  <div class="home-motd-wrap">
+    <div class="home-offers-heading">🧠 Nutrition Facts & Myths</div>
+    <section class="reviews-unified" style="margin-top:0"><div class="reviews-card snap-scroll" id="fact-stack"></div></section>
+  </div>
+
+</div>
+
+<script>
+(function loadHomeOffers() {
+  fetch('/coupons.json').then(r => r.json()).then(data => {
+    const strip = document.getElementById('home-offers-scroll');
+    if (!strip) return;
+    const cards = Object.entries(data)
+      .filter(([, v]) => v.active !== false)
+      .map(([code, v]) => {
+        const label = v.freeDelivery ? 'Free Delivery' : `₹${v.discount} off${v.minOrder > 0 ? ` on ₹${v.minOrder}+` : ''}`;
+        const sub = v.minOrder > 0 && !v.freeDelivery ? `Min order ₹${v.minOrder}` : 'No minimum order';
+        return `<div class="home-offer-card"><div class="home-offer-tag">${label}</div><div class="home-offer-code">${code}</div><div class="home-offer-sub">${sub}</div><button class="home-offer-copy" onclick="navigator.clipboard&&navigator.clipboard.writeText('${code}');document.getElementById('coupon-input').value='${code}';if(typeof showToast==='function')showToast('Code copied!')">Copy Code</button></div>`;
+      });
+    strip.innerHTML = cards.join('');
+  }).catch(() => {});
+})();
+
+document.addEventListener('DOMContentLoaded', () => {
+  const FACTS = [
+    { emoji: '🥚', myth: 'Eggs raise cholesterol dangerously', fact: 'Dietary cholesterol has minimal impact on blood cholesterol for most people. Eggs are a complete protein source.' },
+    { emoji: '🍚', myth: 'Carbs make you fat', fact: 'Excess calories cause fat gain, not carbs. Whole grains and rice are great energy sources when portioned right.' },
+    { emoji: '🥗', myth: 'Eating less is always better', fact: 'Under-eating slows metabolism and causes muscle loss. Eating the right amount matters more than eating less.' },
+    { emoji: '🍌', myth: 'Fruits are bad because of sugar', fact: 'Fruit sugar comes with fibre, vitamins and antioxidants. Whole fruits are not the same as added sugar.' },
+    { emoji: '💪', myth: 'You can only absorb 30g protein per meal', fact: 'Your body absorbs all the protein you eat. The 30g figure relates to muscle synthesis rate, not absorption.' },
+    { emoji: '🌙', myth: 'Eating at night causes weight gain', fact: 'Total daily calories determine weight, not meal timing. Late meals only matter if they push you over your limit.' },
+  ];
+  const stack = document.getElementById('fact-stack');
+  if (!stack) return;
+  stack.innerHTML = FACTS.map(f =>
+    `<div class="snap-card"><div class="home-fact-emoji">${f.emoji}</div><div class="home-fact-myth">❌ ${f.myth}</div><div class="home-fact-truth">✅ ${f.fact}</div></div>`
+  ).join('');
+});
+</script>
+
+<!-- ── MENU TAB ── -->
+<div id="tab-menu" class="tab-panel">
+  <!-- Mobile: left sidebar + right scrollable -->
+  <div id="mobile-menu-layout">
+    <nav id="mobile-cat-sidebar"></nav>
+    <div id="mobile-menu-items"></div>
+  </div>
+</div>
+
+<!-- ── NUTRITION TAB ── -->
+<div id="tab-nutrition" class="tab-panel">
+  <div id="nutrition-mobile-layout">
+    <nav id="nutrition-cat-sidebar">
+      <button class="mob-cat-btn active" data-cat="all"><span class="cat-emoji">📰</span>All</button>
+      <button class="mob-cat-btn" data-cat="weight-loss"><span class="cat-emoji">⚖️</span>Weight Loss</button>
+      <button class="mob-cat-btn" data-cat="muscle-gain"><span class="cat-emoji">💪</span>Muscle Gain</button>
+      <button class="mob-cat-btn" data-cat="medical"><span class="cat-emoji">🩹</span>Medical</button>
+      <button class="mob-cat-btn" data-cat="recipes"><span class="cat-emoji">🍽️</span>Recipes</button>
+      <button class="mob-cat-btn" data-cat="myths"><span class="cat-emoji">🔎</span>Myths</button>
+      <button class="mob-cat-btn" data-cat="tools"><span class="cat-emoji">🧮</span>Tools</button>
+    </nav>
+    <div id="nutrition-content-pane">
+      <div class="article-cards" id="article-cards"><div style="color:var(--muted);padding:20px">Loading articles…</div></div>
+      <div id="nutrition-tools-pane" style="display:none;padding:12px">
+        <a onclick="openToolSheet('protein')" style="display:flex;align-items:center;gap:12px;padding:14px;background:#f0fdf4;border-radius:10px;text-decoration:none;border:1px solid #bbf7d0;color:var(--text);margin-bottom:10px;cursor:pointer"><div style="font-size:22px">🥩</div><div><div style="font-weight:700;font-size:14px">Protein Calculator</div><div style="font-size:12px;color:var(--muted)">Find your daily protein target</div></div></a>
+        <a onclick="openToolSheet('calorie')" style="display:flex;align-items:center;gap:12px;padding:14px;background:#f0fdf4;border-radius:10px;text-decoration:none;border:1px solid #bbf7d0;color:var(--text);margin-bottom:10px;cursor:pointer"><div style="font-size:22px">🔥</div><div><div style="font-weight:700;font-size:14px">Calorie Calculator</div><div style="font-size:12px;color:var(--muted)">Calculate your TDEE</div></div></a>
+        <a onclick="openToolSheet('bmi')" style="display:flex;align-items:center;gap:12px;padding:14px;background:#f0fdf4;border-radius:10px;text-decoration:none;border:1px solid #bbf7d0;color:var(--text);cursor:pointer"><div style="font-size:22px">⚖️</div><div><div style="font-weight:700;font-size:14px">BMI Calculator</div><div style="font-size:12px;color:var(--muted)">Check your weight category</div></div></a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MY HEALTH TAB ── -->
+<div id="tab-myhealth" class="tab-panel">
+  <div class="profile-hero" id="ph-hero" style="background:var(--accent);padding:32px 20px 64px;text-align:center;color:#fff">
+    <div style="width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:800;color:#fff;margin:0 auto 12px;border:3px solid rgba(255,255,255,0.5)" id="ph-avatar">?</div>
+    <div style="font-size:1.3rem;font-weight:800" id="ph-name">My Health</div>
+    <div style="font-size:0.875rem;opacity:0.85;margin-top:4px" id="ph-phone"></div>
+  </div>
+  <div id="ph-sheet" style="background:#fff;border-radius:24px 24px 0 0;margin-top:-28px;padding:28px 20px 100px;max-width:520px;margin-left:auto;margin-right:auto">
+    <!-- login prompt -->
+    <div id="ph-login-prompt" style="text-align:center;padding:32px 0">
+      <div style="font-size:40px;margin-bottom:12px">👤</div>
+      <div style="font-size:16px;font-weight:800;margin-bottom:8px">Sign in to view your health profile</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Track orders, set dietary preferences and health goals.</div>
+      <button class="cart-order-btn" style="width:auto;padding:12px 32px;margin:0 auto" onclick="showOTPModal()">Sign In</button>
+    </div>
+    <!-- profile content (hidden until logged in) -->
+    <div id="ph-content" style="display:none">
+      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:12px">Personal Info</div>
+      <div style="display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)">
+        <div style="width:36px;height:36px;border-radius:50%;background:#fff0ee;display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:15px;flex-shrink:0"><i class="fa-solid fa-user"></i></div>
+        <div style="flex:1"><div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase">Full Name</div><div style="font-size:14px;font-weight:700" id="ph-display-name">—</div><input style="display:none;width:100%;padding:8px 10px;border-radius:8px;border:1.5px solid var(--accent);font-size:14px;font-family:var(--font);outline:none;margin-top:4px" id="ph-edit-name" type="text"><button style="display:none;margin-top:8px;padding:8px 20px;border-radius:4px;border:none;background:var(--accent);color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:var(--font)" id="ph-save-name-btn" onclick="phSaveName()">Save</button></div>
+        <button style="margin-left:auto;background:none;border:none;color:var(--accent);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="phToggleEdit('name')">Edit</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)">
+        <div style="width:36px;height:36px;border-radius:50%;background:#fff0ee;display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:15px;flex-shrink:0"><i class="fa-solid fa-phone"></i></div>
+        <div><div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase">Mobile</div><div style="font-size:14px;font-weight:700" id="ph-display-phone">—</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--border);margin-bottom:24px">
+        <div style="width:36px;height:36px;border-radius:50%;background:#fff0ee;display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:15px;flex-shrink:0"><i class="fa-solid fa-location-dot"></i></div>
+        <div style="flex:1"><div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase">Saved Address</div><div style="font-size:14px;font-weight:700" id="ph-display-address">—</div><input style="display:none;width:100%;padding:8px 10px;border-radius:8px;border:1.5px solid var(--accent);font-size:14px;font-family:var(--font);outline:none;margin-top:4px" id="ph-edit-address" type="text"><button style="display:none;margin-top:8px;padding:8px 20px;border-radius:4px;border:none;background:var(--accent);color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:var(--font)" id="ph-save-addr-btn" onclick="phSaveAddress()">Save</button></div>
+        <button style="margin-left:auto;background:none;border:none;color:var(--accent);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="phToggleEdit('address')">Edit</button>
+      </div>
+      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:12px">Dietary Preference</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px" id="ph-diet-pills">
+        <span style="padding:8px 16px;border:1.5px solid var(--border);border-radius:999px;font-size:13px;cursor:pointer;background:#fff;color:#444" class="ph-pill" data-g="diet" data-v="veg">🥦 Veg</span>
+        <span style="padding:8px 16px;border:1.5px solid var(--border);border-radius:999px;font-size:13px;cursor:pointer;background:#fff;color:#444" class="ph-pill" data-g="diet" data-v="non-veg">🍗 Non-Veg</span>
+        <span style="padding:8px 16px;border:1.5px solid var(--border);border-radius:999px;font-size:13px;cursor:pointer;background:#fff;color:#444" class="ph-pill" data-g="diet" data-v="eggetarian">🥚 Eggetarian</span>
+      </div>
+      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:12px">Health Goal</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px" id="ph-goal-pills">
+        <span style="padding:8px 16px;border:1.5px solid var(--border);border-radius:999px;font-size:13px;cursor:pointer;background:#fff;color:#444" class="ph-pill" data-g="goal" data-v="weight-loss">⚖️ Weight Loss</span>
+        <span style="padding:8px 16px;border:1.5px solid var(--border);border-radius:999px;font-size:13px;cursor:pointer;background:#fff;color:#444" class="ph-pill" data-g="goal" data-v="muscle-gain">💪 Muscle Gain</span>
+        <span style="padding:8px 16px;border:1.5px solid var(--border);border-radius:999px;font-size:13px;cursor:pointer;background:#fff;color:#444" class="ph-pill" data-g="goal" data-v="balanced">🥗 Balanced</span>
+        <span style="padding:8px 16px;border:1.5px solid var(--border);border-radius:999px;font-size:13px;cursor:pointer;background:#fff;color:#444" class="ph-pill" data-g="goal" data-v="medical">🏥 Medical Diet</span>
+      </div>
+      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:12px">Recent Orders</div>
+      <div id="ph-orders"><div style="text-align:center;padding:24px 0;color:var(--muted);font-size:14px">Loading orders…</div></div>
+      <button style="width:100%;padding:14px;border-radius:4px;border:1.5px solid var(--border);background:#fff;color:var(--muted);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);margin-top:16px" onclick="phSignOut()"><i class="fa-solid fa-right-from-bracket"></i> Sign Out</button>
+    </div>
+  </div>
+</div>
+<div id="tab-consult" class="tab-panel">
+  <div id="consult-mobile-layout">
+    <nav id="consult-cat-sidebar">
+      <button class="mob-cat-btn active" data-filter="all"><span class="cat-emoji">👥</span>All</button>
+      <button class="mob-cat-btn" data-filter="Weight Loss"><span class="cat-emoji">⚖️</span>Weight Loss</button>
+      <button class="mob-cat-btn" data-filter="Muscle Gain"><span class="cat-emoji">💪</span>Muscle Gain</button>
+      <button class="mob-cat-btn" data-filter="PCOS"><span class="cat-emoji">🌸</span>PCOS</button>
+      <button class="mob-cat-btn" data-filter="Diabetes"><span class="cat-emoji">🩸</span>Diabetes</button>
+      <button class="mob-cat-btn" data-filter="General Wellness"><span class="cat-emoji">🌿</span>Wellness</button>
+    </nav>
+    <div id="consult-content-pane">
+      <div class="nutritionists-grid" id="nutritionists">
+        <div class="nutritionist-card" data-specs="Weight Loss Muscle Gain General Wellness">
+          <div class="nutritionist-photo">👨</div>
+          <div class="nutritionist-info">
+            <div class="nutritionist-name" style="display:flex;align-items:center;gap:8px">Deepjyoti Ray
+              <a href="https://www.linkedin.com/in/djray" target="_blank" style="color:#0077b5"><i class="fa-brands fa-linkedin"></i></a>
+            </div>
+            <div class="nutritionist-specs">Weight Loss &bull; Muscle Gain &bull; General Wellness</div>
+            <div class="nutritionist-exp">Expert Nutritionist</div>
+            <div class="nutritionist-price">₹799 / session</div>
+            <button class="book-btn" onclick="openBooking('Deepjyoti Ray')">Book Appointment</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Price notice banner (fixed, dismissible) -->
+<div id="price-notice-bar" style="position:fixed;top:84px;left:0;right:0;z-index:9996;background:#fff8e1;border-bottom:1.5px solid #f9a825;display:flex;align-items:flex-start;gap:12px;padding:10px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+  <span style="font-size:1.4rem;flex-shrink:0;line-height:1.3">⚠️</span>
+  <p style="margin:0;font-size:13px;color:#5d4037;line-height:1.5;flex:1"><strong style="color:#e65100">Price Update Notice:</strong> Due to the ongoing conflict, raw material costs have risen significantly. Prices will be revised from <strong>next week</strong>. We appreciate your understanding. 🙏</p>
+  <button onclick="dismissPriceNotice()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#999;flex-shrink:0;line-height:1;padding:0 0 0 4px">✕</button>
+</div>
+<div id="price-notice-pill" style="display:none;position:fixed;top:84px;left:50%;transform:translateX(-50%);z-index:9996;background:#fff8e1;border:1.5px solid #f9a825;border-radius:0 0 20px 20px;padding:4px 16px;font-size:12px;color:#e65100;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.1);white-space:nowrap" onclick="expandPriceNotice()">⚠️ Price update next week</div>
+<script>
+  (function(){
+    if(sessionStorage.getItem('priceNoticeDismissed')){
+      document.getElementById('price-notice-bar').style.display='none';
+      document.getElementById('price-notice-pill').style.display='block';
+    }
+  })();
+  function dismissPriceNotice(){
+    sessionStorage.setItem('priceNoticeDismissed','1');
+    document.getElementById('price-notice-bar').style.display='none';
+    document.getElementById('price-notice-pill').style.display='block';
+  }
+  function expandPriceNotice(){
+    sessionStorage.removeItem('priceNoticeDismissed');
+    document.getElementById('price-notice-bar').style.display='flex';
+    document.getElementById('price-notice-pill').style.display='none';
+  }
+</script>
+
+<!-- Desktop 3-col layout (always visible on desktop) -->
+<div id="page-layout" style="">
+  <nav id="section-sidebar"></nav>
+  <main>
+  <div id="menu-container"></div>
 </main>
+  <aside id="cart-sidebar">
+    <div class="cart-sidebar-inner">
+      <div class="cart-sidebar-title">🍽️ Your Plate</div>
+      <div id="sidebar-cart-items" class="cart-items-mirror"></div>
+      <div id="sidebar-cart-empty" class="cart-sidebar-empty">Your plate is empty</div>
+      <div id="sidebar-cart-total" class="cart-sidebar-total" style="display:none"><span>Total</span><strong></strong></div>
+      <div id="sidebar-cart-progress" class="cart-progress" style="display:none">
+        <div class="cart-progress-top"><span>Free delivery goal</span><span id="sidebar-progress-value"></span></div>
+        <div class="cart-progress-bar"><span id="sidebar-progress-fill"></span></div>
+        <div id="sidebar-progress-msg" class="cart-progress-msg"></div>
+      </div>
+      <div class="coupon-box" id="sidebar-coupon-box" style="display:none">
+        <input id="sidebar-coupon-input" type="text" placeholder="Enter coupon code">
+        <button onclick="document.getElementById('coupon-input').value=document.getElementById('sidebar-coupon-input').value;applyCoupon();">Apply</button>
+        <div id="sidebar-coupon-msg" class="coupon-msg"></div>
+      </div>
+      <button class="action-btn secondary calendar-btn" onclick="toggleCalendar()" style="width:100%;margin-top:8px;justify-content:center">
+        📅 <span id="selected-date-label">Schedule Order</span>
+      </button>
+      <button id="sidebar-order-btn" class="cart-order-btn" onclick="orderOnWhatsApp()" disabled style="margin-top:8px">Place Order</button>
+    </div>
+  </aside>
+</div>
+<!-- /desktop layout -->
 
-<footer class="footer">
-  © 2026 Healthy Meal Spot • Navi Mumbai<br>
-  Contact: <a href="mailto:kitchen@healthymealspot.com">kitchen@healthymealspot.com</a> •
-</footer>
+<!-- Mobile persistent cart bar -->
+<!-- Mobile Persistent Plate Bar -->
+<div id="mobile-cart-bar" onclick="togglePlateDrawer()">
+  <div class="mob-cart-bar-left">
+    <div class="mob-cart-count-badge" id="mob-cart-count">0</div>
+    <span class="mob-cart-bar-label">🍽️ Your Plate</span>
+  </div>
+  <span class="mob-cart-bar-total" id="mob-cart-total"></span>
+  <span class="mob-plate-chevron" id="mob-plate-chevron">▲</span>
+</div>
+
+<!-- Plate Drawer (expands above bar) -->
+<div id="plate-drawer">
+  <div id="plate-drawer-items">
+    <div id="plate-empty-msg" class="plate-empty-msg">Oops, your plate is empty!<br><span>Add something healthy and yummy from the menu 🥗</span></div>
+  </div>
+  <div id="plate-drawer-footer" style="display:none">
+    <div class="coupon-box mob-coupon-box">
+      <input id="mob-coupon-input" type="text" placeholder="Enter coupon code">
+      <button id="mob-coupon-apply-btn" onclick="applyMobCoupon()">Apply</button>
+      <div id="mob-coupon-msg" class="coupon-msg"></div>
+    </div>
+    <div class="plate-drawer-total-row"><span>Total</span><strong id="plate-drawer-total">₹0</strong></div>
+    <button class="mob-cart-bar-cta plate-order-btn" onclick="orderOnWhatsApp()">Place Order</button>
+  </div>
+</div>
+
+<!-- Mobile bottom nav -->
+<nav id="mobile-bottom-nav">
+  <button class="mob-nav-btn active" data-tab="home" onclick="switchTab('home',this)">
+    <i class="fa-solid fa-house"></i>Home
+  </button>
+  <button class="mob-nav-btn" data-tab="menu" onclick="switchTab('menu',this)">
+    <i class="fa-solid fa-utensils"></i>Menu
+  </button>
+  <button class="mob-nav-btn" data-tab="nutrition" onclick="switchTab('nutrition',this)">
+    <i class="fa-solid fa-leaf"></i>Nutrition
+  </button>
+  <button class="mob-nav-btn" data-tab="consult" onclick="switchTab('consult',this)">
+    <i class="fa-solid fa-stethoscope"></i>Consult
+  </button>
+  <button class="mob-nav-btn" data-tab="myhealth" onclick="switchTab('myhealth',this)">
+    <i class="fa-solid fa-heart-pulse"></i>My Health
+  </button>
+</nav>
+
 
 <script>
 function viewMenuPdf() {
   window.open('/menu.pdf', '_blank');
 }
+function toggleAppBarSearch() {
+  const row = document.getElementById('app-bar-search-row');
+  const isHidden = row.style.display === 'none';
+  row.style.display = isHidden ? 'flex' : 'none';
+  if (isHidden) document.getElementById('search-dishes').focus();
+}
+function toggleCartCalendar(btn) {
+  const popup = document.getElementById('calendar-popup');
+  const wasHidden = popup.classList.contains('hidden');
+  popup.classList.toggle('hidden');
+  if (wasHidden) {
+    updateQuickDateButton();
+    const rect = btn.getBoundingClientRect();
+    popup.style.position = 'fixed';
+    popup.style.top = (rect.top - popup.offsetHeight - 8) + 'px';
+    popup.style.left = rect.left + 'px';
+  }
+}
+function updateCartScheduleBtn() {
+  const btn = document.getElementById('cart-schedule-btn');
+  const label = document.getElementById('cart-schedule-label');
+  const hasItems = document.querySelectorAll('#cart-items .cart-item').length > 0;
+  if (btn) btn.style.display = hasItems ? 'flex' : 'none';
+  if (label) label.textContent = document.getElementById('selected-date-label')?.textContent || 'Schedule Order';
+}
+document.addEventListener('DOMContentLoaded', function() {
+  // Mark default selected dropdown items
+  const firstOrderBtn = document.querySelector('#ab-order-type-menu button');
+  if (firstOrderBtn) firstOrderBtn.classList.add('selected');
+
+  // Measure actual header height and set CSS variable
+  function setHeaderHeightVar() {
+    if (window.innerWidth <= 768) return;
+    const appBar = document.querySelector('.app-bar');
+    const menuBar = document.getElementById('menu-header-bar');
+    if (!appBar || !menuBar) return;
+    // Must be visible to measure
+    const wasHidden = menuBar.style.display === 'none';
+    if (wasHidden) menuBar.style.visibility = 'hidden';
+    if (wasHidden) menuBar.style.display = 'block';
+    const h = Math.ceil(appBar.getBoundingClientRect().height + menuBar.getBoundingClientRect().height);
+    if (wasHidden) menuBar.style.display = 'none';
+    if (wasHidden) menuBar.style.visibility = '';
+    document.documentElement.style.setProperty('--desktop-header-h', h + 'px');
+    const layout = document.getElementById('page-layout');
+    if (layout) layout.style.paddingTop = (h - 72) + 'px';
+    const sidebar = document.getElementById('section-sidebar');
+    if (sidebar) sidebar.style.top = h + 'px';
+    const cartSidebar = document.getElementById('cart-sidebar');
+    if (cartSidebar) { cartSidebar.style.top = h + 'px'; cartSidebar.style.height = 'calc(100vh - ' + h + 'px)'; }
+  }
+  setTimeout(setHeaderHeightVar, 50);
+  window.addEventListener('resize', setHeaderHeightVar);
+
+  // Show menu header bar on desktop by default (menu always visible)
+  if (window.innerWidth > 768) {
+    const mhb = document.getElementById('menu-header-bar');
+    if (mhb) mhb.style.display = 'block';
+    setTimeout(setHeaderHeightVar, 0);
+  }
+
+  // Silently detect location on load and update the dropdown label
+  const _savedLocation = sessionStorage.getItem('_detectedLabel');
+  if (_savedLocation) {
+    window._detectedLabel = _savedLocation;
+    document.getElementById('ab-location-name').textContent = _savedLocation;
+  } else if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(pos) {
+      const { latitude: lat, longitude: lon } = pos.coords;
+      fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=en`)
+        .then(r => r.ok ? r.json() : Promise.reject())
+        .then(data => {
+          const addr = data.address || {};
+          const city = addr.city || addr.town || addr.village || addr.county || 'Mumbai';
+          const building = addr.building || addr.amenity || addr.road || addr.neighbourhood || addr.suburb || '';
+          const label = building ? `${building}, ${city}` : city;
+          window._detectedLabel = label;
+          window._detectedCity = city;
+          sessionStorage.setItem('_detectedLabel', label);
+          document.getElementById('ab-location-name').textContent = label;
+        })
+        .catch(() => {});
+    }, () => {}, { timeout: 10000 });
+  }
+  const cartItems = document.getElementById('cart-items');
+  if (cartItems) new MutationObserver(updateCartScheduleBtn).observe(cartItems, { childList: true, subtree: true });
+  document.addEventListener('dateSelected', updateCartScheduleBtn);
+
+  // Mirror cart into sidebar
+  function syncSidebarCart() {
+    const src = document.getElementById('cart-items');
+    const dst = document.getElementById('sidebar-cart-items');
+    const totalSrc = document.getElementById('cart-total');
+    const totalDst = document.querySelector('#sidebar-cart-total strong');
+    const emptyEl = document.getElementById('sidebar-cart-empty');
+    const totalRow = document.getElementById('sidebar-cart-total');
+    const sidebarBtn = document.getElementById('sidebar-order-btn');
+    const mainBtn = document.getElementById('cart-order-btn');
+    if (dst && src) dst.innerHTML = src.innerHTML;
+    if (totalDst && totalSrc) totalDst.textContent = totalSrc.textContent;
+    const hasItems = src && src.children.length > 1;
+    if (emptyEl) emptyEl.style.display = hasItems ? 'none' : 'block';
+    if (totalRow) totalRow.style.display = hasItems ? 'flex' : 'none';
+    if (sidebarBtn && mainBtn) sidebarBtn.disabled = mainBtn.disabled;
+    // Sync coupon box
+    const couponBox = document.getElementById('sidebar-coupon-box');
+    if (couponBox) couponBox.style.display = hasItems ? 'flex' : 'none';
+    const couponMsgSrc = document.getElementById('coupon-msg');
+    const couponMsgDst = document.getElementById('sidebar-coupon-msg');
+    if (couponMsgSrc && couponMsgDst) { couponMsgDst.textContent = couponMsgSrc.textContent; couponMsgDst.className = couponMsgSrc.className; }
+    // Sync progress bar
+    const progressSrc = document.getElementById('cart-progress');
+    const progressDst = document.getElementById('sidebar-cart-progress');
+    if (progressSrc && progressDst) {
+      progressDst.style.display = progressSrc.style.display;
+      const valSrc = document.getElementById('cart-progress-value');
+      const valDst = document.getElementById('sidebar-progress-value');
+      if (valSrc && valDst) valDst.textContent = valSrc.textContent;
+      const fillSrc = document.getElementById('cart-progress-fill');
+      const fillDst = document.getElementById('sidebar-progress-fill');
+      if (fillSrc && fillDst) fillDst.style.width = fillSrc.style.width;
+      const msgSrc = document.getElementById('cart-progress-msg');
+      const msgDst = document.getElementById('sidebar-progress-msg');
+      if (msgSrc && msgDst) msgDst.textContent = msgSrc.textContent;
+    }
+  }
+  const cartItemsEl = document.getElementById('cart-items');
+  if (cartItemsEl) new MutationObserver(syncSidebarCart).observe(cartItemsEl, { childList: true, subtree: true, characterData: true });
+  const cartProgressEl = document.getElementById('cart-progress');
+  if (cartProgressEl) new MutationObserver(syncSidebarCart).observe(cartProgressEl, { childList: true, subtree: true, characterData: true, attributes: true });
+  const couponMsgEl = document.getElementById('coupon-msg');
+  if (couponMsgEl) new MutationObserver(syncSidebarCart).observe(couponMsgEl, { childList: true, characterData: true });
+
+  // Delegate sidebar cart +/- clicks to the real buttons in #cart-items
+  const sidebarCartDst = document.getElementById('sidebar-cart-items');
+  if (sidebarCartDst) {
+    sidebarCartDst.addEventListener('click', function(e) {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      const row = btn.closest('.cart-qty');
+      if (!row) return;
+      const buttons = row.querySelectorAll('button');
+      const idx = Array.from(buttons).indexOf(btn);
+      // Find matching row in real cart by position
+      const allRows = document.querySelectorAll('#cart-items .cart-qty');
+      const sidebarRows = sidebarCartDst.querySelectorAll('.cart-qty');
+      const rowIdx = Array.from(sidebarRows).indexOf(row);
+      if (rowIdx >= 0 && allRows[rowIdx]) allRows[rowIdx].querySelectorAll('button')[idx]?.click();
+    });
+  }
+
+  // Build section sidebar after menu renders
+  function buildSectionSidebar() {
+    const sidebar = document.getElementById('section-sidebar');
+    if (!sidebar) return;
+    const sections = document.querySelectorAll('#menu-container section');
+    if (!sections.length) return;
+    sidebar.innerHTML = '';
+    sections.forEach(sec => {
+      const h2 = sec.querySelector('.section-header h2');
+      if (!h2) return;
+      const btn = document.createElement('button');
+      btn.className = 'section-sidebar-btn';
+      btn.dataset.secid = sec.id;
+      const key = sec.id.replace('section-', '').split('__')[0];
+      const icon = (typeof getSectionIcon === 'function') ? getSectionIcon(key) : '🍽️';
+      btn.innerHTML = `<span class="section-sidebar-icon">${icon}</span><span class="section-sidebar-label">${h2.textContent.trim()}</span>`;
+      btn.onclick = () => {
+        const offset = 64;
+        const top = sec.getBoundingClientRect().top + window.scrollY - offset;
+        window.scrollTo({ top, behavior: 'smooth' });
+      };
+      sidebar.appendChild(btn);
+    });
+  }
+  const menuContainer = document.getElementById('menu-container');
+  if (menuContainer) {
+    new MutationObserver(buildSectionSidebar).observe(menuContainer, { childList: true });
+    buildSectionSidebar(); // in case already rendered
+  }
+
+  // Sync section sidebar active state on scroll
+  window.addEventListener('scroll', function() {
+    const sections = Array.from(document.querySelectorAll('#menu-container section'));
+    if (!sections.length) return;
+    const offset = 80;
+    let activeId = sections[0].id;
+    for (let i = sections.length - 1; i >= 0; i--) {
+      if (sections[i].getBoundingClientRect().top <= offset) {
+        activeId = sections[i].id;
+        break;
+      }
+    }
+    document.querySelectorAll('.section-sidebar-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.secid === activeId);
+    });
+  }, { passive: true });
+});
 </script>
+
+<!-- Location bottom-sheet modal -->
+<div id="location-modal" class="loc-modal-overlay" style="display:none" onclick="closeLocationModal(event)">
+  <div class="loc-bottom-sheet">
+    <div class="loc-sheet-heading">
+      <button class="loc-back-btn" onclick="closeLocationModal()">&#8592;</button>
+      Select Delivery Address
+    </div>
+    <div class="loc-sheet-content">
+      <!-- Search bar always visible -->
+      <div style="position:relative;margin-bottom:10px">
+        <input id="loc-search" type="text" placeholder="Search for area, street name…"
+          style="width:100%;padding:12px 14px 12px 38px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;font-family:inherit"
+          oninput="locSearch(this.value)">
+        <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:16px">🔍</span>
+      </div>
+      <div id="loc-search-results" style="display:none;max-height:200px;overflow-y:auto;border:1px solid #eee;border-radius:10px;margin-bottom:10px"></div>
+      <div id="loc-detected" class="loc-detected-row" style="display:none">
+        <span class="loc-detected-icon">📍</span>
+        <div class="loc-detected-text">
+          <div id="loc-detected-name" class="loc-detected-name"></div>
+          <div id="loc-detected-sub" class="loc-detected-sub"></div>
+        </div>
+        <button class="loc-use-btn" onclick="useDetectedLocation()">Use</button>
+      </div>
+      <div id="loc-detecting" class="loc-detecting">Detecting your location…</div>
+    </div>
+  </div>
+</div>
+
 
 <div id="floating-cart">
   <div class="cart-handle"><span>🍽️ Your Plate</span><button class="cart-minimize-btn" onclick="minimizeCart()" aria-label="Minimize cart">▾</button></div>
   <div class="cart-body">
     <div id="cart-items"></div>
+  </div>
+  <div class="cart-sticky-footer">
     <div class="coupon-box">
       <input id="coupon-input" type="text" placeholder="Enter coupon code">
-      <button onclick="applyCoupon()">Apply</button>
+      <button id="coupon-apply-btn" onclick="applyCoupon()">Apply</button>
       <div id="coupon-msg" class="coupon-msg"></div>
     </div>
     <div id="cart-progress" class="cart-progress">
@@ -173,6 +745,7 @@ function viewMenuPdf() {
     </div>
     <div class="cart-footer"><span>Total</span><strong id="cart-total">₹0</strong></div>
     <div id="cart-eta" class="cart-eta" aria-live="polite"></div>
+    <button id="cart-schedule-btn" class="action-btn secondary cart-schedule-btn" onclick="toggleCartCalendar(this)" style="display:none">📅 <span id="cart-schedule-label">Schedule Order</span></button>
     <button id="cart-order-btn" class="cart-order-btn" onclick="orderOnWhatsApp()" disabled>Place Order</button>
   </div>
 </div>
@@ -186,60 +759,48 @@ function viewMenuPdf() {
       <h3>Enter Details</h3>
       <input id="reg-name" type="text" placeholder="Your Name *" style="display:none;">
       <input id="reg-mobile" type="tel" placeholder="Mobile Number (+91XXXXXXXXXX)" maxlength="13" value="+91">
+      <div id="reg-otp-section" style="display:none;">
+        <input id="reg-otp" type="text" placeholder="Enter 6-digit OTP" maxlength="6" inputmode="numeric">
+      </div>
       <div class="modal-actions">
         <button id="reg-continue-btn" onclick="proceedWithMobile()">Continue</button>
       </div>
     </div>
     
-    <div id="order-step" class="checkout-step" style="display:none;">
-      <div class="checkout-header">
-        <h3>Complete Your Order</h3>
-        <button class="checkout-close-btn" onclick="closeCustomerModal()" aria-label="Close modal">×</button>
+    <div id="order-step" class="co-step" style="display:none;">
+      <div class="co-header">
+        <span class="co-title">Complete Your Order</span>
+        <button class="co-close" onclick="closeCustomerModal()" aria-label="Close">×</button>
       </div>
-      <div class="checkout-body">
-        <div class="checkout-section user-summary-section">
-          <div class="user-summary-row">
-            <div class="user-summary-info">
-              <div id="user-display" class="user-summary-name"></div>
-              <div class="user-summary-secondary">
-                <div id="mobile-display" class="user-summary-phone"></div>
-                <div class="user-summary-actions">
-                  <a href="#" onclick="showMyOrders(); return false;" class="user-link">My Orders</a>
-                  <span class="user-link-sep">|</span>
-                  <a href="#" id="logout-link" onclick="logout(); return false;" class="user-link" style="display:none;">Logout</a>
-                </div>
-              </div>
-              <input id="new-user-name" type="text" placeholder="Your Name *" class="user-summary-name-input" style="display:none;">
-            </div>
+      <div class="co-body">
+        <div class="co-user">
+          <div id="user-display" class="co-user-name"></div>
+          <div id="mobile-display" class="co-user-phone"></div>
+          <input id="new-user-name" type="text" placeholder="Your Name *" class="co-input" style="display:none;margin-top:8px">
+        </div>
+        <div class="co-field">
+          <label class="co-label">Delivery Address</label>
+          <input id="cust-address" type="text" placeholder="Enter delivery address" class="co-input">
+        </div>
+        <div class="co-field">
+          <label class="co-label">Notes for Kitchen</label>
+          <textarea id="cust-notes" rows="2" placeholder="Add instructions for the chef..." class="co-input co-notes"></textarea>
+        </div>
+        <div class="co-field">
+          <label class="co-label">Order Time</label>
+          <div class="co-pills">
+            <label class="co-pill"><input type="radio" name="orderType" value="Lunch"><span>Lunch</span></label>
+            <label class="co-pill"><input type="radio" name="orderType" value="Dinner"><span>Dinner</span></label>
           </div>
         </div>
-
-        <div class="checkout-section">
-          <label class="checkout-label">Delivery Address</label>
-          <input id="cust-address" type="text" placeholder="Enter delivery address" class="address-card-input">
-        </div>
-
-        <div class="checkout-section">
-          <label class="checkout-label">Notes for Kitchen</label>
-          <textarea id="cust-notes" rows="2" placeholder="Add instructions for the chef..." class="checkout-notes"></textarea>
-        </div>
-
-        <div class="checkout-section">
-          <label class="checkout-label">Order Time</label>
-          <div class="order-time-options">
-            <label class="order-type-pill"><input type="radio" name="orderType" value="Lunch"><span>Lunch</span></label>
-            <label class="order-type-pill"><input type="radio" name="orderType" value="Dinner"><span>Dinner</span></label>
-          </div>
-        </div>
-
-        <div class="checkout-section">
-          <label class="checkout-label">Expected Delivery</label>
-          <div id="expected-delivery" class="expected-delivery-card" aria-live="polite"></div>
+        <div class="co-field">
+          <label class="co-label">Expected Delivery</label>
+          <div id="expected-delivery" class="co-delivery" aria-live="polite"></div>
         </div>
       </div>
-      <div class="checkout-btn-row">
-        <button class="checkout-primary-btn" onclick="confirmOrder()">Place Order</button>
-        <button class="checkout-cancel-btn" onclick="closeCustomerModal()">Cancel</button>
+      <div class="co-footer">
+        <button class="co-btn-primary" onclick="confirmOrder()">Place Order</button>
+        <button class="co-btn-cancel" onclick="closeCustomerModal()">Cancel</button>
       </div>
     </div>
   </div>
@@ -262,7 +823,6 @@ function viewMenuPdf() {
 <script src="/delivery.js?v=${APP_VERSION}"></script>
 <script src="/menu.js?v=${APP_VERSION}"></script>
 <script src="/menuOfTheDay.js?v=${APP_VERSION}"></script>
-<script src="/chatbot.js"></script>
 
 <script>
 /* ===== SCROLL UX ===== */
@@ -270,25 +830,7 @@ function viewMenuPdf() {
   const bar = document.querySelector('.app-bar');
   let lastY = 0, ticking = false;
 
-  // 1. Hide/show app bar on scroll
-  function onScroll() {
-    if (!ticking) {
-      requestAnimationFrame(function() {
-        const y = window.scrollY;
-        if (y > lastY && y > 80) {
-          bar.classList.add('bar-hidden');
-          document.body.classList.add('bar-hidden');
-        } else {
-          bar.classList.remove('bar-hidden');
-          document.body.classList.remove('bar-hidden');
-        }
-        lastY = y;
-        ticking = false;
-      });
-      ticking = true;
-    }
-  }
-  window.addEventListener('scroll', onScroll, { passive: true });
+
 
   // 2. Scroll-reveal for sections and menu items
   if ('IntersectionObserver' in window) {
@@ -303,6 +845,7 @@ function viewMenuPdf() {
 
     function observeRevealTargets() {
       document.querySelectorAll('.section, .reviews-unified').forEach(function(el) {
+        if (el.closest('#mobile-menu-items')) return;
         if (!el.classList.contains('scroll-reveal')) {
           requestAnimationFrame(function() {
             el.classList.add('scroll-reveal');
@@ -335,35 +878,16 @@ function viewMenuPdf() {
     try {
       const res = await fetch("/reviews.json");
       const data = await res.json();
-      const card = document.getElementById("review-card");
-      if (!card || !data.reviews.length) return;
-      let index = 0;
-      function render() {
-        const r = data.reviews[index];
-        card.classList.remove("show");
-        setTimeout(() => {
-          card.innerHTML = "";
-          const img = document.createElement("img");
-          img.className = "review-avatar";
-          img.alt = "Reviewer";
-          img.src = (r.image && /^https:\/\//.test(r.image))
-            ? r.image : "/images/reviewers/default.jpg";
-          const content = document.createElement("div");
-          content.className = "review-content";
-          const text = document.createElement("div");
-          text.className = "review-text";
-          text.textContent = "“" + (r.text || "") + "”";
-          const meta = document.createElement("div");
-          meta.className = "review-meta";
-          meta.textContent = (r.name || "Anonymous") + " · " +
-            "★".repeat(Math.min(5, Math.max(0, Number(r.stars) || 0)));
-          content.append(text, meta);
-          card.append(img, content);
-          card.classList.add("show");
-        }, 250);
-        index = (index + 1) % data.reviews.length;
-      }
-      render(); setInterval(render, 5500);
+      const stack = document.getElementById('review-stack');
+      if (!stack || !data.reviews.length) return;
+      const reviews = data.reviews;
+      stack.innerHTML = reviews.map(r =>
+        `<div class="snap-card">
+          <img class="review-avatar" alt="Reviewer" src="${(r.image && /^https:\/\//.test(r.image)) ? r.image : '/images/reviewers/default.jpg'}">
+          <div class="review-content"><div class="review-text">“${r.text || ''}”</div>
+          <div class="review-meta">${r.name || 'Anonymous'} · ${'★'.repeat(Math.min(5,Math.max(0,Number(r.stars)||0)))}</div></div>
+        </div>`
+      ).join('');
     } catch(e) {}
   })();
 
@@ -415,6 +939,7 @@ function toggleCalendar() {
 
   function updateSelectedLabel() {
     document.getElementById("selected-date-label").textContent = formatLabel(selectedDate);
+    if (typeof updateCartScheduleBtn === 'function') updateCartScheduleBtn();
   }
 
   function renderCalendar() {
@@ -563,7 +1088,81 @@ function toggleCalendar() {
   updateSelectedLabel(); renderCalendar();
 </script>
 
+<!-- Booking Modal -->
+<div class="booking-modal" id="booking-modal">
+  <div class="booking-modal-content">
+    <div class="booking-modal-header">
+      <h3 id="booking-modal-title">Book Appointment</h3>
+      <button class="drawer-close" onclick="closeBooking()" aria-label="Close">&#x2715;</button>
+    </div>
+    <div class="booking-modal-body" id="booking-form-body">
+      <div class="booking-field"><label>Your Name *</label><input type="text" id="b-name" placeholder="Full name" autocomplete="name"></div>
+      <div class="booking-field"><label>Phone Number *</label><input type="tel" id="b-phone" placeholder="10-digit mobile number" inputmode="numeric" maxlength="10"></div>
+      <div class="booking-field"><label>Email</label><input type="email" id="b-email" placeholder="your@email.com" autocomplete="email"></div>
+      <div class="booking-field"><label>Health Goal *</label>
+        <select id="b-goal"><option value="">Select your goal</option><option>Weight Loss</option><option>Muscle Gain</option><option>PCOS</option><option>Diabetes</option><option>General Wellness</option></select>
+      </div>
+      <div class="booking-field"><label>Preferred Consultation Time *</label><input type="datetime-local" id="b-time"></div>
+      <button class="booking-submit-btn" onclick="submitBooking()">Confirm Booking</button>
+    </div>
+    <div class="booking-confirmation" id="booking-confirmation">
+      <div class="confirm-icon">&#9989;</div>
+      <h3>Booking Confirmed!</h3>
+      <p id="booking-confirm-msg"></p>
+      <button class="book-btn" style="margin-top:16px;width:auto;padding:12px 28px" onclick="closeBooking()">Done</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<!-- ── Article Sheet ── -->
+<div id="article-sheet-overlay" class="item-detail-overlay" onclick="closeArticleSheet(event)">
+  <div class="item-detail-sheet" style="max-height:92vh;overflow-y:auto;padding-bottom:40px">
+    <button class="item-detail-close" onclick="closeArticleSheet()" aria-label="Close">&#x2715;</button>
+    <div id="article-sheet-body" style="padding:0 20px 8px"></div>
+  </div>
+</div>
+
+<!-- ── Tool Sheets ── -->
+<div id="tool-sheet-overlay" class="item-detail-overlay" onclick="closeToolSheet(event)">
+  <div class="item-detail-sheet" style="max-height:90vh;overflow-y:auto;padding-bottom:32px">
+    <button class="item-detail-close" onclick="closeToolSheet()" aria-label="Close">&#x2715;</button>
+    <div id="tool-sheet-body" style="padding:0 20px 8px"></div>
+  </div>
+</div>
+
+<!-- Item Detail Bottom Sheet -->
+<div id="item-detail-sheet" class="item-detail-overlay" onclick="closeItemDetail(event)">
+  <div class="item-detail-sheet">
+    <button class="item-detail-close" onclick="document.getElementById('item-detail-sheet').classList.remove('show')" aria-label="Close">&#x2715;</button>
+    <div id="item-detail-img-wrap" class="item-detail-img-wrap"></div>
+    <div class="item-detail-body">
+      <div class="item-detail-header">
+        <span id="item-detail-indicator" class="food-indicator"></span>
+        <span id="item-detail-name" class="item-detail-name"></span>
+      </div>
+      <p id="item-detail-desc" class="item-detail-desc"></p>
+      <div id="item-detail-macros" class="item-detail-macros"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Profile / Account modal (shown after login) -->
+<div id="profile-modal" class="modal">
+  <div class="modal-content" style="max-width:360px">
+    <div class="checkout-header">
+      <h3>My Account</h3>
+      <button class="checkout-close-btn" onclick="document.getElementById('profile-modal').classList.remove('show')" aria-label="Close">×</button>
+    </div>
+    <div style="padding:20px">
+      <div id="profile-modal-name" style="font-size:1.1rem;font-weight:800;margin-bottom:4px"></div>
+      <div id="profile-modal-phone" style="font-size:0.875rem;color:#666;margin-bottom:20px"></div>
+      <button class="cart-order-btn" style="margin-top:0" onclick="document.getElementById('profile-modal').classList.remove('show'); showMyOrders();">My Orders</button>
+      <button class="checkout-cancel-btn" onclick="document.getElementById('profile-modal').classList.remove('show'); logout();">Sign Out</button>
+    </div>
+  </div>
+</div>
 
 <div id="bulk-order-modal" class="modal">
   <div class="modal-content">
@@ -584,69 +1183,235 @@ function toggleCalendar() {
   </div>
 </div>
 <script>
-/* ===== HAMBURGER DRAWER ===== */
-function openDrawer() {
-  document.getElementById('nav-drawer').classList.add('open');
-  document.getElementById('drawer-overlay').classList.add('show');
-  document.getElementById('hamburger-btn').setAttribute('aria-expanded', 'true');
-  document.body.classList.add('drawer-open');
+/* ===== PLATE DRAWER ===== */
+function togglePlateDrawer() {
+  const drawer = document.getElementById('plate-drawer');
+  const chevron = document.getElementById('mob-plate-chevron');
+  const open = drawer.classList.toggle('open');
+  if (chevron) chevron.textContent = open ? '▼' : '▲';
 }
-function closeDrawer() {
-  document.getElementById('nav-drawer').classList.remove('open');
-  document.getElementById('drawer-overlay').classList.remove('show');
-  document.getElementById('hamburger-btn').setAttribute('aria-expanded', 'false');
-  document.body.classList.remove('drawer-open');
-}
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') closeDrawer();
-});
 
-/* ===== DRAWER USER STATE ===== */
-function syncDrawerUser() {
-  const user = typeof currentUser !== 'undefined' ? currentUser : null;
-  const info = document.getElementById('drawer-user-info');
-  const authBtns = document.getElementById('drawer-auth-btns');
-  const ordersLi = document.getElementById('drawer-my-orders-li');
-  const logoutLi = document.getElementById('drawer-logout-li');
-  const nameEl = document.getElementById('drawer-user-name');
-  const phoneEl = document.getElementById('drawer-user-phone');
-  if (user) {
-    if (info) { info.style.display = 'block'; nameEl.textContent = user.name; phoneEl.textContent = user.mobile; }
-    if (authBtns) authBtns.style.display = 'none';
-    if (ordersLi) ordersLi.style.display = 'block';
-    if (logoutLi) logoutLi.style.display = 'block';
-  } else {
-    if (info) info.style.display = 'none';
-    if (authBtns) authBtns.style.display = 'block';
-    if (ordersLi) ordersLi.style.display = 'none';
-    if (logoutLi) logoutLi.style.display = 'none';
+function openDeliveryTimeModal() {
+  // Build date pills: today + next 6 days
+  const row = document.getElementById('sched-date-row');
+  row.innerHTML = '';
+  const today = new Date(); today.setHours(0,0,0,0);
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(today); d.setDate(today.getDate() + i);
+    const btn = document.createElement('button');
+    btn.className = 'sched-date-pill';
+    btn.dataset.iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    btn.innerHTML = `<span class="sched-date-day">${i===0?'Today':i===1?'Tomorrow':d.toLocaleDateString('en-IN',{weekday:'short'})}</span><span class="sched-date-num">${d.toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</span>`;
+    const closed = typeof window.isDateClosed === 'function' && window.isDateClosed(d);
+    if (closed) btn.classList.add('sched-date-closed');
+    btn.onclick = () => selectSchedDate(btn);
+    row.appendChild(btn);
   }
+  // Pre-select current ORDER_FOR_DATE or today
+  const curIso = window.ORDER_FOR_DATE ? `${window.ORDER_FOR_DATE.getFullYear?.() ?? new Date(window.ORDER_FOR_DATE).getFullYear()}-${String((window.ORDER_FOR_DATE.getMonth?.() ?? new Date(window.ORDER_FOR_DATE).getMonth())+1).padStart(2,'0')}-${String(window.ORDER_FOR_DATE.getDate?.() ?? new Date(window.ORDER_FOR_DATE).getDate()).padStart(2,'0')}` : null;
+  const pills = row.querySelectorAll('.sched-date-pill');
+  let matched = false;
+  pills.forEach(p => { if (p.dataset.iso === curIso) { selectSchedDate(p); matched = true; } });
+  if (!matched && pills.length) selectSchedDate(pills[0]);
+  // Highlight Now if ordering for today and not closed
+  const nowBtn = document.getElementById('sched-now-btn');
+  const isNow = window._scheduleMode !== 'later';
+  nowBtn.classList.toggle('active', isNow);
+  document.getElementById('schedule-modal').classList.add('show');
+  document.getElementById('mobile-bottom-nav')?.classList.add('nav-hidden');
 }
-// Sync on open
-const _origOpen = openDrawer;
-openDrawer = function() { _origOpen(); syncDrawerUser(); };
 
+function selectSchedDate(btn) {
+  document.querySelectorAll('.sched-date-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  window._schedSelectedIso = btn.dataset.iso;
+  const d = new Date(btn.dataset.iso + 'T00:00:00');
+  const closed = typeof window.isDateClosed === 'function' && window.isDateClosed(d);
+  document.getElementById('sched-closed-msg').style.display = closed ? 'block' : 'none';
+  document.getElementById('sched-slots').style.opacity = closed ? '0.35' : '1';
+  document.getElementById('sched-slots').style.pointerEvents = closed ? 'none' : '';
+  document.getElementById('sched-now-btn').classList.remove('active');
+  window._scheduleMode = 'later';
+  // Pre-select slot matching current orderType
+  const curSlot = (typeof orderType !== 'undefined' ? orderType : null) || 'Lunch';
+  document.querySelectorAll('.sched-slot').forEach(s => s.classList.toggle('active', s.dataset.slot === curSlot));
+}
+
+function selectSlot(btn) {
+  document.querySelectorAll('.sched-slot').forEach(s => s.classList.remove('active'));
+  btn.classList.add('active');
+  window._scheduleMode = 'later';
+  document.getElementById('sched-now-btn').classList.remove('active');
+}
+
+function selectScheduleNow() {
+  window._scheduleMode = 'now';
+  document.getElementById('sched-now-btn').classList.add('active');
+  document.querySelectorAll('.sched-date-pill').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sched-slot').forEach(s => s.classList.remove('active'));
+}
+
+function confirmSchedule() {
+  if (window._scheduleMode === 'now') {
+    const today = new Date(); today.setHours(0,0,0,0);
+    window.ORDER_FOR_DATE = today;
+    if (typeof setOrderDate === 'function') {
+      const iso = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+      setOrderDate(iso);
+    }
+    updateTimeBtnLabel('Now');
+  } else {
+    const iso = window._schedSelectedIso;
+    if (!iso) { closeScheduleModal(); return; }
+    const d = new Date(iso + 'T00:00:00');
+    const closed = typeof window.isDateClosed === 'function' && window.isDateClosed(d);
+    if (closed) { if (typeof showToast === 'function') showToast('Kitchen is closed on that date'); return; }
+    const slot = document.querySelector('.sched-slot.active')?.dataset.slot || 'Lunch';
+    if (typeof setOrderDate === 'function') setOrderDate(iso);
+    if (typeof window.setOrderType === 'function') window.setOrderType(slot);
+    const today = new Date(); today.setHours(0,0,0,0);
+    const tomorrow = new Date(today); tomorrow.setDate(today.getDate()+1);
+    const label = d.getTime()===today.getTime() ? 'Today' : d.getTime()===tomorrow.getTime() ? 'Tomorrow' : d.toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+    updateTimeBtnLabel(`${label} · ${slot}`);
+  }
+  closeScheduleModal();
+  // Refresh mobile menu items pane after date/slot change
+  const ip = document.getElementById('mobile-menu-items');
+  if (ip) { ip.innerHTML = ''; if (typeof buildMobileCatSidebar === 'function') buildMobileCatSidebar(); }
+}
+
+function updateTimeBtnLabel(text) {
+  const btn = document.getElementById('ab-time-label');
+  if (btn) btn.textContent = text;
+}
+
+function closeScheduleModal(e) {
+  if (e && e.target !== document.getElementById('schedule-modal')) return;
+  document.getElementById('schedule-modal').classList.remove('show');
+  document.getElementById('mobile-bottom-nav')?.classList.remove('nav-hidden');
+}
+function toggleOrderTypeMenu() {
+  const m = document.getElementById('ab-order-type-menu');
+  m.style.display = m.style.display === 'none' ? 'block' : 'none';
+}
+function selectOrderType(val) {
+  document.getElementById('ab-order-type-label').textContent = val;
+  document.querySelectorAll('#ab-order-type-menu button').forEach(b => b.classList.toggle('selected', b.textContent.trim() === val));
+  document.getElementById('ab-order-type-menu').style.display = 'none';
+  if (val === 'Bulk Orders') bulkOrder();
+}
+function toggleLocationMenu() {
+  openLocationModal();
+}
+function openLocationModal() {
+  const modal = document.getElementById('location-modal');
+  modal.style.display = 'flex';
+  document.getElementById('loc-detecting').style.display = 'block';
+  document.getElementById('loc-detected').style.display = 'none';
+  document.getElementById('loc-search').value = '';
+  document.getElementById('loc-search-results').style.display = 'none';
+  if (!navigator.geolocation) {
+    document.getElementById('loc-detecting').textContent = 'Search for your location above.';
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      const { latitude: lat, longitude: lon } = pos.coords;
+      fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=en`)
+        .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+        .then(data => {
+          const addr = data.address || {};
+          const city = addr.city || addr.town || addr.village || addr.county || 'Mumbai';
+          const building = addr.building || addr.amenity || addr.road || addr.neighbourhood || addr.suburb || '';
+          const label = building ? `${building}, ${city}` : city;
+          window._detectedLabel = label;
+          window._detectedCity = city;
+          document.getElementById('loc-detected-name').textContent = label;
+          document.getElementById('loc-detected-sub').textContent = city;
+          document.getElementById('loc-detected').style.display = 'flex';
+          document.getElementById('loc-detecting').style.display = 'none';
+        })
+        .catch(() => {
+          const label = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+          window._detectedLabel = label;
+          document.getElementById('loc-detected-name').textContent = 'Your current location';
+          document.getElementById('loc-detected-sub').textContent = label;
+          document.getElementById('loc-detected').style.display = 'flex';
+          document.getElementById('loc-detecting').style.display = 'none';
+        });
+    },
+    () => {
+      document.getElementById('loc-detecting').textContent = 'Could not detect location. Search above.';
+    },
+    { timeout: 10000 }
+  );
+}
+
+let _locSearchTimer = null;
+function locSearch(q) {
+  const resultsEl = document.getElementById('loc-search-results');
+  clearTimeout(_locSearchTimer);
+  if (!q.trim()) { resultsEl.style.display = 'none'; return; }
+  _locSearchTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&countrycodes=in&limit=5&format=json&accept-language=en`);
+      const data = await res.json();
+      resultsEl.innerHTML = '';
+      if (!data.length) {
+        resultsEl.innerHTML = '<div style="padding:12px 14px;color:#888;font-size:13px">No results found</div>';
+      } else {
+        data.forEach(item => {
+          const btn = document.createElement('button');
+          btn.style.cssText = 'display:block;width:100%;text-align:left;padding:11px 14px;background:#fff;border:none;border-bottom:1px solid #f0f0f0;font-size:13px;cursor:pointer;font-family:inherit;line-height:1.4';
+          btn.textContent = item.display_name.split(',').slice(0, 3).join(', ');
+          btn.onmouseenter = () => btn.style.background = '#f9f9f9';
+          btn.onmouseleave = () => btn.style.background = '#fff';
+          btn.onclick = () => {
+            const short = item.display_name.split(',').slice(0, 2).join(', ').trim();
+            window._detectedLabel = short;
+            document.getElementById('ab-location-name').textContent = short;
+            document.getElementById('ab-location-sub').textContent = '';
+            document.getElementById('location-modal').style.display = 'none';
+          };
+          resultsEl.appendChild(btn);
+        });
+      }
+      resultsEl.style.display = 'block';
+    } catch { resultsEl.style.display = 'none'; }
+  }, 400);
+}
+function closeLocationModal(e) {
+  if (e && e.target !== document.getElementById('location-modal')) return;
+  document.getElementById('location-modal').style.display = 'none';
+}
+function useDetectedLocation() {
+  const label = window._detectedLabel || window._detectedCity || 'Healthy Meal Spot, Mumbai';
+  document.getElementById('ab-location-name').textContent = label;
+  document.getElementById('ab-location-sub').textContent = '';
+  document.getElementById('location-modal').style.display = 'none';
+  sessionStorage.setItem('_detectedLabel', label);
+  window._selectedLocation = { label };
+}
+function selectLocation(city) {
+  document.getElementById('ab-location-name').textContent = city;
+  document.getElementById('ab-location-sub').textContent = '';
+  document.getElementById('location-modal').style.display = 'none';
+  sessionStorage.setItem('_detectedLabel', city);
+  window._selectedLocation = { label: city };
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#ab-order-type-wrap')) document.getElementById('ab-order-type-menu').style.display = 'none';
+});
 /* ===== TOP NAV USER STATE ===== */
 function syncTopNav() {
-  const user = typeof currentUser !== 'undefined' ? currentUser : null;
-  const authBtn = document.getElementById('top-nav-auth-btn');
-  const ordersBtn = document.getElementById('top-nav-orders-btn');
-  const logoutBtn = document.getElementById('top-nav-logout-btn');
-  if (!authBtn) return;
-  if (user) {
-    authBtn.style.display = 'none';
-    if (ordersBtn) ordersBtn.style.display = '';
-    if (logoutBtn) { logoutBtn.style.display = ''; logoutBtn.textContent = 'Sign Out'; }
-  } else {
-    authBtn.style.display = '';
-    if (ordersBtn) ordersBtn.style.display = 'none';
-    if (logoutBtn) logoutBtn.style.display = 'none';
-  }
+  const el = document.getElementById('app-bar-greeting');
+  if (!el) return;
+  const user = window.currentUser;
+  el.textContent = (user && user.name)
+    ? 'Hi ' + user.name.split(' ')[0] + ' !'
+    : 'Hi there !';
+  console.log('[syncTopNav] currentUser=', user);
 }
-// Re-sync whenever drawer syncs (auth state changes)
-const _origSyncDrawer = syncDrawerUser;
-syncDrawerUser = function() { _origSyncDrawer(); syncTopNav(); };
-syncTopNav();
 
 /* ===== APP BAR CART BADGE ===== */
 (function syncAppBarCart() {
@@ -663,10 +1428,756 @@ syncTopNav();
   const cartCount = document.getElementById('cart-count');
   if (cartCount) observer.observe(cartCount, { childList: true, characterData: true, subtree: true });
 })();
+/* ===== MOBILE TAB SWITCHING ===== */
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.mob-nav-btn').forEach(b => b.classList.remove('active'));
+  const panel = document.getElementById('tab-' + tab);
+  if (panel) panel.classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (tab === 'menu') buildMobileCatSidebar();
+  if (tab === 'nutrition') initNutritionTab();
+  if (tab === 'consult') initConsultTab();
+  if (tab === 'myhealth') initMyHealth();
+  // Show/hide header bars
+  const mhb = document.getElementById('menu-header-bar');
+  const nhb = document.getElementById('nutrition-header-bar');
+  const chb = document.getElementById('consult-header-bar');
+  if (mhb) mhb.style.display = (tab === 'menu') ? 'block' : 'none';
+  if (nhb) nhb.style.display = (tab === 'nutrition') ? 'block' : 'none';
+  if (chb) chb.style.display = (tab === 'consult') ? 'block' : 'none';
+  if (tab === 'nutrition' && nhb && window.innerWidth <= 768) {
+    requestAnimationFrame(() => {
+      document.documentElement.style.setProperty('--mob-nutrition-header-h', nhb.getBoundingClientRect().height + 'px');
+    });
+  }
+  if (tab === 'consult' && chb && window.innerWidth <= 768) {
+    requestAnimationFrame(() => {
+      document.documentElement.style.setProperty('--mob-consult-header-h', chb.getBoundingClientRect().height + 'px');
+    });
+  }
+  // Hide price notice on non-food tabs
+  const priceBar = document.getElementById('price-notice-bar');
+  const pricePill = document.getElementById('price-notice-pill');
+  const showPrice = (tab === 'home' || tab === 'menu');
+  if (priceBar) priceBar.style.setProperty('display', showPrice ? (sessionStorage.getItem('priceNoticeDismissed') ? 'none' : 'flex') : 'none', 'important');
+  if (pricePill) pricePill.style.setProperty('display', showPrice ? (sessionStorage.getItem('priceNoticeDismissed') ? 'block' : 'none') : 'none', 'important');
+  if (tab === 'menu' && mhb && window.innerWidth <= 768) {
+    requestAnimationFrame(() => {
+      document.documentElement.style.setProperty('--mob-menu-header-h', mhb.getBoundingClientRect().height + 'px');
+    });
+  }
+}
+
+function openItemDetail(itemEl) {
+  const name = itemEl.querySelector('.item-name')?.textContent?.trim() || '';
+  const desc = itemEl.querySelector('.item-desc')?.textContent?.trim() || '';
+  const isVeg = itemEl.querySelector('.food-indicator.veg') !== null;
+  const imgEl = itemEl.querySelector('.item-img-wrap img');
+  const placeholderEl = itemEl.querySelector('.item-img-placeholder');
+  const calories = itemEl.dataset.calories;
+  const protein = itemEl.dataset.protein;
+  const carbs = itemEl.dataset.carbs;
+  const fat = itemEl.dataset.fat;
+
+  document.getElementById('item-detail-name').textContent = name;
+  document.getElementById('item-detail-desc').textContent = desc;
+
+  const indicator = document.getElementById('item-detail-indicator');
+  indicator.className = 'food-indicator ' + (isVeg ? 'veg' : 'non-veg');
+
+  const imgWrap = document.getElementById('item-detail-img-wrap');
+  if (imgEl) {
+    imgWrap.innerHTML = `<img src="${imgEl.src}" alt="${name}">`;
+  } else if (placeholderEl) {
+    imgWrap.innerHTML = `<div class="item-detail-placeholder">${placeholderEl.textContent}</div>`;
+  } else {
+    imgWrap.innerHTML = '';
+  }
+
+  const macrosEl = document.getElementById('item-detail-macros');
+  if (calories) {
+    const highProtein = Number(protein) >= 20;
+    macrosEl.innerHTML = `${highProtein ? '<span class="high-protein-icon" title="High Protein">💪</span> ' : ''}${calories} kcal &bull; ${protein || 0}g protein &bull; ${carbs || 0}g carbs &bull; ${fat || 0}g fat`;
+    macrosEl.style.display = 'flex';
+  } else {
+    macrosEl.innerHTML = '';
+    macrosEl.style.display = 'none';
+  }
+
+  document.getElementById('item-detail-sheet').classList.add('show');
+}
+
+window.closeItemDetail = function(e) {
+  if (e && e.target !== document.getElementById('item-detail-sheet')) return;
+  document.getElementById('item-detail-sheet').classList.remove('show');
+};
+
+function buildMobileCatSidebar() {
+  const sidebar = document.getElementById('mobile-cat-sidebar');
+  const itemsPane = document.getElementById('mobile-menu-items');
+  if (!sidebar || !itemsPane) return;
+  // Ensure content is populated (fallback if renderMenu hasn't run yet)
+  if (!itemsPane.children.length) {
+    const src = document.getElementById('menu-container');
+    if (src && src.children.length) {
+      itemsPane.innerHTML = src.innerHTML;
+      if (typeof bindMenuItemEvents === 'function') bindMenuItemEvents(itemsPane);
+    }
+  }
+  // Build category buttons
+  sidebar.innerHTML = '';
+  const sections = itemsPane.querySelectorAll('section[id]');
+  sections.forEach(sec => {
+    const h2 = sec.querySelector('h2');
+    if (!h2) return;
+    const key = sec.id.replace('section-', '').split('__')[0];
+    const icon = (typeof getSectionIcon === 'function') ? getSectionIcon(key) : '🍽️';
+    const btn = document.createElement('button');
+    btn.className = 'mob-cat-btn';
+    btn.innerHTML = `<span class="cat-emoji">${icon}</span><span>${h2.textContent.trim()}</span>`;
+    btn.onclick = () => {
+      sidebar.querySelectorAll('.mob-cat-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+    sidebar.appendChild(btn);
+  });
+  // Sync active on scroll
+  itemsPane.onscroll = () => {
+    const btns = sidebar.querySelectorAll('.mob-cat-btn');
+    let activeIdx = 0;
+    sections.forEach((sec, i) => {
+      if (sec.getBoundingClientRect().top - itemsPane.getBoundingClientRect().top <= 40) activeIdx = i;
+    });
+    btns.forEach((b, i) => b.classList.toggle('active', i === activeIdx));
+  };
+
+  // Open item detail on tap (not on qty buttons)
+  itemsPane.addEventListener('click', function(e) {
+    if (e.target.closest('.qty-box')) return;
+    const item = e.target.closest('.menu-item');
+    if (item) openItemDetail(item);
+  });
+}
+
+// Sync mobile cart bar with cart state
+(function() {
+  function syncMobileCartBar() {
+    if (window.innerWidth > 768) return;
+    const countEl = document.getElementById('cart-count');
+    const totalEl = document.getElementById('cart-total');
+    const bar = document.getElementById('mobile-cart-bar');
+    const mobCount = document.getElementById('mob-cart-count');
+    const mobTotal = document.getElementById('mob-cart-total');
+    const n = parseInt(countEl?.textContent) || 0;
+    if (bar) bar.classList.toggle('visible', n > 0);
+    if (!n) {
+      const drawer = document.getElementById('plate-drawer');
+      const chevron = document.getElementById('mob-plate-chevron');
+      if (drawer) drawer.classList.remove('open');
+      if (chevron) chevron.textContent = '▲';
+    }
+    if (mobCount) mobCount.textContent = n;
+    if (mobTotal) mobTotal.textContent = n > 0 ? (totalEl?.textContent || '') : '';
+    // Sync plate drawer items
+    const src = document.getElementById('cart-items');
+    const dst = document.getElementById('plate-drawer-items');
+    const emptyMsg = document.getElementById('plate-empty-msg');
+    const footer = document.getElementById('plate-drawer-footer');
+    const drawerTotal = document.getElementById('plate-drawer-total');
+    if (dst && src) {
+      dst.querySelectorAll('.cart-row, .cart-header-row').forEach(el => el.remove());
+      if (n > 0) {
+        dst.insertAdjacentHTML('afterbegin', src.innerHTML);
+        if (emptyMsg) emptyMsg.style.display = 'none';
+        if (footer) footer.style.display = 'block';
+        if (drawerTotal && totalEl) drawerTotal.textContent = totalEl.textContent;
+      } else {
+        if (emptyMsg) emptyMsg.style.display = 'block';
+        if (footer) footer.style.display = 'none';
+      }
+    }
+  }
+  document.addEventListener('DOMContentLoaded', () => {
+    const cartCount = document.getElementById('cart-count');
+    const cartTotal = document.getElementById('cart-total');
+    if (cartCount) new MutationObserver(syncMobileCartBar).observe(cartCount, { childList: true, characterData: true, subtree: true });
+    if (cartTotal) new MutationObserver(syncMobileCartBar).observe(cartTotal, { childList: true, characterData: true, subtree: true });
+    const drawerItems = document.getElementById('plate-drawer-items');
+    if (drawerItems) {
+      drawerItems.addEventListener('click', function(e) {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        const row = btn.closest('.cart-qty');
+        if (!row) return;
+        const buttons = row.querySelectorAll('button');
+        const idx = Array.from(buttons).indexOf(btn);
+        const allRows = document.querySelectorAll('#cart-items .cart-qty');
+        const drawerRows = drawerItems.querySelectorAll('.cart-qty');
+        const rowIdx = Array.from(drawerRows).indexOf(row);
+        if (rowIdx >= 0 && allRows[rowIdx]) allRows[rowIdx].querySelectorAll('button')[idx]?.click();
+      });
+    }
+    // Init tab: show home on mobile, skip if navigating to menu
+    if (window.innerWidth <= 768 && new URLSearchParams(location.search).get('tab') !== 'menu') {
+      document.getElementById('tab-home')?.classList.add('active');
+    }
+  });
+})();
+
+/* ===== MY HEALTH TAB ===== */
+let _phUser = null;
+async function initMyHealth() {
+  _phUser = null;
+  try {
+    // Use already-fetched currentUser if available, else fetch session
+    let user = window.currentUser || null;
+    if (!user) {
+      const s = await fetch('/api/auth/session').then(r => r.json());
+      if (!s.authenticated) { document.getElementById('ph-login-prompt').style.display='block'; document.getElementById('ph-content').style.display='none'; return; }
+      const m = s.mobile.startsWith('+') ? s.mobile : '+91' + s.mobile;
+      const ud = await fetch('/users/' + encodeURIComponent(m)).then(r => r.json());
+      user = ud.user;
+    }
+    _phUser = user;
+    if (!_phUser) { document.getElementById('ph-login-prompt').style.display='block'; document.getElementById('ph-content').style.display='none'; return; }
+    document.getElementById('ph-login-prompt').style.display='none';
+    document.getElementById('ph-content').style.display='block';
+    const u = _phUser;
+    const first = (u.name||'').split(' ')[0]||'?';
+    document.getElementById('ph-avatar').textContent = first[0].toUpperCase();
+    document.getElementById('ph-name').textContent = u.name||'My Health';
+    const mhbTitle = document.getElementById('mhb-title');
+    if (mhbTitle) mhbTitle.textContent = '❤️ ' + (u.name ? u.name.split(' ')[0] + "'s Health" : 'My Health');
+    document.getElementById('ph-phone').textContent = u.mobile ? '+91 '+u.mobile.replace(/^\+91/,'') : '';
+    document.getElementById('ph-display-name').textContent = u.name||'—';
+    document.getElementById('ph-display-phone').textContent = u.mobile||'—';
+    document.getElementById('ph-display-address').textContent = u.address||'Not set';
+    document.getElementById('ph-edit-name').value = u.name||'';
+    document.getElementById('ph-edit-address').value = u.address||'';
+    if (u.diet) phSetPill('diet', u.diet);
+    if (u.goal) phSetPill('goal', u.goal);
+    // pill clicks
+    ['ph-diet-pills','ph-goal-pills'].forEach(id => {
+      document.getElementById(id).addEventListener('click', e => {
+        const p = e.target.closest('.ph-pill'); if (!p) return;
+        phSetPill(p.dataset.g, p.dataset.v); phSavePrefs();
+      });
+    });
+    phLoadOrders(u.mobile);
+  } catch(e) { document.getElementById('ph-login-prompt').style.display='block'; document.getElementById('ph-content').style.display='none'; }
+}
+function phSetPill(group, value) {
+  document.querySelectorAll(`.ph-pill[data-g="${group}"]`).forEach(p => {
+    const on = p.dataset.v === value;
+    p.style.borderColor = on ? 'var(--accent)' : 'var(--border)';
+    p.style.background = on ? '#fff0ee' : '#fff';
+    p.style.color = on ? 'var(--accent)' : '#444';
+    p.style.fontWeight = on ? '700' : '400';
+  });
+}
+function phToggleEdit(field) {
+  const input = document.getElementById('ph-edit-'+field === 'ph-edit-address' ? 'ph-edit-address' : 'ph-edit-'+field);
+  const saveBtn = document.getElementById(field==='name'?'ph-save-name-btn':'ph-save-addr-btn');
+  const display = document.getElementById(field==='name'?'ph-display-name':'ph-display-address');
+  const editing = input.style.display !== 'none';
+  input.style.display = editing?'none':'block';
+  saveBtn.style.display = editing?'none':'inline-block';
+  display.style.display = editing?'block':'none';
+  if (!editing) input.focus();
+}
+async function phSaveName() {
+  const name = document.getElementById('ph-edit-name').value.trim();
+  if (!name) return;
+  await phPatch({name}); _phUser.name = name;
+  document.getElementById('ph-display-name').textContent = name;
+  document.getElementById('ph-name').textContent = name;
+  document.getElementById('ph-avatar').textContent = name[0].toUpperCase();
+  phToggleEdit('name'); if(typeof showToast==='function') showToast('Name updated');
+}
+async function phSaveAddress() {
+  const address = document.getElementById('ph-edit-address').value.trim();
+  await phPatch({address}); _phUser.address = address;
+  document.getElementById('ph-display-address').textContent = address||'Not set';
+  phToggleEdit('address'); if(typeof showToast==='function') showToast('Address saved');
+}
+async function phSavePrefs() {
+  const diet = document.querySelector('.ph-pill[data-g="diet"][style*="#fff0ee"]')?.dataset.v||'';
+  const goal = document.querySelector('.ph-pill[data-g="goal"][style*="#fff0ee"]')?.dataset.v||'';
+  await phPatch({diet,goal}); if(typeof showToast==='function') showToast('Preferences saved');
+}
+async function phPatch(fields) {
+  try { await fetch('https://api.healthymealspot.com/users/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({..._phUser,...fields})}); } catch{}
+}
+async function phLoadOrders(mobile) {
+  const c = document.getElementById('ph-orders');
+  try {
+    const data = await fetch('/users/'+mobile+'/orders').then(r=>r.json());
+    const orders = (data.orders||[]).slice(0,5);
+    if (!orders.length) { c.innerHTML='<div style="text-align:center;padding:24px 0;color:var(--muted);font-size:14px">No orders yet. Start ordering! 🍱</div>'; return; }
+    c.innerHTML = orders.map(o => {
+      const isDelivered = /delivered|paid/i.test(o.status||'');
+      const docType = isDelivered ? 'receipt' : 'invoice';
+      const btnLabel = isDelivered ? '🧾 Send Receipt' : '📄 Send Invoice';
+      const docUrl = `/${docType}?orderId=${encodeURIComponent(o.id||'')}`;
+      return `<div onclick="window.open('${docUrl}','_blank')" style="background:#f7f6f2;border-radius:12px;padding:14px 16px;margin-bottom:10px;border:1px solid var(--border);cursor:pointer;transition:box-shadow 0.15s" onmouseenter="this.style.boxShadow='0 2px 12px rgba(0,0,0,0.10)'" onmouseleave="this.style.boxShadow='none'">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span style="font-size:13px;font-weight:800;color:var(--accent-strong)">${o.id||''}</span>
+          <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;background:#e8f5e9;color:#2e7d32">${o.status||'Confirmed'}</span>
+        </div>
+        <div style="font-size:12px;color:var(--muted)">${new Date(o.order_date).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</div>
+        <div style="font-size:12px;color:var(--muted);white-space:pre-line;margin:4px 0">${(o.items||'').split('\n').slice(0,3).join('\n')}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+          <span style="font-size:14px;font-weight:800">₹${o.total}</span>
+          <button onclick="event.stopPropagation();phSendDoc('${docType}','${encodeURIComponent(o.id||'')}',this)" style="font-size:12px;font-weight:700;padding:6px 14px;border-radius:999px;border:1.5px solid var(--accent);background:#fff;color:var(--accent);cursor:pointer">${btnLabel}</button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch { c.innerHTML='<div style="text-align:center;padding:24px 0;color:var(--muted);font-size:14px">Could not load orders.</div>'; }
+}
+async function phSendDoc(type, orderId, btn) {
+  const mobile = _phUser && (_phUser.mobile||'');
+  if (!mobile) return;
+  const url = `https://healthymealspot.com/${type}?orderId=${orderId}`;
+  const msg = type === 'receipt' ? `🧾 Your receipt: ${url}` : `📄 Your invoice: ${url}`;
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    await fetch('/api/notify-order', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ phone: mobile, message: msg }) });
+    if (typeof showToast === 'function') showToast('Sent via WhatsApp ✓');
+  } catch { if (typeof showToast === 'function') showToast('Failed to send', 'error'); }
+  finally { btn.disabled = false; btn.textContent = orig; }
+}
+async function phSignOut() {
+  try { await fetch('/api/auth/logout',{method:'POST'}); } catch{}
+  _phUser = null;
+  document.getElementById('ph-login-prompt').style.display='block';
+  document.getElementById('ph-content').style.display='none';
+  document.getElementById('ph-avatar').textContent='?';
+  document.getElementById('ph-name').textContent='My Health';
+  document.getElementById('ph-phone').textContent='';
+
+}
+
+/* ===== NUTRITION TAB ===== */
+const CAT_LABELS = {'weight-loss':'Weight Loss','muscle-gain':'Muscle Gain','medical':'Medical Nutrition','recipes':'Healthy Recipes','myths':'Nutrition Myths'};
+let _nutritionLoaded = false;
+let _allArticles = [];
+let _activeCat = null;
+function filterNutritionCat(cat) {
+  _activeCat = cat;
+  const title = document.getElementById('articles-section-title');
+  const backBtn = document.getElementById('nutrition-back-btn');
+  if (cat) {
+    if (title) title.textContent = CAT_LABELS[cat] || cat;
+    if (backBtn) backBtn.style.display = 'inline-block';
+  } else {
+    if (title) title.textContent = 'Latest Articles';
+    if (backBtn) backBtn.style.display = 'none';
+  }
+  const articles = cat ? _allArticles.filter(a => a.category === cat) : _allArticles;
+  renderNutritionArticles(articles);
+}
+function renderNutritionArticles(articles) {
+  const container = document.getElementById('article-cards');
+  container.innerHTML = articles.length
+    ? articles.map(a => `<div class="article-card" onclick="openArticleSheet('${a.slug}')" style="cursor:pointer"><img src="${a.image}" alt="${a.title}" loading="lazy"><div class="article-card-body"><div class="article-card-cat">${CAT_LABELS[a.category]||a.category}</div><div class="article-card-title">${a.title}</div><div class="article-card-meta">${a.author} &bull; ${a.readingTime} min read</div>${a.excerpt?`<div class="article-card-excerpt" style="font-size:13px;color:var(--muted);margin-top:6px">${a.excerpt}</div>`:''}</div></div>`).join('')
+    : '<div style="color:var(--muted);padding:20px">No articles yet.</div>';
+}
+
+function openArticleSheet(slug) {
+  const article = _allArticles.find(a => a.slug === slug);
+  if (!article) return;
+  const CAT_LABELS_LOCAL = {'weight-loss':'Weight Loss','muscle-gain':'Muscle Gain','medical':'Medical Nutrition','recipes':'Healthy Recipes','myths':'Nutrition Myths'};
+  document.getElementById('article-sheet-body').innerHTML = `
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--accent);margin:16px 0 8px">${CAT_LABELS_LOCAL[article.category]||article.category}</div>
+    <h2 style="font-size:20px;font-weight:800;margin:0 0 8px;line-height:1.3">${article.title}</h2>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">${article.author} &bull; ${article.readingTime} min read</div>
+    <img src="${article.image}" alt="${article.title}" style="width:100%;border-radius:10px;margin-bottom:16px;object-fit:cover;max-height:200px">
+    <div style="font-size:15px;line-height:1.75;color:var(--text)">${article.content||article.excerpt||''}</div>
+    ${article.faqs && article.faqs.length ? `<div style="margin-top:24px"><h3 style="font-size:16px;font-weight:800;margin-bottom:12px">FAQs</h3>${article.faqs.map(f=>`<div style="margin-bottom:14px"><div style="font-weight:700;font-size:14px;margin-bottom:4px">${f.q}</div><div style="font-size:13px;color:var(--muted);line-height:1.6">${f.a}</div></div>`).join('')}</div>` : ''}
+  `;
+  document.getElementById('article-sheet-overlay').classList.add('show');
+}
+
+function closeArticleSheet(e) {
+  if (e && e.target !== document.getElementById('article-sheet-overlay')) return;
+  document.getElementById('article-sheet-overlay').classList.remove('show');
+}
+
+function onNutritionSearchInput(q) {
+  const lq = q.trim().toLowerCase();
+  const base = _activeCat ? _allArticles.filter(a => a.category === _activeCat) : _allArticles;
+  renderNutritionArticles(lq ? base.filter(a => a.title.toLowerCase().includes(lq) || (a.excerpt||'').toLowerCase().includes(lq)) : base);
+  const si = document.getElementById('nutrition-header-search');
+  if (si && si.value !== q) si.value = q;
+}
+function initNutritionTab() {
+  if (_nutritionLoaded) return;
+  _nutritionLoaded = true;
+  // Rotating taglines
+  const TAGLINES = [
+    'Eat smart. Live well. 🥗',
+    'Science-backed nutrition advice 🔬',
+    'Your body is your best investment 💪',
+    'Small changes, big results ✨',
+    'Food is medicine. Choose wisely 🌿',
+  ];
+  const taglineEl = document.getElementById('nutrition-header-tagline');
+  if (taglineEl) {
+    let i = 0;
+    taglineEl.textContent = TAGLINES[0];
+    setInterval(() => { i = (i + 1) % TAGLINES.length; taglineEl.textContent = TAGLINES[i]; }, 4000);
+  }
+  fetch('/blogs.json').then(r => r.json()).then(data => {
+    _allArticles = data.articles || [];
+    renderNutritionArticles(_allArticles);
+  }).catch(() => { document.getElementById('article-cards').innerHTML = '<div style="color:var(--muted);padding:20px">Could not load articles.</div>'; });
+  document.getElementById('nutrition-cat-sidebar')?.addEventListener('click', e => {
+    const btn = e.target.closest('.mob-cat-btn');
+    if (!btn) return;
+    document.querySelectorAll('#nutrition-cat-sidebar .mob-cat-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const cat = btn.dataset.cat;
+    const toolsPane = document.getElementById('nutrition-tools-pane');
+    const articlesPane = document.getElementById('article-cards');
+    if (cat === 'tools') {
+      articlesPane.style.display = 'none';
+      toolsPane.style.display = 'block';
+    } else {
+      articlesPane.style.display = '';
+      toolsPane.style.display = 'none';
+      filterNutritionCat(cat === 'all' ? null : cat);
+    }
+    document.getElementById('nutrition-content-pane').scrollTop = 0;
+  });
+}
+
+/* ===== CONSULT / BOOKING ===== */
+let selectedNutritionist = '';
+let _consultInited = false;
+
+function initConsultTab() {
+  if (_consultInited) return;
+  _consultInited = true;
+  document.getElementById('consult-cat-sidebar')?.addEventListener('click', e => {
+    const btn = e.target.closest('.mob-cat-btn');
+    if (!btn) return;
+    document.querySelectorAll('#consult-cat-sidebar .mob-cat-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    filterConsultCards('', btn.dataset.filter);
+  });
+}
+
+let _consultSearchQ = '';
+let _consultFilter = 'all';
+function filterConsultCards(q, filter) {
+  if (q !== undefined) _consultSearchQ = q.trim().toLowerCase();
+  if (filter !== undefined) _consultFilter = filter;
+  const si = document.getElementById('consult-header-search');
+  if (si && q !== undefined && si.value !== q) si.value = q;
+  document.querySelectorAll('#nutritionists .nutritionist-card').forEach(card => {
+    const specs = (card.dataset.specs || '').toLowerCase();
+    const text = card.textContent.toLowerCase();
+    const matchFilter = _consultFilter === 'all' || specs.includes(_consultFilter.toLowerCase());
+    const matchSearch = !_consultSearchQ || text.includes(_consultSearchQ);
+    card.style.display = (matchFilter && matchSearch) ? '' : 'none';
+  });
+}
+function openBooking(name) {
+  selectedNutritionist = name;
+  document.getElementById('booking-modal-title').textContent = 'Book with ' + name;
+  document.getElementById('booking-form-body').style.display = 'flex';
+  document.getElementById('booking-confirmation').classList.remove('show');
+  document.getElementById('booking-modal').classList.add('show');
+  document.body.classList.add('modal-open');
+}
+function closeBooking() {
+  document.getElementById('booking-modal').classList.remove('show');
+  document.body.classList.remove('modal-open');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeBooking(); });
+function submitBooking() {
+  const name = document.getElementById('b-name').value.trim();
+  const phone = document.getElementById('b-phone').value.trim();
+  const goal = document.getElementById('b-goal').value;
+  const time = document.getElementById('b-time').value;
+  if (!name || !phone || !goal || !time) { alert('Please fill in all required fields.'); return; }
+  if (!/^[0-9]{10}$/.test(phone)) { alert('Please enter a valid 10-digit phone number.'); return; }
+  const btn = document.querySelector('.booking-submit-btn');
+  btn.disabled = true; btn.textContent = 'Booking…';
+  const dt = new Date(time).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+  const msg = `Hi! I'd like to book a consultation.\n\nNutritionist: ${selectedNutritionist}\nName: ${name}\nPhone: ${phone}\nGoal: ${goal}\nPreferred Time: ${dt}`;
+  setTimeout(() => {
+    document.getElementById('booking-form-body').style.display = 'none';
+    document.getElementById('booking-confirm-msg').textContent = `Your appointment with ${selectedNutritionist} has been requested for ${dt}. We'll confirm via WhatsApp shortly.`;
+    document.getElementById('booking-confirmation').classList.add('show');
+    window.open('https://wa.me/919326492088?text=' + encodeURIComponent(msg), '_blank');
+    btn.disabled = false; btn.textContent = 'Confirm Booking';
+  }, 600);
+}
+document.getElementById('booking-modal').addEventListener('click', function(e) { if (e.target === this) closeBooking(); });
+
+/* ===== MENU SEARCH ===== */
+(function() {
+  function syncMenuSearchPill(q) {
+    const btn = document.getElementById('menu-header-search-btn');
+    const pill = document.getElementById('menu-search-pill');
+    const inlineInput = document.getElementById('menu-search-inline');
+    if (!btn || !pill) return;
+    if (q && q.trim()) {
+      btn.style.display = 'none';
+      pill.style.display = 'flex';
+      if (inlineInput && inlineInput.value !== q) inlineInput.value = q;
+    } else {
+      btn.style.display = '';
+      pill.style.display = 'none';
+      if (inlineInput) inlineInput.value = '';
+    }
+  }
+
+  window.openMenuSearch = function() {
+    const btn = document.getElementById('menu-header-search-btn');
+    const pill = document.getElementById('menu-search-pill');
+    const inlineInput = document.getElementById('menu-search-inline');
+    if (btn) btn.style.display = 'none';
+    if (pill) pill.style.display = 'flex';
+    setTimeout(() => inlineInput && inlineInput.focus(), 50);
+  };
+
+  window.onMenuSearchInput = function(q) {
+    runMenuSearch(q);
+    if (!q.trim()) syncMenuSearchPill('');
+  };
+
+  window.clearMenuSearch = function() {
+    runMenuSearch('');
+    syncMenuSearchPill('');
+  };
+
+  function runMenuSearch(q) {
+    const lq = q.trim().toLowerCase();
+    document.querySelectorAll('#menu-container .menu-item, #mobile-menu-items .menu-item').forEach(item => {
+      const name = (item.querySelector('.item-name')?.textContent || '').toLowerCase();
+      const desc = (item.querySelector('.item-desc')?.textContent || '').toLowerCase();
+      item.style.display = (!lq || name.includes(lq) || desc.includes(lq)) ? '' : 'none';
+    });
+    document.querySelectorAll('#menu-container section, #mobile-menu-items section').forEach(sec => {
+      const visible = Array.from(sec.querySelectorAll('.menu-item')).some(i => i.style.display !== 'none');
+      sec.style.display = (!lq || visible) ? '' : 'none';
+    });
+  }
+})();
+
+/* ===== FOOD FILTER TOGGLES ===== */
+let _activeFoodFilter = null;
+const TOGGLE_OFF_X = '0px';
+const TOGGLE_ON_X = '20px';
+function _setToggleState(el, on) {
+  const thumb = el.querySelector('.food-toggle__toggle-thumb');
+  if (thumb) thumb.style.transform = 'translateX(' + (on ? TOGGLE_ON_X : TOGGLE_OFF_X) + ')';
+  el.classList.toggle('food-toggle-item--active', on);
+}
+function toggleFoodFilter(type, el) {
+  const isActive = el.classList.contains('food-toggle-item--active');
+  document.querySelectorAll('.food-toggle-item').forEach(b => _setToggleState(b, false));
+  document.getElementById('ft-topsellers').setAttribute('aria-pressed','false');
+  _activeFoodFilter = isActive ? null : type;
+  if (!isActive) _setToggleState(el, true);
+  applyFoodFilter();
+}
+function toggleTopSellers(btn) {
+  const isActive = btn.getAttribute('aria-pressed') === 'true';
+  document.querySelectorAll('.food-toggle-item').forEach(b => _setToggleState(b, false));
+  _activeFoodFilter = isActive ? null : 'topsellers';
+  btn.setAttribute('aria-pressed', isActive ? 'false' : 'true');
+  applyFoodFilter();
+}
+function applyFoodFilter() {
+  const f = _activeFoodFilter;
+  const containers = ['#menu-container', '#mobile-menu-items'];
+  containers.forEach(sel => {
+    const c = document.querySelector(sel);
+    if (!c) return;
+    c.querySelectorAll('.menu-item').forEach(item => {
+      let show = true;
+      if (f === 'veg') show = item.querySelector('.food-indicator.veg') !== null;
+      else if (f === 'nonveg') show = item.querySelector('.food-indicator.non-veg') !== null;
+      else if (f === 'egg') show = item.dataset.type === 'egg' || (item.querySelector('.food-indicator') && !item.querySelector('.food-indicator.veg') && !item.querySelector('.food-indicator.non-veg'));
+      else if (f === 'topsellers') show = item.dataset.topSeller === 'true' || item.classList.contains('top-seller');
+      item.style.display = show ? '' : 'none';
+    });
+    c.querySelectorAll('section').forEach(sec => {
+      const visible = Array.from(sec.querySelectorAll('.menu-item')).some(i => i.style.display !== 'none');
+      sec.style.display = (!f || visible) ? '' : 'none';
+    });
+  });
+}
+
 /* Auto-open login if redirected from another page */
+if (new URLSearchParams(location.search).get('tab') === 'menu') {
+  history.replaceState(null, '', '/');
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.querySelector('.mob-nav-btn[data-tab="menu"]');
+    const mc = document.getElementById('menu-container');
+    if (mc && mc.children.length) {
+      switchTab('menu', btn);
+    } else if (mc) {
+      new MutationObserver((_, obs) => {
+        if (mc.children.length) { obs.disconnect(); switchTab('menu', btn); }
+      }).observe(mc, { childList: true });
+    }
+  });
+}
+
+/* Handle ?tab= redirects from satellite pages */
+(function() {
+  const params = new URLSearchParams(location.search);
+  const tab = params.get('tab');
+  const tool = params.get('tool');
+  if (tab && tab !== 'menu') {
+    history.replaceState(null, '', '/');
+    document.addEventListener('DOMContentLoaded', () => {
+      const btn = document.querySelector('.mob-nav-btn[data-tab="' + tab + '"]');
+      if (btn) switchTab(tab, btn);
+      if (tool) {
+        // Wait for initNutritionTab to finish loading then open the sheet
+        setTimeout(() => openToolSheet(tool), 300);
+      }
+    });
+  }
+})();
+
 if (new URLSearchParams(location.search).get('login') === '1') {
   history.replaceState(null, '', '/');
   document.addEventListener('DOMContentLoaded', () => showOTPModal());
+}
+
+/* Show profile modal after login redirect */
+if (new URLSearchParams(location.search).get('loggedin') === '1') {
+  const _tab = new URLSearchParams(location.search).get('tab');
+  history.replaceState(null, '', '/');
+  if (_tab) {
+    document.addEventListener('DOMContentLoaded', function() {
+      const btn = document.querySelector('.mob-nav-btn[data-tab="' + _tab + '"]');
+      if (btn) switchTab(_tab, btn);
+    });
+  }
+}
+
+/* ===== TOOL SHEETS ===== */
+const TOOL_TEMPLATES = {
+  protein: {
+    title: '🥩 Protein Calculator',
+    html: `
+      <p style="font-size:13px;color:var(--muted);margin:8px 0 16px;line-height:1.6">Find your daily protein target based on your weight and goal.</p>
+      <div class="tool-form">
+        <div><label style="font-size:13px;font-weight:600">Body Weight (kg)</label><input type="number" id="ts-pc-weight" placeholder="e.g. 70" min="30" max="250" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:15px;box-sizing:border-box;margin-top:4px"></div>
+        <div><label style="font-size:13px;font-weight:600">Activity Level</label><select id="ts-pc-activity" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box;margin-top:4px"><option value="1.2">Sedentary</option><option value="1.4">Lightly active</option><option value="1.6" selected>Moderately active</option><option value="1.8">Very active</option><option value="2.0">Athlete</option></select></div>
+        <div><label style="font-size:13px;font-weight:600">Goal</label><select id="ts-pc-goal" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box;margin-top:4px"><option value="1.2">Fat Loss</option><option value="1.6" selected>General Fitness</option><option value="2.0">Muscle Gain</option><option value="2.2">Max Muscle / Recomp</option></select></div>
+        <button onclick="calcToolProtein()" style="padding:12px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer">Calculate</button>
+      </div>
+      <div id="ts-pc-result" style="display:none;margin-top:16px;padding:16px;background:#ecfdf3;border-radius:10px;text-align:center">
+        <div id="ts-pc-val" style="font-size:36px;font-weight:800;color:var(--accent)"></div>
+        <div style="color:var(--muted);font-size:13px;margin-top:4px">grams of protein per day</div>
+        <div id="ts-pc-note" style="font-size:12px;color:var(--text);margin-top:8px"></div>
+      </div>`
+  },
+  calorie: {
+    title: '🔥 Calorie Calculator',
+    html: `
+      <p style="font-size:13px;color:var(--muted);margin:8px 0 16px;line-height:1.6">Calculate your TDEE and calorie targets for any goal.</p>
+      <div class="tool-form">
+        <div><label style="font-size:13px;font-weight:600">Weight (kg)</label><input type="number" id="ts-cc-weight" placeholder="e.g. 70" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:15px;box-sizing:border-box;margin-top:4px"></div>
+        <div><label style="font-size:13px;font-weight:600">Height (cm)</label><input type="number" id="ts-cc-height" placeholder="e.g. 170" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:15px;box-sizing:border-box;margin-top:4px"></div>
+        <div><label style="font-size:13px;font-weight:600">Age</label><input type="number" id="ts-cc-age" placeholder="e.g. 28" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:15px;box-sizing:border-box;margin-top:4px"></div>
+        <div><label style="font-size:13px;font-weight:600">Sex</label><select id="ts-cc-sex" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box;margin-top:4px"><option value="male">Male</option><option value="female">Female</option></select></div>
+        <div><label style="font-size:13px;font-weight:600">Activity Level</label><select id="ts-cc-activity" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box;margin-top:4px"><option value="1.2">Sedentary</option><option value="1.375">Lightly active</option><option value="1.55" selected>Moderately active</option><option value="1.725">Very active</option><option value="1.9">Extra active</option></select></div>
+        <button onclick="calcToolCalories()" style="padding:12px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer">Calculate</button>
+      </div>
+      <div id="ts-cc-result" style="display:none;margin-top:16px;padding:16px;background:#ecfdf3;border-radius:10px">
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #d1fae5;font-size:14px"><span>Maintenance (TDEE)</span><strong id="ts-cc-tdee" style="color:var(--accent)"></strong></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #d1fae5;font-size:14px"><span>Fat Loss (–400 kcal)</span><strong id="ts-cc-loss" style="color:var(--accent)"></strong></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:14px"><span>Muscle Gain (+250 kcal)</span><strong id="ts-cc-gain" style="color:var(--accent)"></strong></div>
+      </div>`
+  },
+  bmi: {
+    title: '⚖️ BMI Calculator',
+    html: `
+      <p style="font-size:13px;color:var(--muted);margin:8px 0 16px;line-height:1.6">Check your Body Mass Index and understand your weight category.</p>
+      <div class="tool-form">
+        <div><label style="font-size:13px;font-weight:600">Weight (kg)</label><input type="number" id="ts-bmi-weight" placeholder="e.g. 70" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:15px;box-sizing:border-box;margin-top:4px"></div>
+        <div><label style="font-size:13px;font-weight:600">Height (cm)</label><input type="number" id="ts-bmi-height" placeholder="e.g. 170" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:15px;box-sizing:border-box;margin-top:4px"></div>
+        <button onclick="calcToolBMI()" style="padding:12px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer">Calculate BMI</button>
+      </div>
+      <div id="ts-bmi-result" style="display:none;margin-top:16px;padding:16px;border-radius:10px;text-align:center">
+        <div id="ts-bmi-val" style="font-size:48px;font-weight:800"></div>
+        <div id="ts-bmi-cat" style="font-size:18px;font-weight:700;margin:4px 0"></div>
+        <div style="height:12px;border-radius:6px;background:linear-gradient(to right,#3b82f6 0%,#22c55e 25%,#f59e0b 50%,#ef4444 75%,#7f1d1d 100%);margin:12px 0;position:relative"><div id="ts-bmi-marker" style="position:absolute;top:-4px;width:20px;height:20px;background:#1f2937;border-radius:50%;transform:translateX(-50%);transition:left .4s"></div></div>
+        <p style="font-size:11px;color:var(--muted);display:flex;justify-content:space-between;margin:0 0 8px"><span>Underweight</span><span>Normal</span><span>Overweight</span><span>Obese</span></p>
+        <p id="ts-bmi-advice" style="font-size:13px;color:var(--text);line-height:1.6;margin:0"></p>
+      </div>`
+  }
+};
+
+function openToolSheet(tool) {
+  const t = TOOL_TEMPLATES[tool];
+  if (!t) return;
+  const body = document.getElementById('tool-sheet-body');
+  body.innerHTML = `<h2 style="font-size:18px;font-weight:800;margin:16px 0 0">${t.title}</h2>${t.html}`;
+  document.getElementById('tool-sheet-overlay').classList.add('show');
+}
+
+function closeToolSheet(e) {
+  if (e && e.target !== document.getElementById('tool-sheet-overlay')) return;
+  document.getElementById('tool-sheet-overlay').classList.remove('show');
+}
+
+function calcToolProtein() {
+  const w = parseFloat(document.getElementById('ts-pc-weight').value);
+  const goal = parseFloat(document.getElementById('ts-pc-goal').value);
+  if (!w || w < 30 || w > 250) { if (typeof showToast === 'function') showToast('Enter a valid weight (30–250 kg)'); return; }
+  const g = Math.round(w * goal);
+  document.getElementById('ts-pc-val').textContent = g + 'g';
+  document.getElementById('ts-pc-note').textContent = `Based on ${w}kg at ${goal}g/kg. Spread across 3–5 meals.`;
+  document.getElementById('ts-pc-result').style.display = 'block';
+}
+
+function calcToolCalories() {
+  const w = parseFloat(document.getElementById('ts-cc-weight').value);
+  const h = parseFloat(document.getElementById('ts-cc-height').value);
+  const a = parseFloat(document.getElementById('ts-cc-age').value);
+  const sex = document.getElementById('ts-cc-sex').value;
+  const act = parseFloat(document.getElementById('ts-cc-activity').value);
+  if (!w || !h || !a || w < 30 || h < 100 || a < 15) { if (typeof showToast === 'function') showToast('Please fill all fields'); return; }
+  const bmr = sex === 'male' ? 10*w + 6.25*h - 5*a + 5 : 10*w + 6.25*h - 5*a - 161;
+  const tdee = Math.round(bmr * act);
+  document.getElementById('ts-cc-tdee').textContent = tdee + ' kcal';
+  document.getElementById('ts-cc-loss').textContent = (tdee - 400) + ' kcal';
+  document.getElementById('ts-cc-gain').textContent = (tdee + 250) + ' kcal';
+  document.getElementById('ts-cc-result').style.display = 'block';
+}
+
+function calcToolBMI() {
+  const w = parseFloat(document.getElementById('ts-bmi-weight').value);
+  const h = parseFloat(document.getElementById('ts-bmi-height').value);
+  if (!w || !h || w < 20 || h < 100) { if (typeof showToast === 'function') showToast('Enter valid weight and height'); return; }
+  const bmi = w / ((h / 100) ** 2);
+  const bmiR = Math.round(bmi * 10) / 10;
+  let cat, color, advice;
+  if (bmi < 18.5) { cat = 'Underweight'; color = '#3b82f6'; advice = 'Focus on nutrient-dense, calorie-rich foods.'; }
+  else if (bmi < 25) { cat = 'Normal Weight'; color = '#22c55e'; advice = 'Great! Maintain with balanced meals and regular activity.'; }
+  else if (bmi < 30) { cat = 'Overweight'; color = '#f59e0b'; advice = 'A moderate calorie deficit with high protein can help.'; }
+  else { cat = 'Obese'; color = '#ef4444'; advice = 'Consult a nutritionist for a personalized plan.'; }
+  document.getElementById('ts-bmi-val').textContent = bmiR;
+  document.getElementById('ts-bmi-val').style.color = color;
+  document.getElementById('ts-bmi-cat').textContent = cat;
+  document.getElementById('ts-bmi-cat').style.color = color;
+  document.getElementById('ts-bmi-advice').textContent = advice;
+  document.getElementById('ts-bmi-marker').style.left = Math.min(100, Math.max(0, ((bmi - 15) / 25) * 100)) + '%';
+  const r = document.getElementById('ts-bmi-result');
+  r.style.display = 'block'; r.style.background = color + '18';
 }
 
 </script>

@@ -1,6 +1,8 @@
 const express = require('express');
-const { execFile } = require('child_process');
 const router = express.Router();
+
+const AGENT_URL = 'http://127.0.0.1:3001/send';
+const AGENT_SECRET = process.env.WHATSAPP_AGENT_SECRET || 'change-this-secret';
 
 const otpStore = new Map();
 
@@ -9,48 +11,46 @@ function generateOTP() {
 }
 
 function sendWhatsAppOTP(mobile, otp) {
-  return new Promise((resolve, reject) => {
-    const message = `Your Ray's Kitchen OTP is: *${otp}*\n\nValid for 5 minutes. Do not share this OTP with anyone.`;
-    const num = '+91' + mobile;
-    
-    execFile('/opt/homebrew/bin/openclaw', 
-      ['message', 'send', '--channel', 'whatsapp', '--target', num, '--message', message], 
-      { timeout: 10000 }, 
-      (err) => {
-        if (err) {
-          console.error('WhatsApp OTP send error:', err.message);
-          return reject(err);
-        }
-        console.log(`OTP sent to ${mobile}: ${otp}`);
-        resolve();
-      }
-    );
+  const message = `Your Ray's Kitchen OTP is: *${otp}*\n\nValid for 5 minutes. Do not share this OTP with anyone.`;
+  return fetch(AGENT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-secret': AGENT_SECRET },
+    body: JSON.stringify({ phone: '+91' + mobile, message })
+  }).then(r => {
+    if (!r.ok) throw new Error('agent returned ' + r.status);
   });
 }
 
+function normalizeMobile(raw) {
+  if (!raw) return '';
+  // Accept +91XXXXXXXXXX or plain 10-digit
+  return String(raw).trim().replace(/^\+91/, '');
+}
+
 router.post('/send-otp', (req, res) => {
-  const { mobile } = req.body;
+  const mobile = normalizeMobile(req.body.mobile);
   console.log('Send OTP request for:', mobile);
-  
+
   if (!/^[0-9]{10}$/.test(mobile)) {
     return res.status(400).json({ error: 'Invalid mobile number' });
   }
 
   const otp = generateOTP();
   const expires = Date.now() + 5 * 60 * 1000;
-  
+
   console.log(`\n=== OTP for ${mobile}: ${otp} ===\n`);
-  
+
   otpStore.set(mobile, { otp, expires, attempts: 0 });
-  
+
   sendWhatsAppOTP(mobile, otp).catch(err => console.error('OTP send failed:', err.message));
-  
+
   res.json({ success: true, message: 'OTP sent to WhatsApp' });
 });
 
 router.post('/verify-otp', (req, res) => {
-  const { mobile, otp } = req.body;
-  
+  const mobile = normalizeMobile(req.body.mobile);
+  const { otp } = req.body;
+
   if (!/^[0-9]{10}$/.test(mobile) || !/^[0-9]{6}$/.test(otp)) {
     return res.status(400).json({ error: 'Invalid input' });
   }
@@ -77,10 +77,10 @@ router.post('/verify-otp', (req, res) => {
   }
 
   otpStore.delete(mobile);
-  req.session.mobile = mobile;
+  req.session.mobile = '+91' + mobile;
   req.session.authenticated = true;
-  
-  res.json({ success: true, mobile });
+
+  res.json({ success: true, mobile: '+91' + mobile });
 });
 
 router.post('/logout', (req, res) => {

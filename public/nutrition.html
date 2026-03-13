@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>if(window.innerWidth<=768)window.location.replace("/?tab=nutrition");</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
   <title>Nutrition Hub | Healthy Meal Spot - Diet & Wellness Articles</title>
@@ -20,50 +21,12 @@
 </head>
 <body>
 
-<!-- Hamburger Drawer Overlay -->
-<div id="drawer-overlay" class="drawer-overlay" onclick="closeDrawer()"></div>
-<nav id="nav-drawer" class="nav-drawer" aria-label="Main navigation">
-  <div class="drawer-header">
-    <span class="drawer-brand">Healthy Meal Spot</span>
-    <button class="drawer-close" onclick="closeDrawer()" aria-label="Close menu">&#x2715;</button>
-  </div>
-  <div id="drawer-user-section" class="drawer-user-section">
-    <div id="drawer-user-info" style="display:none">
-      <div id="drawer-user-name" class="drawer-user-name"></div>
-      <div id="drawer-user-phone" class="drawer-user-phone"></div>
-    </div>
-    <div id="drawer-auth-btns" class="drawer-auth-btns">
-      <button class="drawer-login-btn" onclick="closeDrawer(); showOTPModal();">Sign In</button>
-    </div>
-  </div>
-  <ul class="drawer-links">
-    <li><a href="/" class="drawer-link">Menu</a></li>
-    <li><a href="/nutrition" class="drawer-link active">Nutrition Hub</a></li>
-    <li><a href="/consult-nutritionist" class="drawer-link">Consult Nutritionist</a></li>
-    <li><a href="/about" class="drawer-link">About</a></li>
-    <li><a href="mailto:kitchen@healthymealspot.com" class="drawer-link">Contact</a></li>
-  </ul>
-</nav>
-
 <header class="app-bar">
-  <button class="hamburger-btn" onclick="openDrawer()" aria-label="Open menu" aria-expanded="false" id="hamburger-btn">
-    <span></span><span></span><span></span>
-  </button>
-  <nav class="top-nav" aria-label="Main navigation">
-    <a href="/" class="top-nav-link">
-      <img src="/favicon.png" alt="" class="app-bar-logo" width="20" height="20" style="margin-right:5px">
-      Healthy Meal Menu
-    </a>
-    <a href="/nutrition" class="top-nav-link active">Nutrition Hub</a>
-    <a href="/consult-nutritionist" class="top-nav-link">Consult Nutritionist</a>
-    <a href="/about" class="top-nav-link">About</a>
-    <a href="mailto:kitchen@healthymealspot.com" class="top-nav-link">Contact</a>
-    <button class="top-nav-link top-nav-auth-btn" id="top-nav-auth-btn" onclick="showOTPModal()">Sign In</button>
-  </nav>
-  
+  <a href="/" class="app-bar-brand">
+    <img src="/favicon.png" alt="" class="app-bar-logo" width="36" height="36">
+  </a>
+  <span style="font-size:15px;font-weight:800;color:var(--text)">Nutrition Hub</span>
 </header>
-
-<nav class="breadcrumb" aria-label="Breadcrumb" style="font-size:13px;color:var(--muted);padding:10px 16px 0;max-width:800px;margin:0 auto"><a href="/" style="color:var(--accent);text-decoration:none">Home</a> › Nutrition Hub</nav>
 
 <div class="page-header">
   <h1 class="page-header-title">Nutrition Hub</h1>
@@ -80,36 +43,37 @@
 <main>
   <!-- SEO Context for the Pillar Page -->
   <section class="seo-content" style="padding: 16px; margin: 0 auto; max-width: 800px; text-align: center; color: var(--text);">
-    <p>Welcome to the Nutrition Hub. Explore our expert-backed guides on building a healthier lifestyle. Whether you're looking for sustainable <a href="/nutrition/weight-loss" style="color:var(--accent);">Weight Loss</a> strategies, structured <a href="/nutrition/muscle-gain" style="color:var(--accent);">Muscle Gain</a> diet plans, specialized <a href="/nutrition/medical" style="color:var(--accent);">Medical Nutrition</a> advice for PCOS or Diabetes, delicious <a href="/nutrition/recipes" style="color:var(--accent);">Healthy Recipes</a>, or simply want to bust common <a href="/nutrition/myths" style="color:var(--accent);">Nutrition Myths</a>—we have you covered.</p>
+    <p>Welcome to the Nutrition Hub. Explore our expert-backed guides on building a healthier lifestyle. Whether you're looking for sustainable <button onclick="filterCat('weight-loss')" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:inherit;padding:0;font-family:inherit">Weight Loss</button> strategies, structured <button onclick="filterCat('muscle-gain')" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:inherit;padding:0;font-family:inherit">Muscle Gain</button> diet plans, specialized <button onclick="filterCat('medical')" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:inherit;padding:0;font-family:inherit">Medical Nutrition</button> advice for PCOS or Diabetes, delicious <button onclick="filterCat('recipes')" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:inherit;padding:0;font-family:inherit">Healthy Recipes</button>, or simply want to bust common <button onclick="filterCat('myths')" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:inherit;padding:0;font-family:inherit">Nutrition Myths</button>—we have you covered.</p>
   </section>
 
 <!-- Categories -->
-<div class="category-grid">
-  <a href="/nutrition/weight-loss" class="category-card">
+<div class="category-grid" id="nutrition-cat-grid">
+  <button class="category-card" onclick="filterCat('weight-loss')">
     <span class="cat-icon">&#9878;&#65039;</span>
     Weight Loss
-  </a>
-  <a href="/nutrition/muscle-gain" class="category-card">
+  </button>
+  <button class="category-card" onclick="filterCat('muscle-gain')">
     <span class="cat-icon">&#128170;</span>
     Muscle Gain
-  </a>
-  <a href="/nutrition/medical" class="category-card">
+  </button>
+  <button class="category-card" onclick="filterCat('medical')">
     <span class="cat-icon">&#129657;</span>
     Medical Nutrition
-  </a>
-  <a href="/nutrition/recipes" class="category-card">
+  </button>
+  <button class="category-card" onclick="filterCat('recipes')">
     <span class="cat-icon">&#127859;</span>
     Healthy Recipes
-  </a>
-  <a href="/nutrition/myths" class="category-card">
+  </button>
+  <button class="category-card" onclick="filterCat('myths')">
     <span class="cat-icon">&#128270;</span>
     Nutrition Myths
-  </a>
+  </button>
 </div>
 
 <!-- Articles -->
 <div class="articles-section">
-  <h2>Latest Articles</h2>
+  <h2 id="articles-section-title">Latest Articles</h2>
+  <button id="nutrition-back-btn" style="display:none;margin-bottom:12px;background:none;border:none;color:var(--accent);font-size:14px;font-weight:700;cursor:pointer;padding:0;font-family:var(--font)" onclick="filterCat(null)">&#8592; All Articles</button>
   <div class="article-cards" id="article-cards">
     <div style="color:var(--muted);padding:20px">Loading articles…</div>
   </div>
@@ -137,25 +101,29 @@
   </div>
 </section>
 
+<nav id="mobile-bottom-nav">
+  <button class="mob-nav-btn" onclick="window.location.href='/'">
+    <i class="fa-solid fa-house"></i>Home
+  </button>
+  <button class="mob-nav-btn" onclick="window.location.href='/?tab=menu'">
+    <i class="fa-solid fa-utensils"></i>Menu
+  </button>
+  <button class="mob-nav-btn active">
+    <i class="fa-solid fa-leaf"></i>Nutrition
+  </button>
+  <button class="mob-nav-btn" onclick="window.location.href='/consult-nutritionist'">
+    <i class="fa-solid fa-stethoscope"></i>Consult
+  </button>
+  <button class="mob-nav-btn" onclick="window.location.href='/profile'">
+    <i class="fa-solid fa-heart-pulse"></i>My Health
+  </button>
+</nav>
+
 <footer class="page-footer">
   &copy; 2026 Healthy Meal Spot &bull; <a href="/">Order Food</a> &bull; <a href="/consult-nutritionist">Book Consultation</a>
 </footer>
 
 <script>
-function openDrawer() {
-  document.getElementById('nav-drawer').classList.add('open');
-  document.getElementById('drawer-overlay').classList.add('show');
-  document.getElementById('hamburger-btn').setAttribute('aria-expanded', 'true');
-  document.body.classList.add('drawer-open');
-}
-function closeDrawer() {
-  document.getElementById('nav-drawer').classList.remove('open');
-  document.getElementById('drawer-overlay').classList.remove('show');
-  document.getElementById('hamburger-btn').setAttribute('aria-expanded', 'false');
-  document.body.classList.remove('drawer-open');
-}
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
-
 const CAT_LABELS = {
   'weight-loss': 'Weight Loss',
   'muscle-gain': 'Muscle Gain',
@@ -164,63 +132,56 @@ const CAT_LABELS = {
   'myths': 'Nutrition Myths'
 };
 
-// Check if filtering by category from URL
-const urlCat = location.pathname.split('/nutrition/')[1];
+let _allArticles = [];
+let _activeCat = null;
+
+function renderArticles(articles) {
+  const container = document.getElementById('article-cards');
+  container.innerHTML = articles.length
+    ? articles.map(a => `<div class="article-card"><img src="${a.image}" alt="${a.title}" loading="lazy"><div class="article-card-body"><div class="article-card-cat">${CAT_LABELS[a.category]||a.category}</div><div class="article-card-title">${a.title}</div><div class="article-card-meta">${a.author} &bull; ${a.readingTime} min read</div>${a.excerpt?`<div style="font-size:13px;color:var(--muted);margin-top:6px">${a.excerpt}</div>`:''}</div></div>`).join('')
+    : '<div style="color:var(--muted);padding:20px">No articles yet. Check back soon!</div>';
+}
+
+function filterCat(cat) {
+  _activeCat = cat;
+  const title = document.getElementById('articles-section-title');
+  const backBtn = document.getElementById('nutrition-back-btn');
+  const si = document.getElementById('search-articles');
+  if (cat) {
+    if (title) title.textContent = CAT_LABELS[cat] || cat;
+    if (backBtn) backBtn.style.display = 'inline-block';
+    if (si) si.value = '';
+  } else {
+    if (title) title.textContent = 'Latest Articles';
+    if (backBtn) backBtn.style.display = 'none';
+  }
+  renderArticles(cat ? _allArticles.filter(a => a.category === cat) : _allArticles);
+  document.querySelector('.articles-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 
 fetch('/blogs.json')
   .then(r => r.json())
   .then(data => {
-    const container = document.getElementById('article-cards');
-    let allArticles = data.articles || [];
-    if (urlCat && CAT_LABELS[urlCat]) {
-      allArticles = allArticles.filter(a => a.category === urlCat);
-      document.querySelector('.articles-section h2').textContent = CAT_LABELS[urlCat];
-    }
-
-    function render(articles) {
-      if (!articles.length) {
-        container.innerHTML = '<div style="color:var(--muted);padding:20px">No articles yet. Check back soon!</div>';
-        return;
-      }
-      container.innerHTML = articles.map(a => `
-        <a href="/nutrition/${a.slug}" class="article-card">
-          <img src="${a.image}" alt="${a.title}" loading="lazy">
-          <div class="article-card-body">
-            <div class="article-card-cat">${CAT_LABELS[a.category] || a.category}</div>
-            <div class="article-card-title">${a.title}</div>
-            <div class="article-card-meta">${a.author} &bull; ${a.readingTime} min read</div>
-          </div>
-        </a>
-      `).join('');
-    }
-
-    render(allArticles);
-
+    _allArticles = data.articles || [];
+    renderArticles(_allArticles);
     const searchInput = document.getElementById('search-articles');
     const clearBtn = document.getElementById('clear-search');
     if (searchInput) {
       searchInput.addEventListener('input', e => {
         const q = e.target.value.trim().toLowerCase();
-        render(q ? allArticles.filter(a => a.title.toLowerCase().includes(q) || a.excerpt.toLowerCase().includes(q)) : allArticles);
+        const base = _activeCat ? _allArticles.filter(a => a.category === _activeCat) : _allArticles;
+        renderArticles(q ? base.filter(a => a.title.toLowerCase().includes(q) || (a.excerpt||'').toLowerCase().includes(q)) : base);
       });
     }
     if (clearBtn && searchInput) {
-      clearBtn.addEventListener('click', () => { searchInput.value = ''; render(allArticles); searchInput.focus(); });
+      clearBtn.addEventListener('click', () => { searchInput.value = ''; filterCat(_activeCat); searchInput.focus(); });
     }
   })
   .catch(() => {
     document.getElementById('article-cards').innerHTML = '<div style="color:var(--muted);padding:20px">Could not load articles.</div>';
   });
-
 </script>
 <script src="/drawer-auth.js"></script>
-<script>
-(function() {
-  var user = typeof currentUser !== 'undefined' ? currentUser : null;
-  var authBtn = document.getElementById('top-nav-auth-btn');
-  if (!authBtn) return;
-  if (user) authBtn.style.display = 'none';
-})();
-</script>
+
 </body>
 </html>

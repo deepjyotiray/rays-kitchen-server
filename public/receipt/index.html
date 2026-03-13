@@ -125,7 +125,7 @@ th {
 <body>
 
 <!-- PAID WATERMARK -->
-<div class="watermark">PAID</div>
+<div class="watermark" id="watermark">PAID</div>
 
 <div id="receipt" style="display:none">
 
@@ -268,6 +268,23 @@ function render(o) {
       <td class="num" id="receiptTotalValue">₹${formatCurrency(displayTotal)}</td>
     </tr>
   `);
+
+  const amountPaid = Number(o.amountPaid);
+  if (Number.isFinite(amountPaid) && amountPaid > 0 && amountPaid < displayTotal) {
+    const balance = displayTotal - amountPaid;
+    table.insertAdjacentHTML("beforeend", `
+      <tr>
+        <td>Advance Paid</td>
+        <td class="num">₹${formatCurrency(amountPaid)}</td>
+      </tr>
+      <tr class="total-row" style="color:#c0392b;">
+        <td>Balance Due</td>
+        <td class="num">₹${formatCurrency(balance)}</td>
+      </tr>
+    `);
+    const wm = document.getElementById("watermark");
+    if (wm) wm.textContent = "PARTIAL";
+  }
 
   document.getElementById("receipt").style.display = "block";
 }

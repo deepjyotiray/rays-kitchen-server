@@ -1,109 +1,402 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login / Sign Up | Healthy Meal Spot</title>
-  <meta name="description" content="Login or sign up to order healthy, fresh, and delicious meals from Healthy Meal Spot in Navi Mumbai. Manage your orders and subscriptions effortlessly.">
-  <meta name="keywords" content="login Healthy Meal Spot, sign up food delivery, order food online Navi Mumbai" />
-  <link rel="canonical" href="https://healthymealspot.com/login" />
-  <meta name="robots" content="noindex, nofollow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-visual">
+  <title>Login | Ray's Home Kitchen</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/style.css">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: Arial, sans-serif; background: #f5f5f5; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-    .login-box { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 90%; max-width: 400px; }
-    h2 { margin-bottom: 20px; color: #333; }
-    input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; }
-    button { width: 100%; padding: 12px; background: #ff6b35; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-top: 10px; }
-    button:disabled { background: #ccc; cursor: not-allowed; }
-    .message { padding: 10px; margin: 10px 0; border-radius: 5px; }
-    .error { background: #fee; color: #c00; }
-    .success { background: #efe; color: #060; }
-    .hidden { display: none; }
+    html, body { min-height: 100%; overflow-x: hidden; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --accent: #da291c;
+      --accent-strong: #bf1c11;
+      --font: 'Nunito', sans-serif;
+    }
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+
+    body {
+      font-family: var(--font), -apple-system, sans-serif;
+      background: #f5f5f5;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      background: var(--accent);
+      color: #fff;
+      text-align: center;
+      padding: 28px 24px 48px;
+      flex-shrink: 0;
+    }
+    .hero-logo { font-size: 3rem; margin-bottom: 10px; }
+    .hero h1 { font-size: 1.6rem; font-weight: 800; }
+    .hero p { margin-top: 6px; font-size: 0.9rem; opacity: 0.85; }
+
+    /* ── Card ── */
+    .card {
+      background: #fff;
+      border-radius: 24px 24px 0 0;
+      margin-top: -28px;
+      flex: 1;
+      padding: 16px 24px calc(48px + env(safe-area-inset-bottom));
+      max-width: 480px;
+      width: 100%;
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: 0 -4px 24px rgba(0,0,0,0.08);
+    }
+
+    /* ── Steps ── */
+    .step { display: none; }
+    .step.active { display: block; }
+
+    h2 { font-size: 1.25rem; font-weight: 800; color: #111; margin-bottom: 4px; }
+    .sub { font-size: 0.875rem; color: #666; margin-bottom: 24px; }
+    .sub strong { color: #111; }
+
+    /* ── Inputs ── */
+    .field { position: relative; margin-bottom: 16px; }
+    .phone-row { display: flex; gap: 8px; }
+    .phone-row select {
+      padding: 14px 10px;
+      border: 1.5px solid #e0e0e0; border-radius: 10px;
+      font-size: 1rem; font-family: inherit; color: #111;
+      background: #fafafa; outline: none;
+      transition: border-color 0.2s;
+      cursor: pointer; flex-shrink: 0;
+      width: 90px; min-width: 90px;
+    }
+    .phone-row select:focus { border-color: var(--accent); background: #fff; }
+    .phone-row input { flex: 1; }
+    input {
+      width: 100%; padding: 14px;
+      border: 1.5px solid #e0e0e0; border-radius: 10px;
+      font-size: 1rem; font-family: inherit; color: #111;
+      background: #fafafa; outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus { border-color: var(--accent); background: #fff; }
+
+    /* ── OTP boxes ── */
+    .otp-row { display: flex; gap: 10px; margin-bottom: 16px; }
+    .otp-row input {
+      flex: 1; text-align: center;
+      font-size: 1.5rem; font-weight: 800;
+      padding: 14px 4px;
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      width: 100%; padding: 15px;
+      background: var(--accent); color: #fff;
+      border: none; border-radius: 10px;
+      font-size: 1rem; font-weight: 800;
+      font-family: inherit; cursor: pointer;
+      transition: background 0.2s, opacity 0.2s;
+    }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn:not(:disabled):hover { background: var(--accent-strong); }
+
+    .btn-ghost {
+      display: block; width: 100%;
+      background: none; border: none;
+      color: var(--accent); font-size: 0.875rem;
+      font-weight: 700; font-family: inherit;
+      cursor: pointer; padding: 10px 0; margin-top: 8px;
+    }
+
+    /* ── Message ── */
+    .msg { font-size: 0.85rem; padding: 10px 12px; border-radius: 8px; margin-bottom: 14px; display: none; }
+    .msg.error { background: #fff0ee; color: #c0392b; display: block; }
+    .msg.info  { background: #f0f4ff; color: #2255cc; display: block; }
+
+    /* ── Resend ── */
+    .resend { text-align: center; font-size: 0.85rem; color: #888; margin-top: 12px; }
+    .resend button {
+      background: none; border: none; color: var(--accent);
+      font-weight: 700; font-size: 0.85rem; cursor: pointer; font-family: inherit;
+    }
+    .resend button:disabled { color: #aaa; cursor: default; }
+
+    .terms { font-size: 0.75rem; color: #aaa; text-align: center; margin-top: 16px; line-height: 1.5; }
+    .terms a { color: var(--accent); text-decoration: none; }
   </style>
 </head>
 <body>
-  <div class="login-box">
-    <h2>🍽️ Healthy Meal Spot Login</h2>
-    
-    <div id="mobile-step">
-      <input type="tel" id="mobile" placeholder="Enter 10-digit mobile number" maxlength="10">
-      <button onclick="sendOTP()">Send OTP</button>
-    </div>
 
-    <div id="otp-step" class="hidden">
-      <input type="text" id="otp" placeholder="Enter 6-digit OTP" maxlength="6">
-      <button onclick="verifyOTP()">Verify OTP</button>
-      <button onclick="resetForm()" style="background: #666;">Change Number</button>
-    </div>
+<div class="hero">
+  <div class="hero-logo">🍱</div>
+  <h1>Ray's Home Kitchen</h1>
+  <p>Fresh, home-cooked meals delivered to you</p>
+</div>
 
-    <div id="message"></div>
+<div class="card">
+
+  <!-- Step 1: Mobile -->
+  <div id="step-mobile" class="step active">
+    <h2>Login / Sign Up</h2>
+    <p class="sub">Enter your mobile number to continue</p>
+    <div id="msg-mobile" class="msg"></div>
+    <div class="field">
+      <div class="phone-row">
+        <select id="dial-code">
+          <option value="+91" selected>🇮🇳 +91</option>
+          <option value="+1">🇺🇸 +1</option>
+          <option value="+44">🇬🇧 +44</option>
+          <option value="+61">🇦🇺 +61</option>
+          <option value="+1-CA">🇨🇦 +1</option>
+          <option value="+971">🇦🇪 +971</option>
+          <option value="+65">🇸🇬 +65</option>
+          <option value="+60">🇲🇾 +60</option>
+          <option value="+49">🇩🇪 +49</option>
+          <option value="+33">🇫🇷 +33</option>
+          <option value="+81">🇯🇵 +81</option>
+          <option value="+86">🇨🇳 +86</option>
+          <option value="+82">🇰🇷 +82</option>
+          <option value="+55">🇧🇷 +55</option>
+          <option value="+27">🇿🇦 +27</option>
+          <option value="+234">🇳🇬 +234</option>
+          <option value="+254">🇰🇪 +254</option>
+          <option value="+92">🇵🇰 +92</option>
+          <option value="+880">🇧🇩 +880</option>
+          <option value="+94">🇱🇰 +94</option>
+          <option value="+977">🇳🇵 +977</option>
+        </select>
+        <input type="tel" id="inp-mobile" placeholder="Mobile number" inputmode="numeric" autocomplete="tel">
+      </div>
+    </div>
+    <button class="btn" id="btn-send" onclick="sendOTP()">Continue</button>
+    <p class="terms">By continuing you agree to our <a href="#">Terms</a> &amp; <a href="#">Privacy Policy</a></p>
   </div>
 
-  <script>
-    async function sendOTP() {
-      const mobile = document.getElementById('mobile').value;
-      if (!/^[0-9]{10}$/.test(mobile)) {
-        showMessage('Please enter a valid 10-digit mobile number', 'error');
-        return;
+  <!-- Step 2: OTP -->
+  <div id="step-otp" class="step">
+    <h2>Verify OTP</h2>
+    <p class="sub" id="otp-sub">Sent to <strong></strong> via WhatsApp</p>
+    <div id="msg-otp" class="msg"></div>
+    <div class="otp-row" id="otp-row">
+      <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+      <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+      <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+      <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+      <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+      <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+    </div>
+    <button class="btn" id="btn-verify" onclick="verifyOTP()">Verify</button>
+    <div class="resend">
+      Didn't receive? <button id="btn-resend" onclick="resendOTP()" disabled>Resend</button>
+      <span id="resend-timer"></span>
+    </div>
+    <button class="btn-ghost" onclick="goBack()">← Change number</button>
+  </div>
+
+  <!-- Step 3: Profile (new user) -->
+  <div id="step-profile" class="step">
+    <h2>Complete your profile</h2>
+    <p class="sub">Just a few details to get started</p>
+    <div id="msg-profile" class="msg"></div>
+    <div class="field"><input type="text" id="inp-name" placeholder="Your full name *" autocomplete="name"></div>
+    <div class="field"><input type="text" id="inp-address" placeholder="Delivery address *" autocomplete="street-address"></div>
+    <button class="btn" id="btn-save" onclick="saveProfile()">Save &amp; Continue →</button>
+  </div>
+
+</div>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  const redirect = params.get('redirect') || '/';
+  let mobile = '';
+  let resendTick = null;
+  function isAuthInput(el) {
+    return !!el && (el.id === 'inp-mobile' || el.closest('#otp-row'));
+  }
+
+  let savedScrollY = null;
+
+  document.addEventListener('focusin', e => {
+    if (isAuthInput(e.target)) savedScrollY = window.scrollY;
+  });
+
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => {
+      if (isAuthInput(document.activeElement) && savedScrollY !== null) {
+        window.scrollTo(0, savedScrollY);
       }
+    });
+  }
 
-      try {
-        const res = await fetch('/api/auth/send-otp', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mobile })
-        });
-        const data = await res.json();
-        
-        if (data.success) {
-          document.getElementById('mobile-step').classList.add('hidden');
-          document.getElementById('otp-step').classList.remove('hidden');
-        } else {
-          showMessage(data.error || 'Failed to send OTP', 'error');
-        }
-      } catch (err) {
-        showMessage('Network error', 'error');
+  document.addEventListener('focusout', e => {
+    if (!isAuthInput(e.target)) return;
+    setTimeout(() => {
+      if (!isAuthInput(document.activeElement)) savedScrollY = null;
+    }, 0);
+  });
+
+  // OTP box wiring
+  const otpRow = document.getElementById('otp-row');
+  otpRow.addEventListener('input', e => {
+    const boxes = [...otpRow.querySelectorAll('input')];
+    const i = boxes.indexOf(e.target);
+    if (e.target.value && i < boxes.length - 1) boxes[i + 1].focus();
+    if (getOTP().length === 6) verifyOTP();
+  });
+  otpRow.addEventListener('keydown', e => {
+    const boxes = [...otpRow.querySelectorAll('input')];
+    const i = boxes.indexOf(e.target);
+    if (e.key === 'Backspace' && !e.target.value && i > 0) boxes[i - 1].focus();
+  });
+
+  function getOTP() {
+    return [...otpRow.querySelectorAll('input')].map(b => b.value).join('');
+  }
+
+  function showMsg(step, text, type) {
+    const el = document.getElementById('msg-' + step);
+    el.textContent = text;
+    el.className = 'msg ' + type;
+  }
+
+  function goBack() {
+    clearInterval(resendTick);
+    document.getElementById('step-otp').classList.remove('active');
+    document.getElementById('step-mobile').classList.add('active');
+  }
+
+  function startResend(secs = 30) {
+    const btn = document.getElementById('btn-resend');
+    const timer = document.getElementById('resend-timer');
+    btn.disabled = true;
+    let t = secs;
+    timer.textContent = ` (${t}s)`;
+    resendTick = setInterval(() => {
+      t--;
+      if (t <= 0) { clearInterval(resendTick); btn.disabled = false; timer.textContent = ''; }
+      else timer.textContent = ` (${t}s)`;
+    }, 1000);
+  }
+
+  function getDialCode() {
+    const v = document.getElementById('dial-code').value;
+    return v === '+1-CA' ? '+1' : v;
+  }
+
+  async function sendOTP() {
+    const dialCode = getDialCode();
+    mobile = document.getElementById('inp-mobile').value.trim();
+    const isIndia = dialCode === '+91';
+    if (isIndia && !/^[0-9]{10}$/.test(mobile)) { showMsg('mobile', 'Enter a valid 10-digit mobile number', 'error'); return; }
+    if (!isIndia && !/^[0-9]{5,15}$/.test(mobile)) { showMsg('mobile', 'Enter a valid mobile number', 'error'); return; }
+    const btn = document.getElementById('btn-send');
+    btn.disabled = true; btn.textContent = 'Sending…';
+    try {
+      const res = await fetch('/api/auth/send-otp', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile: getDialCode() + mobile })
+      });
+      const data = await res.json();
+      if (!data.success) { showMsg('mobile', data.error || 'Failed to send OTP', 'error'); return; }
+      document.querySelector('#otp-sub strong').textContent = getDialCode() + '-' + mobile;
+      document.getElementById('step-mobile').classList.remove('active');
+      document.getElementById('step-otp').classList.add('active');
+      otpRow.querySelector('input').focus();
+      startResend();
+    } catch { showMsg('mobile', 'Network error. Try again.', 'error'); }
+    finally { btn.disabled = false; btn.textContent = 'Continue'; }
+  }
+
+  async function resendOTP() {
+    try {
+      const res = await fetch('/api/auth/send-otp', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile: getDialCode() + mobile })
+      });
+      const data = await res.json();
+      if (data.success) startResend();
+      else showMsg('otp', data.error || 'Failed to resend', 'error');
+    } catch { showMsg('otp', 'Network error', 'error'); }
+  }
+
+  async function verifyOTP() {
+    const otp = getOTP();
+    if (otp.length !== 6) { showMsg('otp', 'Enter the 6-digit OTP', 'error'); return; }
+    const btn = document.getElementById('btn-verify');
+    btn.disabled = true; btn.textContent = 'Verifying…';
+    try {
+      const res = await fetch('/api/auth/verify-otp', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile: getDialCode() + mobile, otp })
+      });
+      const data = await res.json();
+      if (!data.success) { showMsg('otp', data.error || 'Invalid OTP', 'error'); return; }
+
+      // Check if user exists with name + address
+      const userRes = await fetch('/users/' + encodeURIComponent(getDialCode() + mobile));
+      const ud = userRes.ok ? await userRes.json() : null;
+      const user = ud?.user;
+      if (user && user.name && user.address) {
+        // Profile complete — redirect back
+        const _pendingTab = sessionStorage.getItem('_pendingTab') || '';
+        const _tabParam = _pendingTab ? '&tab=' + encodeURIComponent(_pendingTab) : '';
+        window.location.href = redirect + (redirect.includes('?') ? '&' : '?') + 'loggedin=1' + _tabParam;
+      } else {
+        // New user — show inline profile step
+        document.getElementById('step-otp').classList.remove('active');
+        document.getElementById('step-profile').classList.add('active');
+        document.getElementById('inp-name').focus();
+        if (user?.name) document.getElementById('inp-name').value = user.name;
+        if (user?.address) document.getElementById('inp-address').value = user.address;
       }
+    } catch { showMsg('otp', 'Network error. Try again.', 'error'); }
+    finally { btn.disabled = false; btn.textContent = 'Verify'; }
+  }
+  async function saveProfile() {
+    const name = document.getElementById('inp-name').value.trim();
+    const address = document.getElementById('inp-address').value.trim();
+    if (!name) { showMsg('profile', 'Please enter your name', 'error'); return; }
+    if (!address) { showMsg('profile', 'Please enter your delivery address', 'error'); return; }
+    const btn = document.getElementById('btn-save');
+    btn.disabled = true; btn.textContent = 'Saving…';
+    try {
+      const res = await fetch('/users/register', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, mobile: getDialCode() + mobile, address })
+      });
+      if (!res.ok) throw new Error();
+      const _pendingTab = sessionStorage.getItem('_pendingTab') || '';
+      const _tabParam = _pendingTab ? '&tab=' + encodeURIComponent(_pendingTab) : '';
+      window.location.href = redirect + (redirect.includes('?') ? '&' : '?') + 'loggedin=1' + _tabParam;
+    } catch {
+      showMsg('profile', 'Could not save profile. Please try again.', 'error');
+      btn.disabled = false; btn.textContent = 'Save & Continue →';
     }
+  }
 
-    async function verifyOTP() {
-      const mobile = document.getElementById('mobile').value;
-      const otp = document.getElementById('otp').value;
-      
-      if (!/^[0-9]{6}$/.test(otp)) {
-        showMessage('Please enter a valid 6-digit OTP', 'error');
-        return;
-      }
+</script>
+<nav id="mobile-bottom-nav">
+  <button class="mob-nav-btn" onclick="window.location.href='/'">
+    <i class="fa-solid fa-house"></i>Home
+  </button>
+  <button class="mob-nav-btn" onclick="window.location.href='/?tab=menu'">
+    <i class="fa-solid fa-utensils"></i>Menu
+  </button>
+  <button class="mob-nav-btn" onclick="window.location.href='/nutrition'">
+    <i class="fa-solid fa-leaf"></i>Nutrition
+  </button>
+  <button class="mob-nav-btn" onclick="window.location.href='/consult-nutritionist'">
+    <i class="fa-solid fa-stethoscope"></i>Consult
+  </button>
+  <button class="mob-nav-btn active">
+    <i class="fa-solid fa-heart-pulse"></i>My Health
+  </button>
+</nav>
 
-      try {
-        const res = await fetch('/api/auth/verify-otp', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mobile, otp })
-        });
-        const data = await res.json();
-        
-        if (data.success) {
-          showMessage('Login successful! Redirecting...', 'success');
-          setTimeout(() => window.location.href = '/', 1000);
-        } else {
-          showMessage(data.error || 'Invalid OTP', 'error');
-        }
-      } catch (err) {
-        showMessage('Network error', 'error');
-      }
-    }
-
-    function resetForm() {
-      location.reload();
-    }
-
-    function showMessage(msg, type) {
-      const div = document.getElementById('message');
-      div.textContent = msg;
-      div.className = 'message ' + type;
-    }
-  </script>
 </body>
 </html>

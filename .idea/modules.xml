@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/../ray-orders-backend/.idea/ray-orders-backend.iml" filepath="$PROJECT_DIR$/../ray-orders-backend/.idea/ray-orders-backend.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/rays-home-kitchen.iml" filepath="$PROJECT_DIR$/.idea/rays-home-kitchen.iml" />
+      <module fileurl="file://$USER_HOME$/whatsapp-agent/.idea/whatsapp-agent.iml" filepath="$USER_HOME$/whatsapp-agent/.idea/whatsapp-agent.iml" />
     </modules>
   </component>
 </project>

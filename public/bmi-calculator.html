@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>if(window.innerWidth<=768)window.location.replace("/?tab=nutrition&tool=bmi");</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
   <title>BMI Calculator | Healthy Meal Spot</title>
@@ -13,7 +14,7 @@
   {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://healthymealspot.com/"},{"@type":"ListItem","position":2,"name":"BMI Calculator","item":"https://healthymealspot.com/bmi-calculator"}]}
   </script>
   <style>
-    .tool-wrap{max-width:560px;margin:0 auto;padding:24px 16px 40px}
+    .tool-wrap{max-width:560px;margin:0 auto;padding:24px 16px 100px}
     .tool-desc{color:var(--text);line-height:1.7;margin-bottom:24px;font-size:15px}
     .tool-form{background:#f9fafb;border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:14px}
     .tool-form label{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;display:block}
@@ -34,49 +35,18 @@
 </head>
 <body>
 
-<div id="drawer-overlay" class="drawer-overlay" onclick="closeDrawer()"></div>
-<nav id="nav-drawer" class="nav-drawer" aria-label="Main navigation">
-  <div class="drawer-header">
-    <span class="drawer-brand">Healthy Meal Spot</span>
-    <button class="drawer-close" onclick="closeDrawer()" aria-label="Close menu">&#x2715;</button>
-  </div>
-  <div id="drawer-user-section" class="drawer-user-section">
-    <div id="drawer-user-info" style="display:none">
-      <div id="drawer-user-name" class="drawer-user-name"></div>
-      <div id="drawer-user-phone" class="drawer-user-phone"></div>
-    </div>
-    <div id="drawer-auth-btns" class="drawer-auth-btns">
-      <button class="drawer-login-btn" onclick="closeDrawer(); showOTPModal();">Sign In</button>
-    </div>
-  </div>
-  <ul class="drawer-links">
-    <li><a href="/" class="drawer-link">Menu</a></li>
-    <li><a href="/nutrition" class="drawer-link active">Nutrition Hub</a></li>
-    <li><a href="/consult-nutritionist" class="drawer-link">Consult Nutritionist</a></li>
-    <li><a href="/about" class="drawer-link">About</a></li>
-    <li><a href="mailto:kitchen@healthymealspot.com" class="drawer-link">Contact</a></li>
-  </ul>
-</nav>
-
 <header class="app-bar">
-  <button class="hamburger-btn" onclick="openDrawer()" aria-label="Open menu" aria-expanded="false" id="hamburger-btn">
-    <span></span><span></span><span></span>
-  </button>
-  <nav class="top-nav" aria-label="Main navigation">
-    <a href="/" class="top-nav-link">
-      <img src="/favicon.png" alt="" class="app-bar-logo" width="20" height="20" style="margin-right:5px">
-      Healthy Meal Menu
-    </a>
-    <a href="/nutrition" class="top-nav-link active">Nutrition Hub</a>
-    <a href="/consult-nutritionist" class="top-nav-link">Consult Nutritionist</a>
-    <a href="/about" class="top-nav-link">About</a>
-    <a href="mailto:kitchen@healthymealspot.com" class="top-nav-link">Contact</a>
-    <button class="top-nav-link top-nav-auth-btn" id="top-nav-auth-btn" onclick="showOTPModal()">Sign In</button>
-  </nav>
-  
+  <a href="/" class="app-bar-brand">
+    <img src="/favicon.png" alt="" class="app-bar-logo" width="36" height="36">
+  </a>
+  <span style="font-size:15px;font-weight:800;color:var(--text)">BMI Calculator</span>
+  <div class="app-bar-actions" style="margin-left:auto">
+    <a href="/nutrition" class="top-nav-link app-bar-nav-link">Nutrition Hub</a>
+    <a href="/consult-nutritionist" class="top-nav-link app-bar-nav-link">Consult</a>
+  </div>
 </header>
 
-<nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Home</a> › BMI Calculator</nav>
+<nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Home</a> › <a href="/nutrition">Nutrition Hub</a> › BMI Calculator</nav>
 
 <div class="page-header">
   <h1 class="page-header-title">BMI Calculator</h1>
@@ -119,21 +89,25 @@
   &copy; 2026 Healthy Meal Spot &bull; <a href="/">Order Food</a> &bull; <a href="/nutrition">Nutrition Hub</a>
 </footer>
 
-<script>
-function openDrawer() {
-  document.getElementById('nav-drawer').classList.add('open');
-  document.getElementById('drawer-overlay').classList.add('show');
-  document.getElementById('hamburger-btn').setAttribute('aria-expanded', 'true');
-  document.body.classList.add('drawer-open');
-}
-function closeDrawer() {
-  document.getElementById('nav-drawer').classList.remove('open');
-  document.getElementById('drawer-overlay').classList.remove('show');
-  document.getElementById('hamburger-btn').setAttribute('aria-expanded', 'false');
-  document.body.classList.remove('drawer-open');
-}
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+<nav id="mobile-bottom-nav">
+  <button class="mob-nav-btn" onclick="window.location.href='/'">
+    <i class="fa-solid fa-house"></i>Home
+  </button>
+  <button class="mob-nav-btn" onclick="window.location.href='/?tab=menu'">
+    <i class="fa-solid fa-utensils"></i>Menu
+  </button>
+  <button class="mob-nav-btn active">
+    <i class="fa-solid fa-leaf"></i>Nutrition
+  </button>
+  <button class="mob-nav-btn" onclick="window.location.href='/consult-nutritionist'">
+    <i class="fa-solid fa-stethoscope"></i>Consult
+  </button>
+  <button class="mob-nav-btn" onclick="window.location.href='/profile'">
+    <i class="fa-solid fa-heart-pulse"></i>My Health
+  </button>
+</nav>
 
+<script>
 function calcBMI() {
   const w = parseFloat(document.getElementById('bmi-weight').value);
   const h = parseFloat(document.getElementById('bmi-height').value);
@@ -176,13 +150,5 @@ function calcBMI() {
 }
 </script>
 <script src="/drawer-auth.js"></script>
-<script>
-(function() {
-  var user = typeof currentUser !== 'undefined' ? currentUser : null;
-  var authBtn = document.getElementById('top-nav-auth-btn');
-  if (!authBtn) return;
-  if (user) authBtn.style.display = 'none';
-})();
-</script>
 </body>
 </html>

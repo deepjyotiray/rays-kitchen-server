@@ -1,4 +1,90 @@
-/* ================= GLOBALS ================= */
+/* ================= CATEGORY TAB ICONS ================= */
+const SECTION_ICONS = {
+  healthy: '🥗',
+  healthySubs: '📦',
+  breakfast: '🍳',
+  veg_starters: '🥙',
+  veg_main: '🍛',
+  non_veg_starters: '🍗',
+  SeaFood_starters: '🦐',
+  non_veg_main: '🍖',
+  'rice&breads': '🍚',
+  sweets: '🍮',
+};
+
+/* ================= ITEM IMAGES ================= */
+// Loaded from DB-backed API at runtime; populated on init
+let ITEM_IMAGES = {};
+fetch('/api/item-images').then(r => r.ok ? r.json() : {}).then(d => { ITEM_IMAGES = d; }).catch(() => {});
+
+
+function getItemImage(name) {
+  return ITEM_IMAGES[name] || null;
+}
+
+function getSectionIcon(key) {
+  return SECTION_ICONS[key] || '🍽️';
+}
+
+/* ================= RENDER CATEGORY TABS ================= */
+function renderCategoryTabs() {
+  const tabsEl = document.getElementById('category-tabs');
+  if (!tabsEl) return;
+  tabsEl.innerHTML = '';
+  Object.entries(menuData).forEach(([k, s]) => {
+    if (s.available === false) return;
+    const btn = document.createElement('button');
+    btn.className = 'category-tab';
+    btn.dataset.key = k;
+    btn.innerHTML = `<span class="tab-icon">${getSectionIcon(k)}</span><span>${s.title}</span>`;
+    btn.addEventListener('click', () => scrollToSection(k));
+    tabsEl.appendChild(btn);
+  });
+  updateActiveTab();
+}
+
+function scrollToSection(key) {
+  const sec = document.getElementById('section-' + safeItemKey(key));
+  if (!sec) return;
+  // Expand if collapsed
+  const grid = document.getElementById('grid-' + key);
+  const chev = document.getElementById('chev-' + key);
+  if (grid && grid.classList.contains('collapsed')) {
+    grid.classList.remove('collapsed');
+    if (chev) chev.textContent = '▾';
+  }
+  const offset = 64 + 88; // appbar + sticky controls
+  const top = sec.getBoundingClientRect().top + window.scrollY - offset;
+  window.scrollTo({ top, behavior: 'smooth' });
+}
+
+function updateActiveTab() {
+  const tabs = document.querySelectorAll('.category-tab');
+  if (!tabs.length) return;
+  const sections = Array.from(document.querySelectorAll('#menu-container section'));
+  if (!sections.length) return;
+  const offset = 64 + 88 + 20;
+  let activeKey = null;
+  for (let i = sections.length - 1; i >= 0; i--) {
+    if (sections[i].getBoundingClientRect().top <= offset) {
+      activeKey = sections[i].id.replace('section-', '');
+      break;
+    }
+  }
+  if (!activeKey && sections.length) {
+    activeKey = sections[0].id.replace('section-', '');
+  }
+  tabs.forEach(t => {
+    const match = safeItemKey(t.dataset.key) === activeKey;
+    t.classList.toggle('active', match);
+    if (match) {
+      t.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  });
+}
+
+window.addEventListener('scroll', updateActiveTab, { passive: true });
+
 window.ORDER_FOR_DATE = window.ORDER_FOR_DATE || new Date();
 
 const API_URL = "https://api.healthymealspot.com/orders";
@@ -18,8 +104,8 @@ let kitchenClosures = [];
 let customerName = "",
   customerPhone = "",
   customerAddress = "",
-  customerNotes = "",
-  currentUser = null;
+  customerNotes = "";
+var currentUser = null;
 
 let locationAllowed = true,
   capturedLocation = null,
@@ -97,41 +183,10 @@ function formatTime12(d = new Date()) {
   return `${h}:${pad2(m)} ${ampm}`;
 }
 
-function isPast9PM() {
-  return new Date().getHours() >= 21;
-}
-
-function isDateClosed(date) {
-  const day = getStartOfDay(date);
-  if (day.getTime() === getTodayStart().getTime() && (kitchenClosedToday() || isPast9PM())) {
-    return true;
-  }
-  return kitchenClosures.some((c) => {
-    const start = parseISODate(c.start_date);
-    const end = parseISODate(c.end_date || c.start_date);
-    if (!start || !end) return false;
-    return day >= start && day <= end;
-  });
-}
-
-function findNextOpenDate(fromDate = new Date()) {
-  const start = getStartOfDay(fromDate);
-  for (let i = 0; i < 90; i++) {
-    const candidate = new Date(start);
-    candidate.setDate(start.getDate() + i);
-    if (!isDateClosed(candidate)) return candidate;
-  }
-  return start;
-}
-
 function syncOrderDayFromDate() {
   const selected = getStartOfDay(window.ORDER_FOR_DATE || new Date());
   const today = getStartOfDay(new Date());
   orderDay = selected > today ? "tomorrow" : "today";
-  if (kitchenClosedToday() && orderDay === "today") {
-    orderDay = "tomorrow";
-    window.ORDER_FOR_DATE = getTomorrowStart();
-  }
 }
 
 syncOrderDayFromDate();
@@ -236,36 +291,7 @@ async function initDeliveryCharge() {
   updateCart();
 }
 
-function showLocationBlockedBanner(msg) {
-  let banner = document.getElementById("location-blocked-banner");
-
-  if (!banner) {
-    banner = document.createElement("div");
-    banner.id = "location-blocked-banner";
-    banner.style.cssText = `
-    background: #fff6f6;
-    color: #8a2d2d;
-    padding: 8px 12px;
-    margin: 10px 12px;
-    border-radius: 6px;
-    text-align: center;
-    font-weight: 500;
-    font-size: 13px;
-    border: 1px solid #f2caca;
-    `;
-
-    banner.innerHTML = msg
-      ? `📍 ${msg}`
-      : `📍 Location access not provided.<br>Delivery charges will be added as per actuals.`;
-
-    const header = document.querySelector(".header");
-    if (header) {
-      header.insertAdjacentElement("afterend", banner);
-    } else {
-      document.body.prepend(banner);
-    }
-  }
-}
+function showLocationBlockedBanner() {}
 
 /* ================= HELPERS & MENU LOAD ================= */
 fetch("/coupons.json?v=" + Date.now())
@@ -312,40 +338,12 @@ function matchesFilters(item) {
 // }
 
 function getAvailabilityLabel(key, available) {
-  const selected = getStartOfDay(window.ORDER_FOR_DATE || new Date());
-  const today = getTodayStart();
-  const isTodaySelected = selected.getTime() === today.getTime();
-  const now = nowMinutes();
-  const opening = 7 * 60;
-
   if (available) return "";
-
-  if (isDateClosed(selected)) {
-    return isTodaySelected
-      ? "Ordering for today is closed"
-      : "Kitchen is closed for selected date";
-  }
-
-  if (isTodaySelected && now < opening) return "Opens at 7:00 AM";
-
-  if (key === "breakfast" && isTodaySelected && now >= 9 * 60)
-    return "Breakfast ended for today";
-
-  return "Available on the next open day";
+  return "Kitchen is currently closed";
 }
 
 function isSectionAvailable(key) {
-  const selected = getStartOfDay(window.ORDER_FOR_DATE || new Date());
-
-  if (isDateClosed(selected)) return false;
-
-  if (orderDay === "tomorrow") return true;
-
-  const t = nowMinutes();
-  if (t < 7 * 60) return false;
-  if (key === "breakfast") return t < 9 * 60;
-
-  return t < 24 * 60;
+  return !kitchenClosedToday();
 }
 
 const isCorporatePage = window.location.pathname
@@ -355,7 +353,6 @@ const isCorporatePage = window.location.pathname
 const MENU_FILE = isCorporatePage ? "corporate_menu.json" : "menu.json";
 
 async function refreshKitchenState() {
-  const wasClosed = kitchenClosedToday();
   try {
     const res = await fetch("/api/state");
     if (!res.ok) throw new Error("STATE_LOAD_FAILED");
@@ -363,52 +360,11 @@ async function refreshKitchenState() {
     window.KITCHEN_CLOSED_TODAY = !!data.kitchenClosedToday;
     kitchenClosures = Array.isArray(data.closures) ? data.closures : [];
     window.KITCHEN_CLOSURES = kitchenClosures;
-
-    if (kitchenClosedToday() && typeof window.ORDER_FOR_DATE !== "undefined") {
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(0, 0, 0, 0);
-      window.ORDER_FOR_DATE = tomorrow;
-
-      if (typeof selectedDate !== "undefined") {
-        selectedDate = new Date(tomorrow);
-        if (typeof updateSelectedLabel === "function") updateSelectedLabel();
-        if (typeof renderCalendar === "function") renderCalendar();
-      }
-    }
     syncOrderDayFromDate();
-    showKitchenClosedBanner();
     updateEtaLabel();
     syncCartVisibility();
     if (typeof renderCalendar === "function") renderCalendar();
     if (typeof updateSelectedLabel === "function") updateSelectedLabel();
-
-    // If we just reopened and date was auto-pushed to tomorrow, pull back to today by default
-    if (!kitchenClosedToday() && wasClosed) {
-      const current = getStartOfDay(window.ORDER_FOR_DATE || new Date());
-      if (current.getTime() === getTomorrowStart().getTime()) {
-        window.ORDER_FOR_DATE = getTodayStart();
-        syncOrderDayFromDate();
-        if (typeof selectedDate !== "undefined") {
-          selectedDate = new Date(window.ORDER_FOR_DATE);
-        }
-        if (typeof renderCalendar === "function") renderCalendar();
-        if (typeof updateSelectedLabel === "function") updateSelectedLabel();
-      }
-    }
-
-    // If selected date falls into a closure, move to the next open day
-    const maybeClosed = getStartOfDay(window.ORDER_FOR_DATE || new Date());
-    if (isDateClosed(maybeClosed)) {
-      // const next = findNextOpenDate(new Date(maybeClosed.getTime() + 86400000));
-      window.ORDER_FOR_DATE = next;
-      syncOrderDayFromDate();
-      if (typeof selectedDate !== "undefined") {
-        selectedDate = new Date(window.ORDER_FOR_DATE);
-      }
-      if (typeof renderCalendar === "function") renderCalendar();
-      if (typeof updateSelectedLabel === "function") updateSelectedLabel();
-    }
   } catch (e) {
     syncOrderDayFromDate();
   }
@@ -447,8 +403,7 @@ async function fetchMenuData() {
 }
 
 (async function initApp() {
-  // If past 9 PM, pre-select tomorrow
-  window.ORDER_FOR_DATE = isPast9PM() ? getTomorrowStart() : getTodayStart();
+  window.ORDER_FOR_DATE = getTodayStart();
   syncOrderDayFromDate();
   try {
     await refreshKitchenState();
@@ -462,10 +417,17 @@ async function fetchMenuData() {
 /* ---------- RENDER MENU ---------- */
 function renderMenu() {
   cleanupUnavailableSelections();
-  showKitchenClosedBanner();
 
   const c = document.getElementById("menu-container");
   c.innerHTML = "";
+
+  const kitchenClosed = kitchenClosedToday();
+  if (kitchenClosed) {
+    const notice = document.createElement("div");
+    notice.className = "kitchen-closed-notice";
+    notice.textContent = "🚫 Kitchen closed";
+    c.appendChild(notice);
+  }
 
   let renderedAny = false;
   let renderIndex = 0;
@@ -475,7 +437,7 @@ function renderMenu() {
     if (s.available === false) return;
     
     const available = isSectionAvailable(k);
-    const collapsed = true;
+    const collapsed = false;
 
     const filteredItems = (s.items || []).filter(
       (itm) => (itm.available !== false) && matchesFilters(itm)
@@ -502,7 +464,7 @@ function renderMenu() {
         <h2>${s.title}</h2>
 
         <span class="chevron" id="chev-${k}">
-          ${collapsed ? "▸" : "▾"}
+          ${collapsed ? "▾" : "▾"}
         </span>
       </div>
 
@@ -529,14 +491,21 @@ function renderMenu() {
             const qty = selectedItems[itemId]?.qty || 0;
             // const minusDisabledAttr =
               !available || qty <= 0 ? "disabled" : "";
-            const plusDisabledAttr = !available ? "disabled" : "";
+            const plusDisabledAttr = !available || kitchenClosed ? "disabled" : "";
+            const minusDisabledAttr = !available || kitchenClosed ? "disabled" : "";
             const plusActiveClass =
               qty > 0 && available ? " qty-plus-active" : "";
 
+            const imgSrc = getItemImage(i.name);
+            const imgHtml = imgSrc
+              ? `<div class="item-img-wrap"><img src="${imgSrc}" alt="${i.name}" loading="lazy"></div>`
+              : `<div class="item-img-wrap"><div class="item-img-placeholder">${getSectionIcon(k)}</div></div>`;
+
             return `
-              <div class="menu-item ${!available ? "disabled" : ""} ${
+              <div class="menu-item ${!available ? "disabled" : ""} ${kitchenClosed ? "kitchen-closed" : ""} ${
               inCart ? "menu-item-in-cart" : ""
             }" data-item-key="${itemDomKey}" ${i.calories ? `data-calories="${i.calories}" data-protein="${i.protein || 0}" data-carbs="${i.carbs || 0}" data-fat="${i.fat || 0}"` : ''}>
+                ${imgHtml}
                 <div class="item-content">
                   <div class="item-indicator-top">
                     <span class="food-indicator ${
@@ -564,9 +533,9 @@ function renderMenu() {
                           <span class="add-plus">+</span>
                         </button>` :
                         `<div class="qty-control" data-item-key="${itemDomKey}" data-available="${available}">
-                        <span class="qty-minus" data-item-id="${itemDomKey}">\u2212</span>
+                        <span class="qty-minus" data-item-id="${itemDomKey}" ${minusDisabledAttr ? 'style="pointer-events:none;opacity:0.4"' : ''}>\u2212</span>
                         <span class="qty-count">${qty}</span>
-                        <span class="qty-plus" data-item-id="${itemDomKey}">+</span>
+                        <span class="qty-plus" data-item-id="${itemDomKey}" ${plusDisabledAttr ? 'style="pointer-events:none;opacity:0.4"' : ''}>+</span>
                         </div>`
                       }
                     </div>
@@ -614,6 +583,14 @@ function renderMenu() {
   }
   updateCart();
   updateSectionContext();
+  renderCategoryTabs();
+  // Sync mobile menu pane whenever menu re-renders
+  const _ip = document.getElementById('mobile-menu-items');
+  if (_ip) {
+    _ip.innerHTML = c.innerHTML;
+    _ip.querySelectorAll('.scroll-reveal').forEach(el => { el.classList.remove('scroll-reveal'); el.classList.add('revealed'); });
+    if (typeof bindMenuItemEvents === 'function') bindMenuItemEvents(_ip);
+  }
   if (c._menuEventsController) c._menuEventsController.abort();
   const controller = new AbortController();
   c._menuEventsController = controller;
@@ -625,6 +602,7 @@ function bindMenuItemEvents(container, signal) {
   container.addEventListener("click", (e) => {
     const btn = e.target.closest(".add-btn[data-item-id]");
     if (btn) {
+      if (btn.disabled || kitchenClosedToday()) return;
       const domKey = btn.dataset.itemId;
       const itemEl = btn.closest(".menu-item");
       if (!itemEl) return;
@@ -645,6 +623,7 @@ function bindMenuItemEvents(container, signal) {
     const plus = e.target.closest(".qty-plus[data-item-id]");
     const target = minus || plus;
     if (target) {
+      if (kitchenClosedToday()) return;
       const domKey = target.dataset.itemId;
       const realId = Object.keys(menuData).reduce((found, k) => {
         if (found) return found;
@@ -705,7 +684,7 @@ function updateQty(id, name, price, delta) {
     flashMenuItem(id);
 
     if (typeof showToast === "function") {
-      showToast(`${name} added to plate`);
+      showToast('Item added to cart !');
     }
 
     if (navigator?.vibrate) {
@@ -720,7 +699,10 @@ function updateQty(id, name, price, delta) {
   if (extrasBox)
     extrasBox.style.display = selectedItems[id].qty > 0 ? "block" : "none";
 
-  if (selectedItems[id].qty <= 0) delete selectedItems[id];
+  if (selectedItems[id].qty <= 0) {
+    if (delta < 0 && typeof showToast === "function") showToast('Item deleted from cart !');
+    delete selectedItems[id];
+  }
 
   updateCart();
   updateMenuQtyUI(id);
@@ -740,9 +722,11 @@ function updateMenuQtyUI(itemId) {
   
   if (qtyBox) {
     const available = qtyBox.querySelector('[data-available]')?.dataset.available !== 'false';
+    const closed = kitchenClosedToday();
     
     // Get item details from menu data
-    const [sectionKey, itemName] = itemId.split('__');
+    const [sectionKey, ...nameParts] = itemId.split('__');
+    const itemName = nameParts.join('__');
     const section = menuData[sectionKey];
     const menuItem = section?.items?.find(item => item.name === itemName);
     const itemName2 = menuItem?.name || '';
@@ -753,10 +737,10 @@ function updateMenuQtyUI(itemId) {
       const btn = document.createElement("button");
       btn.className = "add-btn";
       btn.dataset.available = available;
-      if (!available) btn.disabled = true;
+      btn.dataset.itemId = domKey;
+      if (!available || closed) btn.disabled = true;
       btn.setAttribute("aria-label", "Add item");
       btn.innerHTML = '<span class="add-text">ADD</span><span class="add-plus">+</span>';
-      btn.addEventListener("click", () => updateQty(itemId, itemName2, itemPrice, 1));
       qtyBox.appendChild(btn);
     } else {
       const ctrl = document.createElement("div");
@@ -764,19 +748,29 @@ function updateMenuQtyUI(itemId) {
       ctrl.dataset.available = available;
       const minus = document.createElement("span");
       minus.className = "qty-minus";
+      minus.dataset.itemId = domKey;
       minus.textContent = "\u2212";
-      minus.addEventListener("click", () => updateQty(itemId, itemName2, itemPrice, -1));
+      if (closed) minus.style.cssText = "pointer-events:none;opacity:0.4";
       const count = document.createElement("span");
       count.className = "qty-count";
       count.textContent = qty;
       const plus = document.createElement("span");
       plus.className = "qty-plus";
+      plus.dataset.itemId = domKey;
       plus.textContent = "+";
-      plus.addEventListener("click", () => updateQty(itemId, itemName2, itemPrice, 1));
+      if (closed) plus.style.cssText = "pointer-events:none;opacity:0.4";
       ctrl.append(minus, count, plus);
       qtyBox.appendChild(ctrl);
     }
   }
+
+  // Also update all matching panes (mobile-menu-items, etc.)
+  document.querySelectorAll(`.menu-item[data-item-key="${domKey}"] .qty-box`).forEach(box => {
+    if (box === qtyBox) return;
+    box.innerHTML = qtyBox ? qtyBox.innerHTML : '';
+    const parentItem = box.closest('.menu-item');
+    if (parentItem) parentItem.classList.toggle('menu-item-in-cart', qty > 0);
+  });
 
   const itemEl = document.querySelector(
     `.menu-item[data-item-key="${domKey}"]`
@@ -859,17 +853,12 @@ function toggleExtra(itemId, extraName, extraPrice, checked) {
 }
 
 function cleanupUnavailableSelections() {
+  if (kitchenClosedToday()) { selectedItems = {}; return; }
   Object.keys(selectedItems).forEach((id) => {
     const sectionKey = id.split("__")[0];
     const section = menuData[sectionKey];
     const item = (section?.items || []).find((i) => `${sectionKey}__${i.name}` === id);
-
-    const itemUnavailable = item && item.available === false;
-
-    if (
-      !id.startsWith("motd__") &&
-      (!isSectionAvailable(sectionKey) || itemUnavailable)
-    ) {
+    if (!id.startsWith("motd__") && item && item.available === false) {
       delete selectedItems[id];
     }
   });
@@ -882,7 +871,7 @@ function updateCart() {
   const b = document.getElementById("cart-order-btn");
   const itemCount = Object.values(selectedItems).reduce((s, i) => s + i.qty, 0);
 
-  if (kitchenClosedToday() && orderDay === "today") {
+  if (kitchenClosedToday()) {
     b.disabled = true;
   }
 
@@ -990,21 +979,86 @@ function updateCart() {
 }
 
 /* ---------- COUPONS ---------- */
+function confettiCoupon() {
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:99999';
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  const pieces = Array.from({length: 80}, () => ({
+    x: Math.random() * canvas.width, y: Math.random() * -canvas.height * 0.5,
+    r: Math.random() * 6 + 4, d: Math.random() * 3 + 1,
+    color: ['#e53935','#43a047','#1e88e5','#fb8c00','#8e24aa','#fdd835'][Math.floor(Math.random()*6)],
+    tilt: Math.random() * 10 - 5, tiltSpeed: Math.random() * 0.1 + 0.05
+  }));
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach(p => {
+      ctx.beginPath(); ctx.fillStyle = p.color;
+      ctx.ellipse(p.x, p.y, p.r, p.r * 0.4, p.tilt, 0, Math.PI * 2);
+      ctx.fill();
+      p.y += p.d + 1; p.x += Math.sin(frame * 0.02 + p.tilt) * 1.2;
+      p.tilt += p.tiltSpeed;
+    });
+    frame++;
+    if (frame < 120) requestAnimationFrame(draw); else canvas.remove();
+  }
+  draw();
+}
+
+function setCouponBtnState(applied) {
+  ['coupon-apply-btn','mob-coupon-apply-btn'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    if (applied) {
+      btn.textContent = '✕'; btn.title = 'Remove coupon';
+      btn.onclick = removeCoupon;
+      btn.style.background = '#e53935';
+    } else {
+      btn.textContent = 'Apply'; btn.title = '';
+      btn.onclick = id === 'mob-coupon-apply-btn' ? applyMobCoupon : applyCoupon;
+      btn.style.background = '';
+    }
+  });
+}
+
+window.removeCoupon = function () {
+  enteredCoupon = null; appliedCoupon = null; discountAmount = 0;
+  ['coupon-input','mob-coupon-input'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  ['coupon-msg','mob-coupon-msg','sidebar-coupon-msg'].forEach(id => { const el = document.getElementById(id); if (el) { el.textContent = ''; el.className = 'coupon-msg'; } });
+  setCouponBtnState(false);
+  updateCart();
+};
+
+window.applyMobCoupon = function () {
+  const mobInput = document.getElementById("mob-coupon-input");
+  const desktopInput = document.getElementById("coupon-input");
+  if (mobInput && desktopInput) desktopInput.value = mobInput.value;
+  window.applyCoupon();
+  const mobMsg = document.getElementById("mob-coupon-msg");
+  const desktopMsg = document.getElementById("coupon-msg");
+  if (mobMsg && desktopMsg) { mobMsg.textContent = desktopMsg.textContent; mobMsg.className = desktopMsg.className; }
+};
+
 window.applyCoupon = function () {
-  const code = document
-    .getElementById("coupon-input")
+  const mobInput = document.getElementById("mob-coupon-input");
+  const desktopInput = document.getElementById("coupon-input");
+  const activeInput = (mobInput && mobInput.offsetParent !== null) ? mobInput : desktopInput;
+  const code = activeInput
     .value.trim()
     .toUpperCase();
 
   enteredCoupon = code;
   updateCart();
 
-  if (typeof showToast === "function") {
-    if (appliedCoupon) {
-      showToast(`Coupon ${appliedCoupon} applied`);
-    } else if (enteredCoupon) {
-      showToast("Coupon added. Reach minimum order to apply.");
-    }
+  if (appliedCoupon) {
+    confettiCoupon();
+    setCouponBtnState(true);
+    if (typeof showToast === "function") showToast(`Coupon ${appliedCoupon} applied`);
+  } else {
+    setCouponBtnState(false);
+    if (typeof showToast === "function" && enteredCoupon) showToast("Coupon added. Reach minimum order to apply.");
   }
 };
 
@@ -1074,91 +1128,123 @@ function getFreeEligibleSubtotal() {
 }
 
 /* ---------- STREAMLINED USER FLOW ---------- */
+// Tracks whether the mobile being verified belongs to an existing user
+let _pendingMobileIsExisting = false;
+
 window.proceedWithMobile = async function() {
   const mobileEl = document.getElementById("reg-mobile");
-  mobileEl.readOnly = false;
-  const mobile = mobileEl.value.trim();
-  
-  if (!mobile) {
-    alert("Please enter your mobile number");
+  const mobile = mobileEl.value.trim().replace(/^\+91/, '');
+
+  if (!/^[0-9]{10}$/.test(mobile)) {
+    alert("Please enter a valid 10-digit mobile number");
     return;
   }
-  
+
+  const continueBtn = document.getElementById("reg-continue-btn");
+  continueBtn.disabled = true;
+  continueBtn.textContent = "Checking…";
+
   try {
-    // First, try to find existing user
-    const res = await fetch(`https://api.healthymealspot.com/users/${mobile}`);
-    
-    if (res.ok) {
-      // User exists - login directly
-      const data = await res.json();
-      currentUser = data.user;
-      customerName = currentUser.name;
-      customerPhone = currentUser.mobile;
-      customerAddress = currentUser.address || "";
-      
-      localStorage.setItem("user_mobile", mobile);
-      if (data.token) localStorage.setItem("user_token", data.token);
-      showOrderStep();
-      
-      if (typeof showToast === "function") {
-        showToast(`Welcome back, ${currentUser.name}!`);
-      }
-    } else if (res.status === 404) {
-      // User doesn't exist - show name field and register
+    const res = await fetch(`/users/${encodeURIComponent('+91' + mobile)}`);
+    _pendingMobileIsExisting = res.ok;
+
+    if (!res.ok && res.status !== 404) throw new Error("Server error");
+
+    if (!_pendingMobileIsExisting) {
+      // New user — show name field before OTP
       document.getElementById("reg-name").style.display = "block";
       document.getElementById("reg-name").focus();
-      
-      // Change button to register
-      const continueBtn = document.getElementById("reg-continue-btn");
-      continueBtn.textContent = "Register";
-      continueBtn.onclick = registerNewUser;
-      
-      if (typeof showToast === "function") {
-        showToast("Please enter your name to complete registration");
-      }
-    } else {
-      throw new Error("Server error");
     }
+
+    // Send OTP regardless
+    const otpRes = await fetch('/api/auth/send-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mobile })
+    });
+    const otpData = await otpRes.json();
+
+    if (!otpData.success) {
+      alert(otpData.error || 'Failed to send OTP');
+      return;
+    }
+
+    // Show OTP input inline
+    const otpSection = document.getElementById("reg-otp-section");
+    if (otpSection) otpSection.style.display = "block";
+    continueBtn.textContent = _pendingMobileIsExisting ? "Verify & Login" : "Verify & Register";
+    continueBtn.onclick = verifyMobileOTP;
+
+    showToast && showToast("OTP sent to your WhatsApp");
   } catch (e) {
-    console.error("Error checking user:", e);
+    console.error("Error:", e);
     alert("Something went wrong. Please try again.");
+  } finally {
+    continueBtn.disabled = false;
   }
 };
 
-window.registerNewUser = async function() {
-  const name = document.getElementById("reg-name").value.trim();
+window.verifyMobileOTP = async function() {
   const mobile = document.getElementById("reg-mobile").value.trim().replace(/^\+91/, '');
-  
-  if (!name) {
-    alert("Please enter your name");
+  const otp = document.getElementById("reg-otp").value.trim();
+
+  if (!/^[0-9]{6}$/.test(otp)) {
+    alert("Enter valid 6-digit OTP");
     return;
   }
-  
+
+  const continueBtn = document.getElementById("reg-continue-btn");
+  continueBtn.disabled = true;
+  continueBtn.textContent = "Verifying…";
+
   try {
-    const res = await fetch("https://api.healthymealspot.com/users/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, mobile })
+    const res = await fetch('/api/auth/verify-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mobile, otp })
     });
-    
-    if (!res.ok) throw new Error("Registration failed");
-    
     const data = await res.json();
-    currentUser = data.user;
-    customerName = currentUser.name;
-    customerPhone = currentUser.mobile;
-    customerAddress = currentUser.address || "";
-    
-    localStorage.setItem("user_mobile", mobile);
-    if (data.token) localStorage.setItem("user_token", data.token);
-    showOrderStep();
-    
-    if (typeof showToast === "function") {
-      showToast("Registration successful!");
+
+    if (!data.success) {
+      alert(data.error || 'Invalid OTP');
+      continueBtn.disabled = false;
+      continueBtn.textContent = _pendingMobileIsExisting ? "Verify & Login" : "Verify & Register";
+      return;
+    }
+
+    // OTP verified — session is now set server-side
+    if (_pendingMobileIsExisting) {
+      // Existing user: load and proceed
+      await loadUserAndShowOrder(mobile);
+    } else {
+      // New user: register then proceed
+      const name = document.getElementById("reg-name").value.trim();
+      if (!name) {
+        alert("Please enter your name");
+        continueBtn.disabled = false;
+        return;
+      }
+      const regRes = await fetch("/users/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, mobile: '+91' + mobile })
+      });
+      if (!regRes.ok) throw new Error("Registration failed");
+      const regData = await regRes.json();
+      currentUser = regData.user;
+      window.currentUser = currentUser;
+      customerName = currentUser.name;
+      customerPhone = currentUser.mobile;
+      customerAddress = currentUser.address || "";
+      localStorage.setItem("user_mobile", '+91' + mobile);
+      showOrderStep();
+      if (typeof syncTopNav === 'function') syncTopNav();
+      showToast && showToast("Registration successful!");
     }
   } catch (e) {
-    console.error("Registration error:", e);
-    alert("Registration failed. Please try again.");
+    console.error("Error:", e);
+    alert("Something went wrong. Please try again.");
+    continueBtn.disabled = false;
   }
 };
 
@@ -1191,7 +1277,7 @@ window.updateUser = async function() {
   }
 
   try {
-    const res = await fetch("https://api.healthymealspot.com/users/register", {
+    const res = await fetch("/users/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, mobile, address: currentUser?.address || "" })
@@ -1202,6 +1288,7 @@ window.updateUser = async function() {
     const data = await res.json();
     currentUser = data.user;
     customerName = currentUser.name;
+    if (typeof syncTopNav === 'function') syncTopNav();
 
     showOrderStep();
 
@@ -1223,7 +1310,7 @@ window.showMyOrders = async function() {
   }
   
   try {
-    const res = await fetch(`https://api.healthymealspot.com/users/${currentUser.mobile}/orders`);
+    const res = await fetch(`/users/${encodeURIComponent(currentUser.mobile)}/orders`);
     
     if (!res.ok) {
       throw new Error("Failed to fetch orders");
@@ -1403,25 +1490,27 @@ window.submitBulkOrder = async function() {
   const btn = document.querySelector('#bulk-order-modal .primary');
   if (btn) { btn.disabled = true; btn.textContent = 'Submitting…'; }
 
+  const waMsg = `🎉 *Bulk / Party Order Request*\n*Name:* ${name}\n*Mobile:* +91${mobile}\n*Address:* ${address}\n*Date:* ${dates}\n*Requirements:* ${requirements || 'Not specified'}`;
+
   try {
     const res = await fetch('https://api.healthymealspot.com/bulk-orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, mobile, address, dates, requirements })
     });
-
     if (!res.ok) throw new Error('Failed to submit');
-
-    closeBulkOrderModal();
-    if (typeof showToast === 'function') showToast('Bulk order request submitted successfully!');
-
-    ['bulk-name','bulk-mobile','bulk-address','bulk-dates','bulk-requirements']
-      .forEach(id => { document.getElementById(id).value = ''; });
-  } catch (e) {
-    alert('Failed to submit request. Please try again.');
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = 'Submit Request'; }
+  } catch {
+    // API unavailable — fall through to WhatsApp
   }
+
+  closeBulkOrderModal();
+  ['bulk-name','bulk-mobile','bulk-address','bulk-dates','bulk-requirements']
+    .forEach(id => { document.getElementById(id).value = ''; });
+  if (btn) { btn.disabled = false; btn.textContent = 'Submit Request'; }
+
+  // Always send via WhatsApp so the request is never lost
+  window.open('https://wa.me/919326492088?text=' + encodeURIComponent(waMsg), '_blank');
+  if (typeof showToast === 'function') showToast('Request sent via WhatsApp!');
 };
 
 window.closeBulkOrderModal = function() {
@@ -1436,9 +1525,12 @@ function showRegistrationStep() {
   // Reset form to initial state
   document.getElementById("reg-name").style.display = "none";
   document.getElementById("reg-name").value = "";
-  document.getElementById("reg-mobile").value = "";
+  document.getElementById("reg-mobile").value = "+91";
+  document.getElementById("reg-otp").value = "";
+  document.getElementById("reg-otp-section").style.display = "none";
+  _pendingMobileIsExisting = false;
   
-  const continueBtn = document.querySelector("#registration-step button");
+  const continueBtn = document.getElementById("reg-continue-btn");
   continueBtn.textContent = "Continue";
   continueBtn.onclick = proceedWithMobile;
 }
@@ -1463,7 +1555,7 @@ async function loadExistingUser() {
   if (!savedMobile) return;
   
   try {
-    const res = await fetch(`https://api.healthymealspot.com/users/${savedMobile}`);
+    const res = await fetch(`/users/${encodeURIComponent(savedMobile)}`);
     if (!res.ok) return;
     
     const data = await res.json();
@@ -1472,6 +1564,7 @@ async function loadExistingUser() {
     customerPhone = currentUser.mobile;
     customerAddress = currentUser.address || "";
     if (data.token) localStorage.setItem("user_token", data.token);
+    if (typeof syncTopNav === 'function') syncTopNav();
   } catch (e) {
     console.warn("Failed to load existing user:", e);
   }
@@ -1480,8 +1573,8 @@ async function loadExistingUser() {
 /* ---------- ORDERING ---------- */
 window.orderOnWhatsApp = function () {
   if (!Object.keys(selectedItems).length) return;
-  if (kitchenClosedToday() && orderDay === "today") {
-    showToast("Ordering for today is closed. Please switch to tomorrow.");
+  if (kitchenClosedToday()) {
+    showToast("Kitchen is currently closed.");
     return;
   }
   
@@ -1506,6 +1599,7 @@ async function loadUserAndShowOrder(mobile) {
       customerName = currentUser.name;
       customerPhone = currentUser.mobile;
       customerAddress = currentUser.address || '';
+      if (typeof syncTopNav === 'function') syncTopNav();
     }
   } catch (e) {
     console.warn('Failed to load user:', e);
@@ -1548,83 +1642,191 @@ async function loadUserAndShowOrder(mobile) {
   if (Object.keys(selectedItems).length > 0) {
     document.getElementById('customer-modal').classList.add('show');
     document.body.classList.add('modal-open');
+  } else if (!currentUser) {
+    _showProfileStep(mobile);
   } else {
     if (typeof showToast === 'function') showToast('Welcome back, ' + (currentUser?.name || mobile) + '!');
     if (typeof syncDrawerUser === 'function') syncDrawerUser();
   }
+  if (typeof syncTopNav === 'function') syncTopNav();
 }
 
 window.logout = async function() {
-  try {
-    await fetch('/api/auth/logout', { method: 'POST' });
-  } catch (e) {}
-  
+  try { await fetch('/api/auth/logout', { method: 'POST' }); } catch (e) {}
   currentUser = null;
   customerName = '';
   customerPhone = '';
   customerAddress = '';
-  
+  localStorage.removeItem('user_mobile');
   closeCustomerModal();
-  
-  const modal = document.getElementById('otp-modal');
-  if (modal) {
-    document.getElementById('otp-mobile-step').style.display = 'block';
-    document.getElementById('otp-verify-step').style.display = 'none';
-    document.getElementById('otp-mobile').value = '';
-    document.getElementById('otp-code').value = '';
-    const msgDiv = document.getElementById('otp-message');
-    msgDiv.innerHTML = '';
-    msgDiv.style.background = '';
-    msgDiv.style.color = '';
-    modal.classList.add('show');
-  } else {
-    showOTPModal();
-  }
+  document.getElementById('profile-modal')?.classList.remove('show');
+  if (typeof syncDrawerUser === 'function') syncDrawerUser();
+  if (typeof syncTopNav === 'function') syncTopNav();
+  if (typeof showToast === 'function') showToast('Signed out');
 };
+
+function _showProfileStep(mobile) {
+  _ensureOTPModal();
+  const card = document.querySelector('#otp-modal .otp-login-card');
+  card.innerHTML = `
+    <div id="otp-profile-step">
+      <h2 class="otp-step-heading">Complete your profile</h2>
+      <p class="otp-step-sub">Just a few details to get started</p>
+      <div id="otp-profile-message" class="otp-message"></div>
+      <div class="otp-field" style="margin-bottom:12px">
+        <input type="text" id="profile-name" placeholder="Your full name *" autocomplete="name">
+      </div>
+      <div class="otp-field" style="margin-bottom:12px">
+        <input type="text" id="profile-address" placeholder="Delivery address *" autocomplete="street-address">
+      </div>
+      <button class="otp-submit-btn" id="profile-save-btn">Save &amp; Continue</button>
+    </div>`;
+  document.getElementById('otp-modal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('profile-name').focus();
+  document.getElementById('profile-save-btn').addEventListener('click', async () => {
+    const name = document.getElementById('profile-name').value.trim();
+    const address = document.getElementById('profile-address').value.trim();
+    const msgEl = document.getElementById('otp-profile-message');
+    if (!name) { msgEl.textContent = 'Please enter your name'; msgEl.style.display = 'block'; return; }
+    if (!address) { msgEl.textContent = 'Please enter your delivery address'; msgEl.style.display = 'block'; return; }
+    const btn = document.getElementById('profile-save-btn');
+    btn.disabled = true; btn.textContent = 'Saving\u2026';
+    try {
+      const res = await fetch('/users/register', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, mobile, address })
+      });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      currentUser = data.user || { name, mobile, address };
+      customerName = name;
+      customerPhone = mobile;
+      customerAddress = address;
+      window.currentUser = currentUser;
+      closeOTPModal();
+      if (typeof syncTopNav === 'function') syncTopNav();
+      if (typeof syncDrawerUser === 'function') syncDrawerUser();
+      if (typeof initMyHealth === 'function') initMyHealth();
+      if (typeof showToast === 'function') showToast('Welcome, ' + name + '!');
+      if (Object.keys(selectedItems).length > 0) {
+        document.getElementById('customer-modal').classList.add('show');
+        document.body.classList.add('modal-open');
+      }
+    } catch {
+      const msgEl = document.getElementById('otp-profile-message');
+      if (msgEl) { msgEl.textContent = 'Could not save. Please try again.'; msgEl.style.display = 'block'; }
+      btn.disabled = false; btn.textContent = 'Save & Continue';
+    }
+  });
+}
+
+function _ensureOTPModal() {
+  if (document.getElementById('otp-modal')) return;
+  const el = document.createElement('div');
+  el.id = 'otp-modal';
+  el.className = 'otp-modal-overlay';
+  el.innerHTML = `
+    <div class="otp-login-hero">
+      <div class="otp-login-logo">🍱</div>
+      <h1 class="otp-login-title">Healthy Meal Spot</h1>
+      <p class="otp-login-sub">Fresh, home-cooked meals delivered to you</p>
+    </div>
+    <div class="otp-login-card">
+      <div id="otp-mobile-step">
+        <h2 class="otp-step-heading">Login / Sign Up</h2>
+        <p class="otp-step-sub">Enter your mobile number to continue</p>
+        <div id="otp-message" class="otp-message"></div>
+        <div class="otp-field">
+          <span class="otp-prefix">+91</span>
+          <input type="tel" id="otp-mobile" placeholder="10-digit mobile" maxlength="10" inputmode="numeric" autocomplete="tel">
+        </div>
+        <button class="otp-submit-btn" id="otp-send-btn">Continue</button>
+        <button class="otp-ghost-btn" onclick="closeOTPModal()">Cancel</button>
+      </div>
+      <div id="otp-verify-step" style="display:none">
+        <h2 class="otp-step-heading">Verify OTP</h2>
+        <p class="otp-step-sub" id="otp-verify-sub">Sent to <strong></strong> via WhatsApp</p>
+        <div id="otp-verify-message" class="otp-message"></div>
+        <div class="otp-boxes" id="otp-boxes">
+          <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+          <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+          <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+          <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+          <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+          <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+        </div>
+        <button class="otp-submit-btn" id="otp-verify-btn">Verify</button>
+        <div class="otp-resend">
+          Didn't receive? <button id="otp-resend-btn" disabled>Resend</button><span id="otp-resend-timer"></span>
+        </div>
+        <button class="otp-ghost-btn" onclick="resetOTP()">← Change number</button>
+      </div>
+    </div>`;
+  document.body.appendChild(el);
+
+  const boxesEl = document.getElementById('otp-boxes');
+  boxesEl.addEventListener('input', e => {
+    const boxes = [...boxesEl.querySelectorAll('input')];
+    const i = boxes.indexOf(e.target);
+    if (e.target.value && i < boxes.length - 1) boxes[i + 1].focus();
+    if (_getOTPCode().length === 6) window.verifyOTP();
+  });
+  boxesEl.addEventListener('keydown', e => {
+    const boxes = [...boxesEl.querySelectorAll('input')];
+    const i = boxes.indexOf(e.target);
+    if (e.key === 'Backspace' && !e.target.value && i > 0) boxes[i - 1].focus();
+  });
+  document.getElementById('otp-send-btn').addEventListener('click', window.sendOTP);
+  document.getElementById('otp-verify-btn').addEventListener('click', window.verifyOTP);
+  document.getElementById('otp-resend-btn').addEventListener('click', _resendOTP);
+  document.getElementById('otp-mobile').addEventListener('keydown', e => { if (e.key === 'Enter') window.sendOTP(); });
+}
+
+function _getOTPCode() {
+  return [...document.querySelectorAll('#otp-boxes input')].map(b => b.value).join('');
+}
+
+let _resendTick = null;
+function _startResend(secs = 30) {
+  const btn = document.getElementById('otp-resend-btn');
+  const timer = document.getElementById('otp-resend-timer');
+  if (!btn) return;
+  btn.disabled = true;
+  let t = secs;
+  timer.textContent = ` (${t}s)`;
+  clearInterval(_resendTick);
+  _resendTick = setInterval(() => {
+    t--;
+    if (t <= 0) { clearInterval(_resendTick); btn.disabled = false; timer.textContent = ''; }
+    else timer.textContent = ` (${t}s)`;
+  }, 1000);
+}
+
+async function _resendOTP() {
+  const mobile = document.getElementById('otp-mobile').value.trim();
+  try {
+    const res = await fetch('/api/auth/send-otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mobile }) });
+    const data = await res.json();
+    if (data.success) _startResend();
+    else showOTPMessage(data.error || 'Failed to resend', 'error');
+  } catch { showOTPMessage('Network error', 'error'); }
+}
 
 function showOTPModal() {
   window.otpCalledFrom = 'order';
-  let modal = document.getElementById('otp-modal');
-  if (!modal) {
-    const html = `
-<div id="otp-modal" class="otp-modal-overlay">
-  <div class="otp-modal-content">
-    <div class="otp-header">Verify Mobile Number</div>
-    <div id="otp-mobile-step">
-      <input type="tel" id="otp-mobile" class="otp-input" placeholder="Enter 10-digit mobile" maxlength="10" inputmode="numeric">
-      <div id="otp-message" class="otp-message"></div>
-      <div class="otp-actions">
-        <button type="button" id="otp-send-btn" class="otp-btn otp-btn-primary">Send OTP</button>
-        <button type="button" id="otp-cancel-btn" class="otp-btn otp-btn-secondary" onclick="closeOTPModal()">Cancel</button>
-      </div>
-    </div>
-    <div id="otp-verify-step" style="display:none">
-      <input type="text" id="otp-code" class="otp-input" placeholder="Enter 6-digit OTP" maxlength="6" inputmode="numeric">
-      <div class="otp-actions">
-        <button type="button" id="otp-verify-btn" class="otp-btn otp-btn-primary">Verify</button>
-        <button type="button" id="otp-reset-btn" class="otp-btn otp-btn-secondary">Change Number</button>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-    document.body.insertAdjacentHTML('beforeend', html);
-    modal = document.getElementById('otp-modal');
-    
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) closeOTPModal();
-    });
-    document.getElementById('otp-send-btn').addEventListener('click', sendOTP);
-    document.getElementById('otp-cancel-btn').addEventListener('click', closeOTPModal);
-    document.getElementById('otp-verify-btn').addEventListener('click', verifyOTP);
-    document.getElementById('otp-reset-btn').addEventListener('click', resetOTP);
-  }
-  modal.classList.add('show');
+  _ensureOTPModal();
+  window.resetOTP();
+  document.getElementById('otp-modal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('otp-mobile')?.focus(), 100);
 }
 
 window.closeOTPModal = function() {
   const modal = document.getElementById('otp-modal');
   if (modal) modal.classList.remove('show');
+  document.body.style.overflow = '';
+  clearInterval(_resendTick);
 };
 
 window.showOTPModalForChat = function() {
@@ -1633,119 +1835,105 @@ window.showOTPModalForChat = function() {
 
 window.sendOTP = async function() {
   const mobile = document.getElementById('otp-mobile').value.trim();
-  
-  if (!/^[0-9]{10}$/.test(mobile)) {
-    showOTPMessage('Enter valid 10-digit mobile', 'error');
-    return;
-  }
-  
-  if (mobile === '9594614752') {
-    showOTPMessage('Admin mode - Enter customer mobile', 'success');
-    document.getElementById('otp-mobile-step').style.display = 'none';
-    document.getElementById('otp-verify-step').innerHTML = `
-      <input type="tel" id="customer-mobile" class="otp-input" placeholder="Enter customer mobile (10 digits)" maxlength="10">
-      <div class="otp-actions">
-        <button onclick="adminPlaceOrder()" class="otp-btn otp-btn-primary">Continue</button>
-        <button onclick="closeOTPModal()" class="otp-btn otp-btn-secondary">Cancel</button>
-      </div>
-    `;
-    document.getElementById('otp-verify-step').style.display = 'block';
-    return;
-  }
-  
+  if (!/^[0-9]{10}$/.test(mobile)) { showOTPMessage('Enter valid 10-digit mobile', 'error'); return; }
+
+  // if (mobile === '9594614752') {
+  //   showOTPMessage('Admin mode - Enter customer mobile', 'success');
+  //   document.getElementById('otp-mobile-step').style.display = 'none';
+  //   document.getElementById('otp-verify-step').innerHTML = `
+  //     <input type="tel" id="customer-mobile" class="otp-field" placeholder="Enter customer mobile (10 digits)" maxlength="10" style="width:100%;padding:14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:1rem;font-family:var(--font);box-sizing:border-box;margin-bottom:12px">
+  //     <button class="otp-submit-btn" onclick="adminPlaceOrder()">Continue</button>
+  //     <button class="otp-ghost-btn" onclick="closeOTPModal()">Cancel</button>`;
+  //   document.getElementById('otp-verify-step').style.display = 'block';
+  //   return;
+  // }
+
+  const btn = document.getElementById('otp-send-btn');
+  btn.disabled = true; btn.textContent = 'Sending…';
   try {
-    const res = await fetch('/api/auth/send-otp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mobile })
-    });
+    const res = await fetch('/api/auth/send-otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mobile }) });
     const data = await res.json();
-    
     if (data.success) {
+      const sub = document.getElementById('otp-verify-sub');
+      if (sub) sub.querySelector('strong').textContent = '+91 ' + mobile;
       document.getElementById('otp-mobile-step').style.display = 'none';
       document.getElementById('otp-verify-step').style.display = 'block';
-    } else {
-      showOTPMessage(data.error || 'Failed to send OTP', 'error');
-    }
-  } catch (err) {
-    showOTPMessage('Network error', 'error');
-  }
+      document.querySelector('#otp-boxes input')?.focus();
+      _startResend();
+    } else { showOTPMessage(data.error || 'Failed to send OTP', 'error'); }
+  } catch { showOTPMessage('Network error', 'error'); }
+  finally { btn.disabled = false; btn.textContent = 'Continue'; }
 };
 
 window.verifyOTP = async function() {
   const mobile = document.getElementById('otp-mobile').value.trim();
-  const otp = document.getElementById('otp-code').value.trim();
-  
-  if (!/^[0-9]{6}$/.test(otp)) {
-    showOTPMessage('Enter valid 6-digit OTP', 'error');
-    return;
-  }
-  
+  const otp = _getOTPCode();
+  if (otp.length !== 6) { showOTPMessage('Enter the 6-digit OTP', 'error'); return; }
+
+  const btn = document.getElementById('otp-verify-btn');
+  btn.disabled = true; btn.textContent = 'Verifying…';
   try {
-    const res = await fetch('/api/auth/verify-otp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mobile, otp })
-    });
+    const res = await fetch('/api/auth/verify-otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mobile, otp }) });
     const data = await res.json();
-    
     if (data.success) {
-      customerPhone = mobile;
+      const normalizedMobile = mobile.startsWith('+91') ? mobile : '+91' + mobile;
+      customerPhone = normalizedMobile;
       closeOTPModal();
-      resetOTPModal();
-      await loadUserAndShowOrder(mobile);
-    } else {
-      showOTPMessage(data.error || 'Invalid OTP', 'error');
-    }
-  } catch (err) {
-    showOTPMessage('Network error', 'error');
-  }
+      window.resetOTP();
+      await loadUserAndShowOrder(normalizedMobile);
+      if (typeof initMyHealth === 'function') initMyHealth();
+    } else { showOTPMessage(data.error || 'Invalid OTP', 'error'); }
+  } catch { showOTPMessage('Network error', 'error'); }
+  finally { btn.disabled = false; btn.textContent = 'Verify'; }
 };
 
 window.resetOTP = function() {
+  if (!document.getElementById('otp-mobile-step')) return;
   document.getElementById('otp-mobile-step').style.display = 'block';
   document.getElementById('otp-verify-step').style.display = 'none';
   document.getElementById('otp-mobile').value = '';
-  document.getElementById('otp-code').value = '';
-  const msgDiv = document.getElementById('otp-message');
-  msgDiv.innerHTML = '';
-  msgDiv.style.background = '';
-  msgDiv.style.color = '';
+  [...document.querySelectorAll('#otp-boxes input')].forEach(b => b.value = '');
+  showOTPMessage('', '');
 };
 
 function resetOTPModal() {
-  document.getElementById('otp-mobile-step').style.display = 'block';
-  document.getElementById('otp-verify-step').style.display = 'none';
-  document.getElementById('otp-mobile').value = '';
-  document.getElementById('otp-code').value = '';
-  const msgDiv = document.getElementById('otp-message');
-  msgDiv.innerHTML = '';
-  msgDiv.style.background = '';
-  msgDiv.style.color = '';
+  window.resetOTP();
 }
 
 function showOTPMessage(msg, type) {
-  const div = document.getElementById('otp-message');
+  const div = document.getElementById('otp-message') || document.getElementById('otp-verify-message');
+  if (!div) return;
   div.textContent = msg;
-  div.style.background = type === 'error' ? '#fee' : '#efe';
-  div.style.color = type === 'error' ? '#c00' : '#060';
+  div.style.background = type === 'error' ? '#fff0ee' : type === 'success' ? '#ecfdf3' : '';
+  div.style.color = type === 'error' ? '#c0392b' : type === 'success' ? '#166534' : '';
+  div.style.display = msg ? 'block' : 'none';
 }
 
 window.adminPlaceOrder = async function() {
   const customerMobile = document.getElementById('customer-mobile').value.trim();
-  if (!/^[0-9]{10}$/.test(customerMobile)) {
-    showOTPMessage('Enter valid customer mobile', 'error');
-    return;
-  }
-  
+  if (!/^[0-9]{10}$/.test(customerMobile)) { showOTPMessage('Enter valid customer mobile', 'error'); return; }
   customerPhone = customerMobile;
   closeOTPModal();
   await loadUserAndShowOrder(customerMobile);
 };
 
+window.showProfileModal = function() {
+  const modal = document.getElementById('profile-modal');
+  if (!modal) return;
+  const nameEl = document.getElementById('profile-modal-name');
+  const phoneEl = document.getElementById('profile-modal-phone');
+  if (nameEl) nameEl.textContent = currentUser ? currentUser.name : '';
+  if (phoneEl) phoneEl.textContent = currentUser ? ('+91 ' + (currentUser.mobile || '').replace(/^\+91/, '')) : '';
+  modal.classList.add('show');
+};
+
 window.closeCustomerModal = () => {
   document.getElementById("customer-modal").classList.remove("show");
   document.body.classList.remove("modal-open");
+  const menuBtn = document.querySelector('.mob-nav-btn[data-tab="menu"]');
+  if (menuBtn && !menuBtn.classList.contains('active') && typeof switchTab === 'function') {
+    switchTab('menu', menuBtn);
+  }
 };
 
 // Add escape key listener
@@ -1779,13 +1967,13 @@ window.confirmOrder = async function () {
     return;
   }
 
-  if (kitchenClosedToday() && orderDay === "today") {
-    showToast("Ordering for today is closed. Please pick tomorrow.");
+  if (kitchenClosedToday()) {
+    showToast("Kitchen is currently closed.");
     return;
   }
 
   if (!locationAllowed) {
-    const confirmBtn = document.querySelector("#order-step .primary");
+    const confirmBtn = document.querySelector("#order-step .co-btn-primary");
     if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = "Checking address…"; }
     try {
       const res = await fetch("/api/geocode-check", {
@@ -1815,7 +2003,7 @@ window.confirmOrder = async function () {
   }
 
   if (isNewUser) {
-    await fetch("https://api.healthymealspot.com/users/register", {
+    await fetch("/users/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -1836,7 +2024,7 @@ async function updateUserAddress(address) {
   if (!currentUser) return;
   
   try {
-    await fetch("https://api.healthymealspot.com/users/register", {
+    await fetch("/users/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -2000,6 +2188,12 @@ ${expectedInfo?.label ? `*Expected Delivery:* ${expectedInfo.label}\n` : ""}
 ----------------------
 Total: ₹${finalTotal}`;
 
+  fetch('/api/notify-order', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone: customerPhone, message })
+  }).catch(e => console.error('Order notify failed:', e));
+
   // Persist summary for thank-you page
   try {
     const summary = {
@@ -2099,7 +2293,7 @@ function syncCartVisibility() {
     setTimeout(() => toggle.classList.remove("cart-toggle-pop"), 450);
   }
   lastCartCount = count;
-  cart.style.display = "block";
+  cart.style.display = "flex";
 
   if (!mobile) {
     cartMinimized = false;
@@ -2188,9 +2382,10 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function checkSession() {
+  let data = {};
   try {
     const res = await fetch('/api/auth/session');
-    const data = await res.json();
+    data = await res.json();
     
     if (data.authenticated) {
       customerPhone = data.mobile;
@@ -2206,6 +2401,45 @@ async function checkSession() {
   } catch (err) {
     console.error('Session check failed:', err);
   }
+  if (typeof syncDrawerUser === 'function') syncDrawerUser();
+  if (typeof syncTopNav === 'function') syncTopNav();
+  // Restore cart saved before login redirect and open checkout
+  const _savedCart = sessionStorage.getItem('_pendingCart');
+  if (_savedCart) {
+    try {
+      const parsed = JSON.parse(_savedCart);
+      if (Object.keys(parsed).length) {
+        Object.assign(selectedItems, parsed);
+        sessionStorage.removeItem('_pendingCart');
+        updateCart();
+        renderMenu();
+        if (data.authenticated) {
+          customerPhone = data.mobile;
+          // Wait for menu to render before switching tab and opening checkout
+          const _openCheckout = () => {
+            setTimeout(() => {
+              if (typeof switchTab === 'function') {
+                const savedTab = sessionStorage.getItem('_pendingTab') || 'menu';
+                sessionStorage.removeItem('_pendingTab');
+                const tabBtn = document.querySelector(`.mob-nav-btn[data-tab="${savedTab}"]`);
+                switchTab(savedTab, tabBtn);
+              }
+              loadUserAndShowOrder(data.mobile);
+            }, 0);
+          };
+          const mc = document.getElementById('menu-container');
+          if (mc && mc.children.length) {
+            _openCheckout();
+          } else {
+            const obs = new MutationObserver(() => { obs.disconnect(); _openCheckout(); });
+            obs.observe(mc, { childList: true });
+          }
+        }
+        return;
+      }
+    } catch {}
+  }
+  if (typeof window._onSessionReady === 'function') { window._onSessionReady(); window._onSessionReady = null; }
 }
 window.addEventListener("scroll", handleCartScroll, { passive: true });
 window.addEventListener("resize", () => {
@@ -2508,6 +2742,7 @@ function handleCartTouchStart(e) {
   if (!isMobileView() || cartMinimized || !cartHasItems) return;
   if (!e.touches || !e.touches.length) return;
   if (cartInteractionLocked) return;
+  if (e.target.closest("button, .qty-plus, .qty-minus")) return;
 
   cartTouchActive = true;
   cartTouchStartY = e.touches[0].clientY;
@@ -2575,48 +2810,20 @@ function isCartFormField(el) {
   return tag === "INPUT" || tag === "TEXTAREA" || el.isContentEditable === true;
 }
 
-function showKitchenClosedBanner() {
-  const banner = document.getElementById("kitchen-closed-banner");
-  if (!banner) return;
-
-  const shouldShow = kitchenClosedToday();
-  banner.style.display = shouldShow ? "block" : "none";
-  if (shouldShow) {
-    banner.textContent =
-      "🚫 Ordering for today is closed. We’re taking orders for tomorrow.";
-  }
-}
-
 /* Allow calendar buttons to set day/date from index.html */
+window.setOrderType = function(slot) { orderType = slot; };
 window.setOrderDay = function (day) {
-  orderDay =
-    kitchenClosedToday() || day === "tomorrow" ? "tomorrow" : "today";
+  orderDay = day;
   renderMenu();
   updateEtaLabel();
   syncCartVisibility();
-  showKitchenClosedBanner();
   updateExpectedDeliveryUI();
 };
 
 window.setOrderDate = function (isoDate) {
   const target = new Date(isoDate);
   target.setHours(0, 0, 0, 0);
-
-  if (isDateClosed(target)) {
-    const next = findNextOpenDate(target);
-    window.ORDER_FOR_DATE = next;
-    if (typeof showToast === "function") {
-      const label = next.getTime() === getTodayStart().getTime()
-        ? "today"
-        : next.getTime() === getTomorrowStart().getTime()
-          ? "tomorrow"
-          : next.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
-      showToast(`Selected date is closed. Switched to ${label}.`);
-    }
-  } else {
-    window.ORDER_FOR_DATE = target;
-  }
-
+  window.ORDER_FOR_DATE = target;
   syncOrderDayFromDate();
   if (typeof window.selectedDate !== "undefined") {
     window.selectedDate = new Date(window.ORDER_FOR_DATE);
@@ -2627,7 +2834,6 @@ window.setOrderDate = function (isoDate) {
   renderMenu();
   updateEtaLabel();
   syncCartVisibility();
-  showKitchenClosedBanner();
   updateExpectedDeliveryUI();
   if (typeof renderCalendar === "function") renderCalendar();
   if (typeof updateSelectedLabel === "function") updateSelectedLabel();

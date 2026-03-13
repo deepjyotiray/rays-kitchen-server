@@ -23,7 +23,7 @@ app.use((_req, res, next) => {
       "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; " +
       "img-src 'self' data: https:; " +
       "font-src 'self' https://cdnjs.cloudflare.com; " +
-      "connect-src 'self' https://api.healthymealspot.com https://www.google-analytics.com; " +
+      "connect-src 'self' https://api.healthymealspot.com https://www.google-analytics.com https://nominatim.openstreetmap.org; " +
       "frame-ancestors 'none';",
   });
   next();
@@ -273,12 +273,19 @@ app.get("/api/state", async (_req, res) => {
 });
 
 /* User API proxy */
+function normalizeMobile(mobile) {
+  if (!mobile) return mobile;
+  const s = String(mobile).trim();
+  return s.startsWith('+91') ? s : '+91' + s.replace(/^\+/, '');
+}
+
 app.post("/users/register", async (req, res) => {
   try {
+    const body = { ...req.body, mobile: normalizeMobile(req.body.mobile) };
     const resp = await fetchWithFallback(`/users/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(req.body)
+      body: JSON.stringify(body)
     });
     const data = await resp.json();
     res.json(data);
@@ -288,22 +295,24 @@ app.post("/users/register", async (req, res) => {
 });
 
 app.get("/users/:mobile", async (req, res) => {
-  if (!/^[0-9]{7,15}$/.test(req.params.mobile)) return res.status(400).json({ error: "Invalid mobile" });
+  const mobile = normalizeMobile(decodeURIComponent(req.params.mobile));
+  if (!/^\+[0-9]{7,15}$/.test(mobile)) return res.status(400).json({ error: "Invalid mobile" });
   try {
-    const resp = await fetchWithFallback(`/users/${req.params.mobile}`);
+    const resp = await fetchWithFallback(`/users/${encodeURIComponent(mobile)}`);
     const data = await resp.json();
-    res.json(data);
+    res.status(resp.status).json(data);
   } catch (e) {
     res.status(502).json({ error: "USER_BACKEND_UNAVAILABLE" });
   }
 });
 
 app.get("/users/:mobile/orders", async (req, res) => {
-  if (!/^[0-9]{7,15}$/.test(req.params.mobile)) return res.status(400).json({ error: "Invalid mobile" });
+  const mobile = normalizeMobile(decodeURIComponent(req.params.mobile));
+  if (!/^\+[0-9]{7,15}$/.test(mobile)) return res.status(400).json({ error: "Invalid mobile" });
   try {
-    const resp = await fetchWithFallback(`/users/${req.params.mobile}/orders`);
+    const resp = await fetchWithFallback(`/users/${encodeURIComponent(mobile)}/orders`);
     const data = await resp.json();
-    res.json(data);
+    res.status(resp.status).json(data);
   } catch (e) {
     res.status(502).json({ error: "USER_BACKEND_UNAVAILABLE" });
   }
@@ -345,7 +354,7 @@ app.get("/menu.pdf", apiLimiter, async (_req, res) => {
 });
 
 /* 1️⃣ Serve static assets */
-app.use(express.static(publicPath));
+app.use(express.static(publicPath, { etag: false, lastModified: false, setHeaders: (res, path) => { if (path.endsWith('.html')) res.set('Cache-Control', 'no-store'); } }));
 
 /* Admin console with auth protection */
 app.get(["/admin", "/admin/"], (req, res) => {
@@ -359,22 +368,17 @@ app.get(["/admin", "/admin/"], (req, res) => {
 
 /* Chatbot API */
 const { execFile } = require('child_process');
+const { whatsappAuthGuard } = require('./services/whatsappAuth');
+const { promptGuard } = require('./services/promptGuard');
 
-function askAgent(message) {
+function askAgent(message, phone) {
   return new Promise((resolve, reject) => {
-    execFile('/opt/homebrew/bin/openclaw', 
-      ['agent', '--agent', 'restaurant', '--message', message], 
-      { timeout: 15000, maxBuffer: 1024 * 1024 }, 
+    execFile('/opt/homebrew/bin/openclaw',
+      ['agent', '--agent', 'restaurant', '--to', phone, '--message', message, '--deliver'],
+      { timeout: 30000, maxBuffer: 1024 * 1024 },
       (err, stdout, stderr) => {
-        if (err) {
-          reject(new Error(`Agent exec error: ${err.message}${stderr ? ' - ' + stderr : ''}`));
-          return;
-        }
-        if (!stdout || stdout.trim().length === 0) {
-          reject(new Error('Empty agent response'));
-          return;
-        }
-        resolve(stdout.trim());
+        if (err) { reject(new Error(`Agent exec error: ${err.message}${stderr ? ' - ' + stderr : ''}`)); return; }
+        resolve((stdout || '').trim());
       }
     );
   });
@@ -384,13 +388,27 @@ app.post("/api/chat-test", async (req, res) => {
   res.json({ test: "This route works!", body: req.body });
 });
 
+const { filterMessage } = require('./services/messageFilter');
+
 app.post("/api/chat", async (req, res) => {
   try {
-    const { message } = req.body;
+    const { message, phone } = req.body;
     if (!message) return res.status(400).json({ error: "Message required" });
 
-    const agentResponse = await askAgent(message).catch(e => { throw new Error(`Agent call failed: ${e.message}`); });
-    
+    const filtered = filterMessage(message);
+    if (filtered) return res.json({ response: filtered });
+
+    // Auth gate — DB check in Node, no LLM involved
+    if (phone) {
+      const auth = whatsappAuthGuard(phone);
+      if (!auth.allowed) return res.json({ response: auth.reply });
+    }
+
+    // Prompt guard — regex injection check in Node, no LLM involved
+    const guard = promptGuard(message);
+    if (guard.blocked) return res.json({ response: guard.reply });
+    const agentResponse = await askAgent(message, phone).catch(e => { throw new Error(`Agent call failed: ${e.message}`); });
+
     const itemMatches = agentResponse.match(/• (.+?) — ₹(\d+)/g);
     if (itemMatches && itemMatches.length > 0) {
       const items = itemMatches.map(match => {
@@ -399,12 +417,52 @@ app.post("/api/chat", async (req, res) => {
       });
       return res.json({ items });
     }
-    
+
     res.json({ response: agentResponse });
   } catch (error) {
     require('fs').appendFileSync('/tmp/chat-error.log', `${new Date().toISOString()} - Error: ${JSON.stringify({msg: error.message, str: String(error), type: typeof error})}\n`);
     res.status(500).json({ error: String(error.message || error || "Chatbot unavailable") });
   }
+});
+
+/* Order WhatsApp notification */
+const AGENT_URL = 'http://127.0.0.1:3001/send';
+const AGENT_SECRET = process.env.WHATSAPP_AGENT_SECRET || 'change-this-secret';
+
+app.post("/api/notify-order", async (req, res) => {
+  const { phone, message } = req.body;
+  if (!phone || !message) return res.status(400).json({ error: "Missing phone or message" });
+  const mobile = String(phone).replace(/^\+91/, "").replace(/\D/g, "");
+  if (!/^[0-9]{10}$/.test(mobile)) return res.status(400).json({ error: "Invalid phone" });
+  try {
+    const r = await fetch(AGENT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-secret": AGENT_SECRET },
+      body: JSON.stringify({ phone: "+91" + mobile, message })
+    });
+    if (!r.ok) console.error("Order notify failed:", await r.text());
+  } catch (err) {
+    console.error("Order notify failed:", err.message);
+  }
+  res.json({ ok: true });
+});
+
+app.get("/api/item-images", async (_req, res) => {
+  try {
+    const data = await fs.readFile(path.join(publicPath, "item-images.json"), "utf8");
+    res.set("Cache-Control", "public, max-age=3600");
+    res.json(JSON.parse(data));
+  } catch {
+    res.status(404).json({});
+  }
+});
+
+app.put("/api/item-images", async (req, res) => {
+  const key = req.headers["x-admin-key"];
+  if (!key || key !== (process.env.ADMIN_API_KEY || "dev-only-admin-key")) return res.status(401).end();
+  if (!req.body || typeof req.body !== "object") return res.status(400).json({ error: "Invalid payload" });
+  await fs.writeFile(path.join(publicPath, "item-images.json"), JSON.stringify(req.body, null, 2), "utf8");
+  res.json({ ok: true });
 });
 
 /* 2️⃣ API routes */
@@ -441,6 +499,11 @@ app.get("/nutrition/:slug", (req, res) => {
 app.get("/consult-nutritionist", (_req, res) => {
   res.sendFile(path.join(publicPath, "consult-nutritionist.html"));
 });
+
+/* Login / Profile */
+app.get("/login", (_req, res) => res.sendFile(path.join(publicPath, "login.html")));
+app.get("/profile-edit", (_req, res) => res.sendFile(path.join(publicPath, "profile-edit.html")));
+app.get("/profile", (_req, res) => res.sendFile(path.join(publicPath, "profile.html")));
 
 /* About */
 app.get("/about", (_req, res) => {
