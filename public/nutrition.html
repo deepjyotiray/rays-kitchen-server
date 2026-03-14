@@ -22,21 +22,33 @@
 <body>
 
 <header class="app-bar">
-  <a href="/" class="app-bar-brand">
-    <img src="/favicon.png" alt="" class="app-bar-logo" width="36" height="36">
+  <a href="/" class="app-bar-brand" style="margin-left:-4px">
+    <img src="/favicon.png" alt="" class="app-bar-logo" width="48" height="48">
   </a>
-  <span style="font-size:15px;font-weight:800;color:var(--text)">Nutrition Hub</span>
-</header>
-
-<div class="page-header">
-  <h1 class="page-header-title">Nutrition Hub</h1>
-  <p class="page-header-sub">Evidence-based articles on weight loss, muscle gain, recipes, and wellness.</p>
-  <div class="page-header-search">
-    <div class="search-field" aria-label="Search articles">
+  <div style="display:flex;align-items:center;gap:10px">
+    <span style="font-size:16px;font-weight:800;color:var(--text);white-space:nowrap">🌿 Nutrition Hub</span>
+    <div class="search-field" aria-label="Search articles" style="margin:0">
       <i class="fa-solid fa-magnifying-glass"></i>
       <input id="search-articles" type="search" inputmode="search" placeholder="Search articles..." autocomplete="off">
       <button id="clear-search" class="clear-search" type="button" aria-label="Clear search">&#x2715;</button>
     </div>
+  </div>
+  <div class="app-bar-actions">
+    <a href="/" class="top-nav-link app-bar-nav-link">🍽️ Menu</a>
+    <a href="/nutrition" class="top-nav-link app-bar-nav-link active">🌿 Nutrition</a>
+    <a href="/consult-nutritionist" class="top-nav-link app-bar-nav-link">🩺 Consult</a>
+    <a href="/about" class="top-nav-link app-bar-nav-link">About</a>
+    <a href="/profile" class="top-nav-link app-bar-nav-link">❤️ My Health</a>
+  </div>
+</header>
+
+<div id="menu-header-bar" style="display:block">
+  <div class="category-grid" id="nutrition-cat-grid">
+    <button class="category-card" onclick="filterCat('weight-loss')"><span class="cat-icon">⚖️</span>Weight Loss</button>
+    <button class="category-card" onclick="filterCat('muscle-gain')"><span class="cat-icon">💪</span>Muscle Gain</button>
+    <button class="category-card" onclick="filterCat('medical')"><span class="cat-icon">🩹</span>Medical Nutrition</button>
+    <button class="category-card" onclick="filterCat('recipes')"><span class="cat-icon">🍳</span>Healthy Recipes</button>
+    <button class="category-card" onclick="filterCat('myths')"><span class="cat-icon">🔎</span>Nutrition Myths</button>
   </div>
 </div>
 
@@ -45,30 +57,6 @@
   <section class="seo-content" style="padding: 16px; margin: 0 auto; max-width: 800px; text-align: center; color: var(--text);">
     <p>Welcome to the Nutrition Hub. Explore our expert-backed guides on building a healthier lifestyle. Whether you're looking for sustainable <button onclick="filterCat('weight-loss')" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:inherit;padding:0;font-family:inherit">Weight Loss</button> strategies, structured <button onclick="filterCat('muscle-gain')" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:inherit;padding:0;font-family:inherit">Muscle Gain</button> diet plans, specialized <button onclick="filterCat('medical')" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:inherit;padding:0;font-family:inherit">Medical Nutrition</button> advice for PCOS or Diabetes, delicious <button onclick="filterCat('recipes')" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:inherit;padding:0;font-family:inherit">Healthy Recipes</button>, or simply want to bust common <button onclick="filterCat('myths')" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:inherit;padding:0;font-family:inherit">Nutrition Myths</button>—we have you covered.</p>
   </section>
-
-<!-- Categories -->
-<div class="category-grid" id="nutrition-cat-grid">
-  <button class="category-card" onclick="filterCat('weight-loss')">
-    <span class="cat-icon">&#9878;&#65039;</span>
-    Weight Loss
-  </button>
-  <button class="category-card" onclick="filterCat('muscle-gain')">
-    <span class="cat-icon">&#128170;</span>
-    Muscle Gain
-  </button>
-  <button class="category-card" onclick="filterCat('medical')">
-    <span class="cat-icon">&#129657;</span>
-    Medical Nutrition
-  </button>
-  <button class="category-card" onclick="filterCat('recipes')">
-    <span class="cat-icon">&#127859;</span>
-    Healthy Recipes
-  </button>
-  <button class="category-card" onclick="filterCat('myths')">
-    <span class="cat-icon">&#128270;</span>
-    Nutrition Myths
-  </button>
-</div>
 
 <!-- Articles -->
 <div class="articles-section">

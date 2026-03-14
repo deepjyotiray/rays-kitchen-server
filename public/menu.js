@@ -53,7 +53,8 @@ function scrollToSection(key) {
     grid.classList.remove('collapsed');
     if (chev) chev.textContent = '▾';
   }
-  const offset = 64 + 88; // appbar + sticky controls
+  const desktopHeaderH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--desktop-header-h')) || 166;
+  const offset = window.innerWidth > 768 ? desktopHeaderH + 8 : 64 + 88;
   const top = sec.getBoundingClientRect().top + window.scrollY - offset;
   window.scrollTo({ top, behavior: 'smooth' });
 }
@@ -63,7 +64,8 @@ function updateActiveTab() {
   if (!tabs.length) return;
   const sections = Array.from(document.querySelectorAll('#menu-container section'));
   if (!sections.length) return;
-  const offset = 64 + 88 + 20;
+  const desktopHeaderH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--desktop-header-h')) || 166;
+  const offset = (window.innerWidth > 768 ? desktopHeaderH : 64 + 88) + 20;
   let activeKey = null;
   for (let i = sections.length - 1; i >= 0; i--) {
     if (sections[i].getBoundingClientRect().top <= offset) {
@@ -584,9 +586,9 @@ function renderMenu() {
   updateCart();
   updateSectionContext();
   renderCategoryTabs();
-  // Sync mobile menu pane whenever menu re-renders
+  // Sync mobile menu pane whenever menu re-renders (mobile only)
   const _ip = document.getElementById('mobile-menu-items');
-  if (_ip) {
+  if (_ip && window.innerWidth <= 768) {
     _ip.innerHTML = c.innerHTML;
     _ip.querySelectorAll('.scroll-reveal').forEach(el => { el.classList.remove('scroll-reveal'); el.classList.add('revealed'); });
     if (typeof bindMenuItemEvents === 'function') bindMenuItemEvents(_ip);

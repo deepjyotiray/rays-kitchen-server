@@ -22,63 +22,52 @@
 <body>
 
 <header class="app-bar">
-  <a href="/" class="app-bar-brand">
-    <img src="/favicon.png" alt="" class="app-bar-logo" width="36" height="36">
+  <a href="/" class="app-bar-brand" style="margin-left:-4px">
+    <img src="/favicon.png" alt="" class="app-bar-logo" width="48" height="48">
   </a>
-  <span style="font-size:15px;font-weight:800;color:var(--text)">Consult Nutritionist</span>
-</header>
-
-<div class="page-header">
-  <h1 class="page-header-title">Consult a Certified Nutritionist</h1>
-  <p class="page-header-sub">Book an appointment for personalized diet plans tailored for weight loss, muscle gain, PCOS, diabetes, and general wellness in Navi Mumbai.</p>
-  <div class="page-header-search">
-    <div class="search-field" aria-label="Search nutritionists">
+  <div style="display:flex;align-items:center;gap:10px">
+    <span style="font-size:16px;font-weight:800;color:var(--text);white-space:nowrap">🩺 Consult a Nutritionist</span>
+    <div class="search-field" aria-label="Search nutritionists" style="margin:0">
       <i class="fa-solid fa-magnifying-glass"></i>
       <input id="search-nutritionists" type="search" inputmode="search" placeholder="Search nutritionists, specialties..." autocomplete="off">
       <button id="clear-search" class="clear-search" type="button" aria-label="Clear search">&#x2715;</button>
     </div>
   </div>
+  <div class="app-bar-actions">
+    <a href="/" class="top-nav-link app-bar-nav-link">🍽️ Menu</a>
+    <a href="/nutrition" class="top-nav-link app-bar-nav-link">🌿 Nutrition</a>
+    <a href="/consult-nutritionist" class="top-nav-link app-bar-nav-link active">🩺 Consult</a>
+    <a href="/about" class="top-nav-link app-bar-nav-link">About</a>
+    <a href="/profile" class="top-nav-link app-bar-nav-link">❤️ My Health</a>
+  </div>
+</header>
+
+<div id="menu-header-bar" style="display:block">
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+    <button class="top-sellers-tab" data-filter="all" onclick="filterBySpec('all',this)" aria-pressed="true" style="background:var(--accent);color:#fff;border-color:var(--accent)">All</button>
+    <button class="top-sellers-tab" data-filter="Weight Loss" onclick="filterBySpec('Weight Loss',this)" aria-pressed="false">⚖️ Weight Loss</button>
+    <button class="top-sellers-tab" data-filter="Muscle Gain" onclick="filterBySpec('Muscle Gain',this)" aria-pressed="false">💪 Muscle Gain</button>
+    <button class="top-sellers-tab" data-filter="PCOS" onclick="filterBySpec('PCOS',this)" aria-pressed="false">🌸 PCOS</button>
+    <button class="top-sellers-tab" data-filter="Diabetes" onclick="filterBySpec('Diabetes',this)" aria-pressed="false">🩸 Diabetes</button>
+    <button class="top-sellers-tab" data-filter="General Wellness" onclick="filterBySpec('General Wellness',this)" aria-pressed="false">🌿 Wellness</button>
+  </div>
 </div>
 
-<main>
-  <!-- SEO Content Section -->
-  <section class="seo-content" style="padding: 24px 16px; margin: 0 auto; max-width: 800px; line-height: 1.6; color: var(--text);">
-    <h2 style="font-size: 20px; color: var(--accent); margin-bottom: 8px;">Personalized Diet Plans</h2>
-    <p style="margin-bottom: 16px;">
-      Every body is different, and so are its nutritional needs. Consulting a certified nutritionist helps you move past generic diets and into a sustainable, science-backed eating plan. Whether you're navigating food intolerances, trying to build healthy habits, or seeking a complete lifestyle transformation, our experts provide guidance that fits into your daily routine. We analyze your health history, dietary preferences, and goals to build a personalized diet plan that is easy to follow and genuinely effective.
-    </p>
-
-    <h2 style="font-size: 20px; color: var(--accent); margin-bottom: 8px;">Weight Loss Nutrition</h2>
-    <p style="margin-bottom: 16px;">
-      Struggling with weight loss? Crash diets rarely work long-term. Our nutritionists specialize in weight loss nutrition that focuses on fat loss while preserving muscle mass and energy levels. We emphasize nutrient density, portion control, and healthy metabolism over restrictive eating, making sure you reach your target weight safely and sustainably.
-    </p>
-
-    <h2 style="font-size: 20px; color: var(--accent); margin-bottom: 8px;">PCOS and Diabetes Diet Guidance</h2>
-    <p style="margin-bottom: 24px;">
-      Managing conditions like Polycystic Ovary Syndrome (PCOS) and Diabetes requires a specialized approach to food, focusing on insulin resistance, blood sugar control, and hormonal balance. Our clinical nutrition experts provide targeted PCOS and diabetes diet guidance. By incorporating low-GI foods, the right mix of macros, and anti-inflammatory ingredients, we help you manage your symptoms naturally through the power of food.
-    </p>
-  </section>
-
-  <!-- Nutritionist Cards -->
-<div class="nutritionists-grid" id="nutritionists">
-
-  <div class="nutritionist-card">
-    <div class="nutritionist-photo">&#128104;</div>
-    <div class="nutritionist-info">
-      <div class="nutritionist-name" style="display: flex; align-items: center; gap: 8px;">
-        Deepjyoti Ray
-        <a href="https://www.linkedin.com/in/djray" target="_blank" aria-label="LinkedIn Profile" style="color: #0077b5; font-size: 1.2rem;">
-          <i class="fa-brands fa-linkedin"></i>
-        </a>
+<main style="padding-top: 92px">
+  <div class="nutritionists-grid" id="nutritionists">
+    <div class="nutritionist-card" data-specs="Weight Loss Muscle Gain General Wellness">
+      <div class="nutritionist-photo">👨</div>
+      <div class="nutritionist-info">
+        <div class="nutritionist-name" style="display:flex;align-items:center;gap:8px;">Deepjyoti Ray
+          <a href="https://www.linkedin.com/in/djray" target="_blank" aria-label="LinkedIn Profile" style="color:#0077b5;font-size:1.2rem;"><i class="fa-brands fa-linkedin"></i></a>
+        </div>
+        <div class="nutritionist-specs">Weight Loss &bull; Muscle Gain &bull; General Wellness</div>
+        <div class="nutritionist-exp">Expert Nutritionist</div>
+        <div class="nutritionist-price">&#8377;799 / session</div>
+        <button class="book-btn" onclick="openBooking('Deepjyoti Ray')">Book Appointment</button>
       </div>
-      <div class="nutritionist-specs">Weight Loss &bull; Muscle Gain &bull; General Wellness</div>
-      <div class="nutritionist-exp">Expert Nutritionist</div>
-      <div class="nutritionist-price">&#8377;799 / session</div>
-      <button class="book-btn" onclick="openBooking('Deepjyoti Ray')">Book Appointment</button>
     </div>
   </div>
-
-</div>
 </main>
 
 <!-- Booking Modal -->
@@ -88,38 +77,19 @@
       <h3 id="booking-modal-title">Book Appointment</h3>
       <button class="drawer-close" onclick="closeBooking()" aria-label="Close">&#x2715;</button>
     </div>
-
     <div class="booking-modal-body" id="booking-form-body">
-      <div class="booking-field">
-        <label for="b-name">Your Name *</label>
-        <input type="text" id="b-name" placeholder="Full name" autocomplete="name">
-      </div>
-      <div class="booking-field">
-        <label for="b-phone">Phone Number *</label>
-        <input type="tel" id="b-phone" placeholder="10-digit mobile number" inputmode="numeric" maxlength="10">
-      </div>
-      <div class="booking-field">
-        <label for="b-email">Email</label>
-        <input type="email" id="b-email" placeholder="your@email.com" autocomplete="email">
-      </div>
-      <div class="booking-field">
-        <label for="b-goal">Health Goal *</label>
+      <div class="booking-field"><label for="b-name">Your Name *</label><input type="text" id="b-name" placeholder="Full name" autocomplete="name"></div>
+      <div class="booking-field"><label for="b-phone">Phone Number *</label><input type="tel" id="b-phone" placeholder="10-digit mobile number" inputmode="numeric" maxlength="10"></div>
+      <div class="booking-field"><label for="b-email">Email</label><input type="email" id="b-email" placeholder="your@email.com" autocomplete="email"></div>
+      <div class="booking-field"><label for="b-goal">Health Goal *</label>
         <select id="b-goal">
           <option value="">Select your goal</option>
-          <option value="Weight Loss">Weight Loss</option>
-          <option value="Muscle Gain">Muscle Gain</option>
-          <option value="PCOS">PCOS</option>
-          <option value="Diabetes">Diabetes</option>
-          <option value="General Wellness">General Wellness</option>
+          <option>Weight Loss</option><option>Muscle Gain</option><option>PCOS</option><option>Diabetes</option><option>General Wellness</option>
         </select>
       </div>
-      <div class="booking-field">
-        <label for="b-time">Preferred Consultation Time *</label>
-        <input type="datetime-local" id="b-time">
-      </div>
+      <div class="booking-field"><label for="b-time">Preferred Consultation Time *</label><input type="datetime-local" id="b-time"></div>
       <button class="booking-submit-btn" onclick="submitBooking()">Confirm Booking</button>
     </div>
-
     <div class="booking-confirmation" id="booking-confirmation">
       <div class="confirm-icon">&#9989;</div>
       <h3>Booking Confirmed!</h3>
@@ -130,21 +100,11 @@
 </div>
 
 <nav id="mobile-bottom-nav">
-  <button class="mob-nav-btn" onclick="window.location.href='/'">
-    <i class="fa-solid fa-house"></i>Home
-  </button>
-  <button class="mob-nav-btn" onclick="window.location.href='/?tab=menu'">
-    <i class="fa-solid fa-utensils"></i>Menu
-  </button>
-  <button class="mob-nav-btn" onclick="window.location.href='/nutrition'">
-    <i class="fa-solid fa-leaf"></i>Nutrition
-  </button>
-  <button class="mob-nav-btn active">
-    <i class="fa-solid fa-stethoscope"></i>Consult
-  </button>
-  <button class="mob-nav-btn" onclick="window.location.href='/profile'">
-    <i class="fa-solid fa-heart-pulse"></i>My Health
-  </button>
+  <button class="mob-nav-btn" onclick="window.location.href='/'"><i class="fa-solid fa-house"></i>Home</button>
+  <button class="mob-nav-btn" onclick="window.location.href='/?tab=menu'"><i class="fa-solid fa-utensils"></i>Menu</button>
+  <button class="mob-nav-btn" onclick="window.location.href='/nutrition'"><i class="fa-solid fa-leaf"></i>Nutrition</button>
+  <button class="mob-nav-btn active"><i class="fa-solid fa-stethoscope"></i>Consult</button>
+  <button class="mob-nav-btn" onclick="window.location.href='/profile'"><i class="fa-solid fa-heart-pulse"></i>My Health</button>
 </nav>
 
 <footer class="page-footer">
@@ -152,9 +112,47 @@
 </footer>
 
 <script>
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeBooking(); } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeBooking(); });
 
 let selectedNutritionist = '';
+let _activeFilter = 'all';
+let _searchQ = '';
+
+function filterBySpec(filter, btn) {
+  _activeFilter = filter;
+  document.querySelectorAll('#menu-header-bar .top-sellers-tab').forEach(b => {
+    const on = b.dataset.filter === filter;
+    b.style.background = on ? 'var(--accent)' : '';
+    b.style.color = on ? '#fff' : '';
+    b.style.borderColor = on ? 'var(--accent)' : '';
+  });
+  applyFilters();
+}
+
+function applyFilters() {
+  document.querySelectorAll('.nutritionist-card').forEach(card => {
+    const specs = (card.dataset.specs || '').toLowerCase();
+    const text = card.textContent.toLowerCase();
+    const matchFilter = _activeFilter === 'all' || specs.includes(_activeFilter.toLowerCase());
+    const matchSearch = !_searchQ || text.includes(_searchQ);
+    card.style.display = (matchFilter && matchSearch) ? '' : 'none';
+  });
+}
+
+const searchInput = document.getElementById('search-nutritionists');
+const clearSearch = document.getElementById('clear-search');
+if (searchInput) {
+  searchInput.addEventListener('input', () => {
+    _searchQ = searchInput.value.trim().toLowerCase();
+    clearSearch.style.display = _searchQ ? 'block' : 'none';
+    applyFilters();
+  });
+  clearSearch.addEventListener('click', () => {
+    searchInput.value = ''; _searchQ = '';
+    clearSearch.style.display = 'none';
+    applyFilters(); searchInput.focus();
+  });
+}
 
 function openBooking(name) {
   selectedNutritionist = name;
@@ -179,62 +177,19 @@ function submitBooking() {
   const phone = document.getElementById('b-phone').value.trim();
   const goal = document.getElementById('b-goal').value;
   const time = document.getElementById('b-time').value;
-
-  if (!name || !phone || !goal || !time) {
-    alert('Please fill in all required fields.');
-    return;
-  }
-  if (!/^[0-9]{10}$/.test(phone)) {
-    alert('Please enter a valid 10-digit phone number.');
-    return;
-  }
-
+  if (!name || !phone || !goal || !time) { alert('Please fill in all required fields.'); return; }
+  if (!/^[0-9]{10}$/.test(phone)) { alert('Please enter a valid 10-digit phone number.'); return; }
   const btn = document.querySelector('.booking-submit-btn');
-  btn.disabled = true;
-  btn.textContent = 'Booking…';
-
-  // Send via WhatsApp as fallback (no backend needed yet)
+  btn.disabled = true; btn.textContent = 'Booking…';
   const dt = new Date(time).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
   const msg = `Hi! I'd like to book a consultation.\n\nNutritionist: ${selectedNutritionist}\nName: ${name}\nPhone: ${phone}\nGoal: ${goal}\nPreferred Time: ${dt}`;
-
-  // Show confirmation
   setTimeout(() => {
     document.getElementById('booking-form-body').style.display = 'none';
-    document.getElementById('booking-confirm-msg').textContent =
-      `Your appointment with ${selectedNutritionist} has been requested for ${dt}. We'll confirm via WhatsApp shortly.`;
+    document.getElementById('booking-confirm-msg').textContent = `Your appointment with ${selectedNutritionist} has been requested for ${dt}. We'll confirm via WhatsApp shortly.`;
     document.getElementById('booking-confirmation').classList.add('show');
-
-    // Open WhatsApp
     window.open('https://wa.me/919326492088?text=' + encodeURIComponent(msg), '_blank');
-
-    btn.disabled = false;
-    btn.textContent = 'Confirm Booking';
+    btn.disabled = false; btn.textContent = 'Confirm Booking';
   }, 600);
-}
-
-// Search Functionality
-const searchInput = document.getElementById('search-nutritionists');
-const clearSearch = document.getElementById('clear-search');
-const cards = document.querySelectorAll('.nutritionist-card');
-
-function filterNutritionists() {
-  const q = searchInput.value.trim().toLowerCase();
-  clearSearch.style.display = q ? 'block' : 'none';
-  cards.forEach(card => {
-    const text = card.textContent.toLowerCase();
-    card.style.display = text.includes(q) ? 'flex' : 'none';
-  });
-}
-
-if (searchInput) {
-  searchInput.addEventListener('input', filterNutritionists);
-  clearSearch.addEventListener('click', () => {
-    searchInput.value = '';
-    filterNutritionists();
-    searchInput.focus();
-  });
-  // Initial check
-  filterNutritionists();
 }
 </script>
 <script src="/drawer-auth.js"></script>

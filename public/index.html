@@ -44,10 +44,10 @@
 <!-- Top App Bar -->
 <header class="app-bar">
   <a href="/" class="app-bar-brand" style="margin-left:-4px">
-    <img src="/favicon.png" alt="" class="app-bar-logo" width="36" height="36">
+    <img src="/favicon.png" alt="" class="app-bar-logo" width="48" height="48">
   </a>
 
-  <!-- Order type dropdown -->
+  <!-- Menu-specific: order type, location, clock — LEFT side -->
   <div class="ab-order-type" id="ab-order-type-wrap">
     <button class="ab-order-type-btn" onclick="toggleOrderTypeMenu()" aria-haspopup="true">
       <span id="ab-order-type-label">Healthy Meals Delivery</span>
@@ -59,8 +59,6 @@
       <button onclick="selectOrderType('Bulk Orders')">Bulk Orders</button>
     </div>
   </div>
-
-  <!-- Location dropdown -->
   <div class="ab-location-wrap" id="ab-location-wrap">
     <button class="ab-location-btn" id="ab-location-btn" onclick="toggleLocationMenu()">
       <span class="ab-location-icon">📍</span>
@@ -71,20 +69,20 @@
       <svg class="ab-chevron" width="14" height="14" viewBox="0 0 12 12" fill="currentColor"><path d="M2 4l4 4 4-4"/></svg>
     </button>
   </div>
-
-  <div class="app-bar-actions" style="margin-left:auto">
-    <span id="app-bar-greeting" class="top-nav-link" style="font-size:16px;font-weight:800;color:var(--accent);letter-spacing:0.3px">Hi there !</span>
-    <!-- search removed from app-bar -->
-    <a href="/nutrition" class="top-nav-link app-bar-nav-link">Nutrition Hub</a>
-    <a href="/consult-nutritionist" class="top-nav-link app-bar-nav-link">Consult</a>
-    <a href="/about" class="top-nav-link app-bar-nav-link">About</a>
-  </div>
-
-  <!-- Clock / delivery time -->
   <button class="ab-time-btn" onclick="openDeliveryTimeModal()">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
     <span id="ab-time-label">Now</span>
   </button>
+
+  <!-- Nav links — RIGHT side -->
+  <div class="app-bar-actions">
+    <span id="app-bar-greeting" class="top-nav-link" style="font-size:16px;font-weight:800;color:var(--accent);letter-spacing:0.3px">Hi there !</span>
+    <a href="/" class="top-nav-link app-bar-nav-link active">🍽️ Menu</a>
+    <a href="/nutrition" class="top-nav-link app-bar-nav-link">🌿 Nutrition</a>
+    <a href="/consult-nutritionist" class="top-nav-link app-bar-nav-link">🩺 Consult</a>
+    <a href="/about" class="top-nav-link app-bar-nav-link">About</a>
+    <a href="/profile" class="top-nav-link app-bar-nav-link" id="desktop-myhealth-btn">❤️ My Health</a>
+  </div>
 </header>
 
 <!-- Menu Header Bar -->
@@ -101,7 +99,7 @@
   </div>
 </div>
 
-<div id="myhealth-header-bar" style="display:none !important">
+<div id="myhealth-header-bar" style="display:none">
   <div class="menu-header-top">
     <h1 class="menu-header-title" id="mhb-title">❤️ My Health</h1>
   </div>
@@ -151,15 +149,17 @@
       </div>
     </div>
     <button class="top-sellers-tab" id="ft-topsellers" onclick="toggleTopSellers(this)" aria-pressed="false">Top Sellers</button>
-    <button id="menu-header-search-btn" class="menu-header-search-btn" onclick="openMenuSearch()" aria-label="Search" style="margin-left:auto">
-      <img src="https://assets.mcdelivery.co.in/icons/search-medium.svg" alt="ic-search-medium" loading="lazy" title="ic-search-medium" style="object-fit:contain;width:20px;min-width:20px;max-width:20px;height:20px;min-height:20px;max-height:20px">
+    <div id="menu-search-wrapper" class="menu-search-wrapper">
+    <button id="menu-header-search-btn" class="menu-header-search-btn" onclick="openMenuSearch()" aria-label="Search">
+      <img src="https://assets.mcdelivery.co.in/icons/search-medium.svg" alt="ic-search-medium" loading="lazy" title="ic-search-medium" style="object-fit:contain;width:24px;min-width:24px;max-width:24px;height:24px;min-height:24px;max-height:24px">
     </button>
-    <div id="menu-search-pill" class="menu-search-pill" style="display:none;margin-left:auto">
+    <div id="menu-search-pill" class="menu-search-pill">
       <div class="autocomplete-wrapper">
         <input id="menu-search-inline" type="text" placeholder="Search here" enterkeyhint="search" maxlength="75" oninput="onMenuSearchInput(this.value)">
         <div class="ghost-text"><span class="suggestion" role="button" tabindex="0"></span></div>
       </div>
       <button class="menu-search-clear" onclick="clearMenuSearch()" aria-label="Clear search">✕</button>
+    </div>
     </div>
   </div>
 </div>
@@ -284,7 +284,8 @@ document.addEventListener('DOMContentLoaded', () => {
 </div>
 
 <!-- ── NUTRITION TAB ── -->
-<div id="tab-nutrition" class="tab-panel">
+<div id="tab-nutrition" class="tab-panel desktop-tab-overlay">
+  <button class="desktop-overlay-close" onclick="desktopSwitchTab('nutrition')" aria-label="Close" style="display:none">✕ Close</button>
   <div id="nutrition-mobile-layout">
     <nav id="nutrition-cat-sidebar">
       <button class="mob-cat-btn active" data-cat="all"><span class="cat-emoji">📰</span>All</button>
@@ -307,7 +308,8 @@ document.addEventListener('DOMContentLoaded', () => {
 </div>
 
 <!-- ── MY HEALTH TAB ── -->
-<div id="tab-myhealth" class="tab-panel">
+<div id="tab-myhealth" class="tab-panel desktop-tab-overlay">
+  <button class="desktop-overlay-close" onclick="desktopSwitchTab('myhealth')" aria-label="Close" style="display:none">✕ Close</button>
   <div class="profile-hero" id="ph-hero" style="background:var(--accent);padding:32px 20px 64px;text-align:center;color:#fff">
     <div style="width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:800;color:#fff;margin:0 auto 12px;border:3px solid rgba(255,255,255,0.5)" id="ph-avatar">?</div>
     <div style="font-size:1.3rem;font-weight:800" id="ph-name">My Health</div>
@@ -357,7 +359,8 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
   </div>
 </div>
-<div id="tab-consult" class="tab-panel">
+<div id="tab-consult" class="tab-panel desktop-tab-overlay">
+  <button class="desktop-overlay-close" onclick="desktopSwitchTab('consult')" aria-label="Close" style="display:none">✕ Close</button>
   <div id="consult-mobile-layout">
     <nav id="consult-cat-sidebar">
       <button class="mob-cat-btn active" data-filter="all"><span class="cat-emoji">👥</span>All</button>
@@ -530,21 +533,26 @@ document.addEventListener('DOMContentLoaded', function() {
     const appBar = document.querySelector('.app-bar');
     const menuBar = document.getElementById('menu-header-bar');
     if (!appBar || !menuBar) return;
-    // Must be visible to measure
+    const appBarH = Math.ceil(appBar.getBoundingClientRect().height);
+    // Measure menu-header-bar even if hidden
     const wasHidden = menuBar.style.display === 'none';
-    if (wasHidden) menuBar.style.visibility = 'hidden';
-    if (wasHidden) menuBar.style.display = 'block';
-    const h = Math.ceil(appBar.getBoundingClientRect().height + menuBar.getBoundingClientRect().height);
-    if (wasHidden) menuBar.style.display = 'none';
-    if (wasHidden) menuBar.style.visibility = '';
+    if (wasHidden) { menuBar.style.visibility = 'hidden'; menuBar.style.display = 'block'; }
+    const menuBarH = Math.ceil(menuBar.getBoundingClientRect().height);
+    if (wasHidden) { menuBar.style.display = 'none'; menuBar.style.visibility = ''; }
+    const h = appBarH + menuBarH;
     document.documentElement.style.setProperty('--desktop-header-h', h + 'px');
     const layout = document.getElementById('page-layout');
-    if (layout) layout.style.paddingTop = (h - 72) + 'px';
-    const sidebar = document.getElementById('section-sidebar');
-    if (sidebar) sidebar.style.top = h + 'px';
+    if (layout) layout.style.paddingTop = (h - appBarH) + 'px';
+    // Fixed cart top tracks header height
     const cartSidebar = document.getElementById('cart-sidebar');
-    if (cartSidebar) { cartSidebar.style.top = h + 'px'; cartSidebar.style.height = 'calc(100vh - ' + h + 'px)'; }
+    if (cartSidebar) cartSidebar.style.top = h + 'px';
+    // Keep price-notice-bar flush below the full header on desktop
+    const priceBar = document.getElementById('price-notice-bar');
+    const pricePill = document.getElementById('price-notice-pill');
+    if (priceBar) priceBar.style.top = h + 'px';
+    if (pricePill) pricePill.style.top = h + 'px';
   }
+  window.setHeaderHeightVar = setHeaderHeightVar;
   setTimeout(setHeaderHeightVar, 50);
   window.addEventListener('resize', setHeaderHeightVar);
 
@@ -554,6 +562,20 @@ document.addEventListener('DOMContentLoaded', function() {
     if (mhb) mhb.style.display = 'block';
     setTimeout(setHeaderHeightVar, 0);
   }
+
+  // Close desktop pages on Escape
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    if (window.innerWidth <= 768) return;
+    if (typeof dtClosePage === 'function') dtClosePage();
+    if (typeof dtCloseMyHealth === 'function') dtCloseMyHealth();
+  });
+
+  // Clicking the logo/menu area closes desktop pages
+  document.getElementById('page-layout')?.addEventListener('click', () => {
+    if (window.innerWidth <= 768) return;
+    if (typeof dtClosePage === 'function') dtClosePage();
+  }, { capture: false });
 
   // Silently detect location on load and update the dropdown label
   const _savedLocation = sessionStorage.getItem('_detectedLabel');
@@ -627,7 +649,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const couponMsgEl = document.getElementById('coupon-msg');
   if (couponMsgEl) new MutationObserver(syncSidebarCart).observe(couponMsgEl, { childList: true, characterData: true });
 
-  // Delegate sidebar cart +/- clicks to the real buttons in #cart-items
+  // Delegate sidebar cart +/- clicks by item name (not fragile positional index)
   const sidebarCartDst = document.getElementById('sidebar-cart-items');
   if (sidebarCartDst) {
     sidebarCartDst.addEventListener('click', function(e) {
@@ -635,13 +657,23 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!btn) return;
       const row = btn.closest('.cart-qty');
       if (!row) return;
-      const buttons = row.querySelectorAll('button');
-      const idx = Array.from(buttons).indexOf(btn);
-      // Find matching row in real cart by position
-      const allRows = document.querySelectorAll('#cart-items .cart-qty');
-      const sidebarRows = sidebarCartDst.querySelectorAll('.cart-qty');
-      const rowIdx = Array.from(sidebarRows).indexOf(row);
-      if (rowIdx >= 0 && allRows[rowIdx]) allRows[rowIdx].querySelectorAll('button')[idx]?.click();
+      // Find the item name from the sibling cart-item-title in the same cart-row
+      const cartRow = btn.closest('.cart-row');
+      const titleEl = cartRow && cartRow.querySelector('.cart-item-title');
+      const itemName = titleEl && titleEl.textContent.trim();
+      if (!itemName) return;
+      // Find matching row in real cart by item name
+      const realRows = document.querySelectorAll('#cart-items .cart-row');
+      for (const realRow of realRows) {
+        const realTitle = realRow.querySelector('.cart-item-title');
+        if (realTitle && realTitle.textContent.trim() === itemName) {
+          const isMinus = btn.closest('.cart-qty').querySelector('button:first-child') === btn;
+          const realBtns = realRow.querySelectorAll('.cart-qty button');
+          if (isMinus) realBtns[0]?.click();
+          else realBtns[realBtns.length - 1]?.click();
+          break;
+        }
+      }
     });
   }
 
@@ -658,12 +690,13 @@ document.addEventListener('DOMContentLoaded', function() {
       const btn = document.createElement('button');
       btn.className = 'section-sidebar-btn';
       btn.dataset.secid = sec.id;
-      const key = sec.id.replace('section-', '').split('__')[0];
+      // key is everything after 'section-'
+      const key = sec.id.replace(/^section-/, '');
       const icon = (typeof getSectionIcon === 'function') ? getSectionIcon(key) : '🍽️';
       btn.innerHTML = `<span class="section-sidebar-icon">${icon}</span><span class="section-sidebar-label">${h2.textContent.trim()}</span>`;
       btn.onclick = () => {
-        const offset = 64;
-        const top = sec.getBoundingClientRect().top + window.scrollY - offset;
+        const desktopHeaderH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--desktop-header-h')) || 166;
+        const top = sec.getBoundingClientRect().top + window.scrollY - desktopHeaderH - 32;
         window.scrollTo({ top, behavior: 'smooth' });
       };
       sidebar.appendChild(btn);
@@ -679,7 +712,8 @@ document.addEventListener('DOMContentLoaded', function() {
   window.addEventListener('scroll', function() {
     const sections = Array.from(document.querySelectorAll('#menu-container section'));
     if (!sections.length) return;
-    const offset = 80;
+    const desktopHeaderH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--desktop-header-h')) || 166;
+    const offset = desktopHeaderH + 16;
     let activeId = sections[0].id;
     for (let i = sections.length - 1; i >= 0; i--) {
       if (sections[i].getBoundingClientRect().top <= offset) {
@@ -1410,6 +1444,11 @@ function syncTopNav() {
   el.textContent = (user && user.name)
     ? 'Hi ' + user.name.split(' ')[0] + ' !'
     : 'Hi there !';
+  // Refresh desktop My Health panel if open
+  if (window.innerWidth > 768) {
+    const panel = document.getElementById('dt-myhealth-panel');
+    if (panel && panel.classList.contains('open') && typeof dtInitMyHealth === 'function') dtInitMyHealth();
+  }
   console.log('[syncTopNav] currentUser=', user);
 }
 
@@ -1428,10 +1467,45 @@ function syncTopNav() {
   const cartCount = document.getElementById('cart-count');
   if (cartCount) observer.observe(cartCount, { childList: true, characterData: true, subtree: true });
 })();
+/* ===== DESKTOP TAB OVERLAY ===== */
+function desktopSwitchTab(tab) {
+  if (window.innerWidth <= 768) {
+    const btn = document.querySelector('.mob-nav-btn[data-tab="' + tab + '"]');
+    switchTab(tab, btn);
+    return;
+  }
+  // Toggle off if already open
+  if (tab === 'nutrition') {
+    const el = document.getElementById('dt-nutrition');
+    if (el.classList.contains('dt-active')) { dtClosePage(); return; }
+    dtOpenNutrition();
+  } else if (tab === 'consult') {
+    const el = document.getElementById('dt-consult');
+    if (el.classList.contains('dt-active')) { dtClosePage(); return; }
+    dtOpenConsult();
+  } else if (tab === 'myhealth') {
+    const panel = document.getElementById('dt-myhealth-panel');
+    if (panel.classList.contains('open')) { dtCloseMyHealth(); return; }
+    dtOpenMyHealth();
+  } else if (tab === 'about') {
+    const el = document.getElementById('dt-about');
+    if (el.classList.contains('dt-active')) { dtClosePage(); return; }
+    dtClosePage(); el.classList.add('dt-active');
+    if (window.innerWidth > 768) { const mhb = document.getElementById('menu-header-bar'); if (mhb) mhb.style.display = 'none'; }
+  }
+}
+
 /* ===== MOBILE TAB SWITCHING ===== */
 function switchTab(tab, btn) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.mob-nav-btn').forEach(b => b.classList.remove('active'));
+  // On desktop, delegate overlay tabs
+  if (window.innerWidth > 768 && ['nutrition','consult','myhealth','about'].includes(tab)) {
+    desktopSwitchTab(tab);
+    return;
+  }
+  // Close any open desktop overlays when switching on mobile
+  document.querySelectorAll('.desktop-tab-overlay').forEach(p => p.classList.remove('desktop-active'));
   const panel = document.getElementById('tab-' + tab);
   if (panel) panel.classList.add('active');
   if (btn) btn.classList.add('active');
@@ -1446,6 +1520,12 @@ function switchTab(tab, btn) {
   if (mhb) mhb.style.display = (tab === 'menu') ? 'block' : 'none';
   if (nhb) nhb.style.display = (tab === 'nutrition') ? 'block' : 'none';
   if (chb) chb.style.display = (tab === 'consult') ? 'block' : 'none';
+  // Recompute header height after bar visibility changes (desktop)
+  if (window.innerWidth > 768) {
+    requestAnimationFrame(() => {
+      if (typeof setHeaderHeightVar === 'function') setHeaderHeightVar();
+    });
+  }
   if (tab === 'nutrition' && nhb && window.innerWidth <= 768) {
     requestAnimationFrame(() => {
       document.documentElement.style.setProperty('--mob-nutrition-header-h', nhb.getBoundingClientRect().height + 'px');
@@ -1514,6 +1594,7 @@ window.closeItemDetail = function(e) {
 };
 
 function buildMobileCatSidebar() {
+  if (window.innerWidth > 768) return;
   const sidebar = document.getElementById('mobile-cat-sidebar');
   const itemsPane = document.getElementById('mobile-menu-items');
   if (!sidebar || !itemsPane) return;
@@ -1924,15 +2005,21 @@ document.getElementById('booking-modal').addEventListener('click', function(e) {
   function syncMenuSearchPill(q) {
     const btn = document.getElementById('menu-header-search-btn');
     const pill = document.getElementById('menu-search-pill');
+    const wrapper = document.getElementById('menu-search-wrapper');
+    const filters = document.querySelector('.menu-header-filters');
     const inlineInput = document.getElementById('menu-search-inline');
     if (!btn || !pill) return;
     if (q && q.trim()) {
       btn.style.display = 'none';
-      pill.style.display = 'flex';
+      pill.classList.add('open');
+      wrapper.classList.add('open');
+      if (filters) filters.classList.add('search-open');
       if (inlineInput && inlineInput.value !== q) inlineInput.value = q;
     } else {
       btn.style.display = '';
-      pill.style.display = 'none';
+      pill.classList.remove('open');
+      wrapper.classList.remove('open');
+      if (filters) filters.classList.remove('search-open');
       if (inlineInput) inlineInput.value = '';
     }
   }
@@ -1940,10 +2027,14 @@ document.getElementById('booking-modal').addEventListener('click', function(e) {
   window.openMenuSearch = function() {
     const btn = document.getElementById('menu-header-search-btn');
     const pill = document.getElementById('menu-search-pill');
+    const wrapper = document.getElementById('menu-search-wrapper');
+    const filters = document.querySelector('.menu-header-filters');
     const inlineInput = document.getElementById('menu-search-inline');
     if (btn) btn.style.display = 'none';
-    if (pill) pill.style.display = 'flex';
-    setTimeout(() => inlineInput && inlineInput.focus(), 50);
+    if (pill) pill.classList.add('open');
+    if (wrapper) wrapper.classList.add('open');
+    if (filters) filters.classList.add('search-open');
+    if (inlineInput) inlineInput.focus();
   };
 
   window.onMenuSearchInput = function(q) {
@@ -1954,6 +2045,10 @@ document.getElementById('booking-modal').addEventListener('click', function(e) {
   window.clearMenuSearch = function() {
     runMenuSearch('');
     syncMenuSearchPill('');
+    const wrapper = document.getElementById('menu-search-wrapper');
+    const filters = document.querySelector('.menu-header-filters');
+    if (wrapper) wrapper.classList.remove('open');
+    if (filters) filters.classList.remove('search-open');
   };
 
   function runMenuSearch(q) {
@@ -2181,5 +2276,486 @@ function calcToolBMI() {
 }
 
 </script>
+<!-- ================= DESKTOP NUTRITION PAGE ================= -->
+<div id="dt-nutrition" class="dt-page">
+  <div class="dt-page-header">
+    <div>
+      <div class="dt-page-title">🌿 Nutrition Hub</div>
+      <div class="dt-page-sub">Science-backed articles, tools and guides</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="display:flex;align-items:center;gap:8px;background:#f2f2f2;border-radius:8px;padding:7px 12px">
+        <i class="fa-solid fa-magnifying-glass" style="font-size:13px;color:var(--muted)"></i>
+        <input id="dt-nutrition-search" type="search" placeholder="Search articles…" autocomplete="off"
+          style="border:none;background:none;outline:none;font-size:13px;font-family:var(--font);width:200px"
+          oninput="dtNutritionSearch(this.value)">
+      </div>
+    </div>
+  </div>
+  <div class="dt-subnav" id="dt-nutrition-subnav">
+    <button class="dt-subnav-btn active" data-cat="all" onclick="dtNutritionCat('all',this)">All</button>
+    <button class="dt-subnav-btn" data-cat="weight-loss" onclick="dtNutritionCat('weight-loss',this)">⚖️ Weight Loss</button>
+    <button class="dt-subnav-btn" data-cat="muscle-gain" onclick="dtNutritionCat('muscle-gain',this)">💪 Muscle Gain</button>
+    <button class="dt-subnav-btn" data-cat="medical" onclick="dtNutritionCat('medical',this)">🩹 Medical</button>
+    <button class="dt-subnav-btn" data-cat="recipes" onclick="dtNutritionCat('recipes',this)">🍽️ Recipes</button>
+    <button class="dt-subnav-btn" data-cat="myths" onclick="dtNutritionCat('myths',this)">🔎 Myths</button>
+    <button class="dt-subnav-btn" data-cat="tools" onclick="dtNutritionCat('tools',this)">🧮 Tools</button>
+  </div>
+  <div class="dt-article-grid" id="dt-article-grid"></div>
+  <div id="dt-tools-grid" style="display:none">
+    <div class="dt-tools-grid">
+      <div class="dt-tool-card" onclick="openToolSheet('protein')">
+        <div class="dt-tool-icon">🥩</div>
+        <div class="dt-tool-name">Protein Calculator</div>
+        <div class="dt-tool-desc">Find your daily protein target based on weight and goal</div>
+      </div>
+      <div class="dt-tool-card" onclick="openToolSheet('calorie')">
+        <div class="dt-tool-icon">🔥</div>
+        <div class="dt-tool-name">Calorie Calculator</div>
+        <div class="dt-tool-desc">Calculate your TDEE and calorie targets</div>
+      </div>
+      <div class="dt-tool-card" onclick="openToolSheet('bmi')">
+        <div class="dt-tool-icon">⚖️</div>
+        <div class="dt-tool-name">BMI Calculator</div>
+        <div class="dt-tool-desc">Check your weight category and get advice</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= DESKTOP CONSULT PAGE ================= -->
+<div id="dt-consult" class="dt-page">
+  <div class="dt-page-header">
+    <div>
+      <div class="dt-page-title">🩺 Consult a Nutritionist</div>
+      <div class="dt-page-sub">Book a 1-on-1 session with an expert</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;background:#f2f2f2;border-radius:8px;padding:7px 12px">
+      <i class="fa-solid fa-magnifying-glass" style="font-size:13px;color:var(--muted)"></i>
+      <input id="dt-consult-search" type="search" placeholder="Search specialties…" autocomplete="off"
+        style="border:none;background:none;outline:none;font-size:13px;font-family:var(--font);width:200px"
+        oninput="dtConsultSearch(this.value)">
+    </div>
+  </div>
+  <div class="dt-subnav" id="dt-consult-subnav">
+    <button class="dt-subnav-btn active" data-filter="all" onclick="dtConsultFilter('all',this)">All</button>
+    <button class="dt-subnav-btn" data-filter="Weight Loss" onclick="dtConsultFilter('Weight Loss',this)">⚖️ Weight Loss</button>
+    <button class="dt-subnav-btn" data-filter="Muscle Gain" onclick="dtConsultFilter('Muscle Gain',this)">💪 Muscle Gain</button>
+    <button class="dt-subnav-btn" data-filter="PCOS" onclick="dtConsultFilter('PCOS',this)">🌸 PCOS</button>
+    <button class="dt-subnav-btn" data-filter="Diabetes" onclick="dtConsultFilter('Diabetes',this)">🩸 Diabetes</button>
+    <button class="dt-subnav-btn" data-filter="General Wellness" onclick="dtConsultFilter('General Wellness',this)">🌿 Wellness</button>
+  </div>
+  <div class="dt-consult-grid" id="dt-consult-grid">
+    <div class="dt-consult-card" data-specs="Weight Loss Muscle Gain General Wellness">
+      <div class="dt-consult-avatar">👨</div>
+      <div class="dt-consult-info">
+        <div class="dt-consult-name">Deepjyoti Ray
+          <a href="https://www.linkedin.com/in/djray" target="_blank" rel="noopener noreferrer" style="color:#0077b5;font-size:15px"><i class="fa-brands fa-linkedin"></i></a>
+        </div>
+        <div class="dt-consult-specs">Weight Loss &bull; Muscle Gain &bull; General Wellness</div>
+        <div class="dt-consult-exp">Expert Nutritionist</div>
+        <div class="dt-consult-price">₹799 <span style="font-size:13px;font-weight:400;color:var(--muted)">/ session</span></div>
+        <button class="book-btn" onclick="openBooking('Deepjyoti Ray')">Book Appointment</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= DESKTOP MY HEALTH PANEL ================= -->
+<div id="dt-myhealth-panel">
+  <div class="dt-mh-header">
+    <div class="dt-mh-avatar" id="dt-mh-avatar">?</div>
+    <div>
+      <div class="dt-mh-name" id="dt-mh-name">My Health</div>
+      <div class="dt-mh-phone" id="dt-mh-phone"></div>
+    </div>
+    <button class="dt-mh-close" onclick="dtCloseMyHealth()">✕</button>
+  </div>
+  <div class="dt-mh-body">
+    <div id="dt-mh-login-prompt" style="text-align:center;padding:40px 0">
+      <div style="font-size:44px;margin-bottom:14px">👤</div>
+      <div style="font-size:16px;font-weight:800;margin-bottom:8px">Sign in to your account</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:24px">View orders, manage preferences and health goals.</div>
+      <button class="cart-order-btn" style="width:auto;padding:12px 32px;margin:0 auto" onclick="showOTPModal()">Sign In</button>
+    </div>
+    <div id="dt-mh-content" style="display:none">
+      <div class="dt-mh-section-label">Personal Info</div>
+      <div class="dt-mh-row">
+        <div class="dt-mh-icon"><i class="fa-solid fa-user"></i></div>
+        <div style="flex:1">
+          <div class="dt-mh-label">Full Name</div>
+          <div class="dt-mh-value" id="dt-mh-display-name">—</div>
+          <input id="dt-mh-edit-name" type="text" style="display:none;width:100%;padding:7px 10px;border-radius:8px;border:1.5px solid var(--accent);font-size:13px;font-family:var(--font);outline:none;margin-top:4px;box-sizing:border-box">
+          <button id="dt-mh-save-name-btn" style="display:none;margin-top:6px;padding:6px 16px;border-radius:4px;border:none;background:var(--accent);color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:var(--font)" onclick="dtMhSaveName()">Save</button>
+        </div>
+        <button class="dt-mh-edit-btn" onclick="dtMhToggleEdit('name')">Edit</button>
+      </div>
+      <div class="dt-mh-row">
+        <div class="dt-mh-icon"><i class="fa-solid fa-phone"></i></div>
+        <div>
+          <div class="dt-mh-label">Mobile</div>
+          <div class="dt-mh-value" id="dt-mh-display-phone">—</div>
+        </div>
+      </div>
+      <div class="dt-mh-row" style="margin-bottom:8px">
+        <div class="dt-mh-icon"><i class="fa-solid fa-location-dot"></i></div>
+        <div style="flex:1">
+          <div class="dt-mh-label">Saved Address</div>
+          <div class="dt-mh-value" id="dt-mh-display-address">—</div>
+          <input id="dt-mh-edit-address" type="text" style="display:none;width:100%;padding:7px 10px;border-radius:8px;border:1.5px solid var(--accent);font-size:13px;font-family:var(--font);outline:none;margin-top:4px;box-sizing:border-box">
+          <button id="dt-mh-save-addr-btn" style="display:none;margin-top:6px;padding:6px 16px;border-radius:4px;border:none;background:var(--accent);color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:var(--font)" onclick="dtMhSaveAddress()">Save</button>
+        </div>
+        <button class="dt-mh-edit-btn" onclick="dtMhToggleEdit('address')">Edit</button>
+      </div>
+
+      <div class="dt-mh-section-label">Dietary Preference</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px" id="dt-mh-diet-pills">
+        <span class="ph-pill" data-g="diet" data-v="veg" style="padding:7px 14px;border:1.5px solid var(--border);border-radius:999px;font-size:13px;cursor:pointer;background:#fff;color:#444">🥦 Veg</span>
+        <span class="ph-pill" data-g="diet" data-v="non-veg" style="padding:7px 14px;border:1.5px solid var(--border);border-radius:999px;font-size:13px;cursor:pointer;background:#fff;color:#444">🍗 Non-Veg</span>
+        <span class="ph-pill" data-g="diet" data-v="eggetarian" style="padding:7px 14px;border:1.5px solid var(--border);border-radius:999px;font-size:13px;cursor:pointer;background:#fff;color:#444">🥚 Eggetarian</span>
+      </div>
+
+      <div class="dt-mh-section-label">Health Goal</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px" id="dt-mh-goal-pills">
+        <span class="ph-pill" data-g="goal" data-v="weight-loss" style="padding:7px 14px;border:1.5px solid var(--border);border-radius:999px;font-size:13px;cursor:pointer;background:#fff;color:#444">⚖️ Weight Loss</span>
+        <span class="ph-pill" data-g="goal" data-v="muscle-gain" style="padding:7px 14px;border:1.5px solid var(--border);border-radius:999px;font-size:13px;cursor:pointer;background:#fff;color:#444">💪 Muscle Gain</span>
+        <span class="ph-pill" data-g="goal" data-v="balanced" style="padding:7px 14px;border:1.5px solid var(--border);border-radius:999px;font-size:13px;cursor:pointer;background:#fff;color:#444">🥗 Balanced</span>
+        <span class="ph-pill" data-g="goal" data-v="medical" style="padding:7px 14px;border:1.5px solid var(--border);border-radius:999px;font-size:13px;cursor:pointer;background:#fff;color:#444">🏥 Medical Diet</span>
+      </div>
+
+      <div class="dt-mh-section-label">Recent Orders</div>
+      <div id="dt-mh-orders"><div style="text-align:center;padding:20px 0;color:var(--muted);font-size:13px">Loading…</div></div>
+
+      <button onclick="dtMhSignOut()" style="width:100%;margin-top:20px;padding:12px;border-radius:4px;border:1.5px solid var(--border);background:#fff;color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">
+        <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== DESKTOP NUTRITION PAGE ===== */
+let _dtNutritionInited = false;
+let _dtActiveCat = null;
+let _dtSearchQ = '';
+
+function dtOpenNutrition() {
+  dtClosePage();
+  document.getElementById('dt-nutrition').classList.add('dt-active');
+  if (window.innerWidth > 768) { const mhb = document.getElementById('menu-header-bar'); if (mhb) mhb.style.display = 'none'; }
+  if (!_dtNutritionInited) {
+    _dtNutritionInited = true;
+    fetch('/blogs.json').then(r => r.json()).then(data => {
+      window._dtArticles = data.articles || [];
+      dtRenderArticles();
+    }).catch(() => { document.getElementById('dt-article-grid').innerHTML = '<div style="color:var(--muted)">Could not load articles.</div>'; });
+  } else {
+    dtRenderArticles();
+  }
+}
+
+function dtNutritionCat(cat, btn) {
+  document.querySelectorAll('#dt-nutrition-subnav .dt-subnav-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  _dtActiveCat = cat === 'all' ? null : cat;
+  const grid = document.getElementById('dt-article-grid');
+  const tools = document.getElementById('dt-tools-grid');
+  if (cat === 'tools') {
+    grid.style.display = 'none'; tools.style.display = 'block';
+  } else {
+    grid.style.display = ''; tools.style.display = 'none';
+    dtRenderArticles();
+  }
+}
+
+function dtNutritionSearch(q) {
+  _dtSearchQ = q.trim().toLowerCase();
+  dtRenderArticles();
+}
+
+const DT_CAT_LABELS = {'weight-loss':'Weight Loss','muscle-gain':'Muscle Gain','medical':'Medical Nutrition','recipes':'Healthy Recipes','myths':'Nutrition Myths'};
+function dtRenderArticles() {
+  const articles = (window._dtArticles || []).filter(a => {
+    const matchCat = !_dtActiveCat || a.category === _dtActiveCat;
+    const matchQ = !_dtSearchQ || a.title.toLowerCase().includes(_dtSearchQ) || (a.excerpt||'').toLowerCase().includes(_dtSearchQ);
+    return matchCat && matchQ;
+  });
+  const grid = document.getElementById('dt-article-grid');
+  grid.innerHTML = articles.length
+    ? articles.map(a => `<div class="article-card" onclick="openArticleSheet('${a.slug}')" style="cursor:pointer">
+        <img src="${a.image}" alt="${a.title}" loading="lazy">
+        <div class="article-card-body">
+          <div class="article-card-cat">${DT_CAT_LABELS[a.category]||a.category}</div>
+          <div class="article-card-title">${a.title}</div>
+          <div class="article-card-meta">${a.author} &bull; ${a.readingTime} min read</div>
+          ${a.excerpt ? `<div class="article-card-excerpt" style="font-size:13px;color:var(--muted);margin-top:6px">${a.excerpt}</div>` : ''}
+        </div>
+      </div>`).join('')
+    : '<div style="color:var(--muted);padding:20px;grid-column:1/-1">No articles found.</div>';
+}
+
+/* ===== DESKTOP CONSULT PAGE ===== */
+let _dtConsultFilter = 'all';
+let _dtConsultSearch = '';
+
+function dtOpenConsult() {
+  dtClosePage();
+  document.getElementById('dt-consult').classList.add('dt-active');
+  if (window.innerWidth > 768) { const mhb = document.getElementById('menu-header-bar'); if (mhb) mhb.style.display = 'none'; }
+}
+
+function dtConsultFilter(filter, btn) {
+  document.querySelectorAll('#dt-consult-subnav .dt-subnav-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  _dtConsultFilter = filter;
+  dtFilterConsultCards();
+}
+
+function dtConsultSearch(q) {
+  _dtConsultSearch = q.trim().toLowerCase();
+  dtFilterConsultCards();
+}
+
+function dtFilterConsultCards() {
+  document.querySelectorAll('#dt-consult-grid .dt-consult-card').forEach(card => {
+    const specs = (card.dataset.specs || '').toLowerCase();
+    const text = card.textContent.toLowerCase();
+    const matchFilter = _dtConsultFilter === 'all' || specs.includes(_dtConsultFilter.toLowerCase());
+    const matchSearch = !_dtConsultSearch || text.includes(_dtConsultSearch);
+    card.style.display = (matchFilter && matchSearch) ? '' : 'none';
+  });
+}
+
+function dtClosePage() {
+  document.getElementById('dt-nutrition').classList.remove('dt-active');
+  document.getElementById('dt-consult').classList.remove('dt-active');
+  document.getElementById('dt-about').classList.remove('dt-active');
+  if (window.innerWidth > 768) { const mhb = document.getElementById('menu-header-bar'); if (mhb) mhb.style.display = 'block'; if (typeof setHeaderHeightVar === 'function') requestAnimationFrame(setHeaderHeightVar); }
+
+/* ===== DESKTOP MY HEALTH PANEL ===== */
+function dtOpenMyHealth() {
+  const panel = document.getElementById('dt-myhealth-panel');
+  panel.classList.add('open');
+  dtInitMyHealth();
+}
+
+function dtCloseMyHealth() {
+  document.getElementById('dt-myhealth-panel').classList.remove('open');
+}
+
+async function dtInitMyHealth() {
+  const loginPrompt = document.getElementById('dt-mh-login-prompt');
+  const content = document.getElementById('dt-mh-content');
+  try {
+    let user = window.currentUser;
+    if (!user) {
+      const s = await fetch('/api/auth/session').then(r => r.json());
+      if (!s.authenticated) { loginPrompt.style.display = 'block'; content.style.display = 'none'; return; }
+      const m = s.mobile.startsWith('+') ? s.mobile : '+91' + s.mobile;
+      user = (await fetch('/users/' + encodeURIComponent(m)).then(r => r.json())).user;
+    }
+    if (!user) { loginPrompt.style.display = 'block'; content.style.display = 'none'; return; }
+    window._dtMhUser = user;
+    loginPrompt.style.display = 'none';
+    content.style.display = 'block';
+    const first = (user.name || '').split(' ')[0] || '?';
+    document.getElementById('dt-mh-avatar').textContent = first[0].toUpperCase();
+    document.getElementById('dt-mh-name').textContent = user.name || 'My Health';
+    document.getElementById('dt-mh-phone').textContent = user.mobile ? '+91 ' + user.mobile.replace(/^\+91/, '') : '';
+    document.getElementById('dt-mh-display-name').textContent = user.name || '—';
+    document.getElementById('dt-mh-display-phone').textContent = user.mobile || '—';
+    document.getElementById('dt-mh-display-address').textContent = user.address || 'Not set';
+    document.getElementById('dt-mh-edit-name').value = user.name || '';
+    document.getElementById('dt-mh-edit-address').value = user.address || '';
+    if (user.diet) dtMhSetPill('diet', user.diet);
+    if (user.goal) dtMhSetPill('goal', user.goal);
+    ['dt-mh-diet-pills','dt-mh-goal-pills'].forEach(id => {
+      const el = document.getElementById(id);
+      el.onclick = e => { const p = e.target.closest('.ph-pill'); if (!p) return; dtMhSetPill(p.dataset.g, p.dataset.v); dtMhSavePrefs(); };
+    });
+    dtMhLoadOrders(user.mobile);
+  } catch { loginPrompt.style.display = 'block'; content.style.display = 'none'; }
+}
+
+function dtMhSetPill(group, value) {
+  document.querySelectorAll(`#dt-myhealth-panel .ph-pill[data-g="${group}"]`).forEach(p => {
+    const on = p.dataset.v === value;
+    p.style.borderColor = on ? 'var(--accent)' : 'var(--border)';
+    p.style.background = on ? '#fff0ee' : '#fff';
+    p.style.color = on ? 'var(--accent)' : '#444';
+    p.style.fontWeight = on ? '700' : '400';
+  });
+}
+
+function dtMhToggleEdit(field) {
+  const input = document.getElementById('dt-mh-edit-' + field);
+  const saveBtn = document.getElementById('dt-mh-save-' + (field === 'name' ? 'name' : 'addr') + '-btn');
+  const display = document.getElementById('dt-mh-display-' + field);
+  const editing = input.style.display !== 'none';
+  input.style.display = editing ? 'none' : 'block';
+  saveBtn.style.display = editing ? 'none' : 'inline-block';
+  display.style.display = editing ? 'block' : 'none';
+  if (!editing) input.focus();
+}
+
+async function dtMhSaveName() {
+  const name = document.getElementById('dt-mh-edit-name').value.trim();
+  if (!name) return;
+  await dtMhPatch({ name });
+  window._dtMhUser.name = name;
+  document.getElementById('dt-mh-display-name').textContent = name;
+  document.getElementById('dt-mh-name').textContent = name;
+  document.getElementById('dt-mh-avatar').textContent = name[0].toUpperCase();
+  dtMhToggleEdit('name');
+  if (typeof showToast === 'function') showToast('Name updated');
+}
+
+async function dtMhSaveAddress() {
+  const address = document.getElementById('dt-mh-edit-address').value.trim();
+  await dtMhPatch({ address });
+  window._dtMhUser.address = address;
+  document.getElementById('dt-mh-display-address').textContent = address || 'Not set';
+  dtMhToggleEdit('address');
+  if (typeof showToast === 'function') showToast('Address saved');
+}
+
+async function dtMhSavePrefs() {
+  const diet = document.querySelector('#dt-mh-diet-pills .ph-pill[style*="#fff0ee"]')?.dataset.v || '';
+  const goal = document.querySelector('#dt-mh-goal-pills .ph-pill[style*="#fff0ee"]')?.dataset.v || '';
+  await dtMhPatch({ diet, goal });
+  if (typeof showToast === 'function') showToast('Preferences saved');
+}
+
+async function dtMhPatch(fields) {
+  try { await fetch('https://api.healthymealspot.com/users/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...window._dtMhUser, ...fields }) }); } catch {}
+}
+
+async function dtMhLoadOrders(mobile) {
+  const c = document.getElementById('dt-mh-orders');
+  try {
+    const data = await fetch('/users/' + mobile + '/orders').then(r => r.json());
+    const orders = (data.orders || []).slice(0, 5);
+    if (!orders.length) { c.innerHTML = '<div style="text-align:center;padding:20px 0;color:var(--muted);font-size:13px">No orders yet 🍱</div>'; return; }
+    c.innerHTML = orders.map(o => {
+      const isDelivered = /delivered|paid/i.test(o.status || '');
+      const docType = isDelivered ? 'receipt' : 'invoice';
+      const docUrl = `/${docType}?orderId=${encodeURIComponent(o.id || '')}`;
+      return `<div onclick="window.open('${docUrl}','_blank')" style="background:#f7f6f2;border-radius:10px;padding:12px 14px;margin-bottom:8px;border:1px solid var(--border);cursor:pointer" onmouseenter="this.style.boxShadow='0 2px 10px rgba(0,0,0,0.08)'" onmouseleave="this.style.boxShadow='none'">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span style="font-size:12px;font-weight:800;color:var(--accent-strong)">${o.id || ''}</span>
+          <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:#e8f5e9;color:#2e7d32">${o.status || 'Confirmed'}</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted)">${new Date(o.order_date).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' })}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+          <span style="font-size:13px;font-weight:800">₹${o.total}</span>
+          <button onclick="event.stopPropagation();phSendDoc('${docType}','${encodeURIComponent(o.id||'')}',this)" style="font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px;border:1.5px solid var(--accent);background:#fff;color:var(--accent);cursor:pointer">${isDelivered ? '🧾 Receipt' : '📄 Invoice'}</button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch { c.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:12px 0">Could not load orders.</div>'; }
+}
+
+async function dtMhSignOut() {
+  try { await fetch('/api/auth/logout', { method: 'POST' }); } catch {}
+  window.currentUser = null; window._dtMhUser = null;
+  document.getElementById('dt-mh-login-prompt').style.display = 'block';
+  document.getElementById('dt-mh-content').style.display = 'none';
+  document.getElementById('dt-mh-avatar').textContent = '?';
+  document.getElementById('dt-mh-name').textContent = 'My Health';
+  document.getElementById('dt-mh-phone').textContent = '';
+  if (typeof syncTopNav === 'function') syncTopNav();
+  if (typeof showToast === 'function') showToast('Signed out');
+}
+</script>
+<!-- ================= DESKTOP ABOUT PAGE ================= -->
+<div id="dt-about" class="dt-page">
+  <div class="dt-page-header">
+    <div>
+      <div class="dt-page-title">About Healthy Meal Spot</div>
+      <div class="dt-page-sub">Home-cooked food, delivered fresh. Serving Navi Mumbai.</div>
+    </div>
+  </div>
+  <div style="max-width:720px;padding:8px 0 40px">
+    <p style="font-size:15px;line-height:1.8;color:var(--text);margin-bottom:12px">Healthy Meal Spot was born out of a simple idea — to serve <strong>fresh, hygienic, home-cooked food</strong> that feels like a meal made by family.</p>
+    <p style="font-size:15px;line-height:1.8;color:var(--text);margin-bottom:24px">Every dish is prepared daily using quality ingredients, traditional recipes, and lots of care. No mass production, no shortcuts — just honest food.</p>
+
+    <div class="ordering-rules subscription-rules" style="margin-bottom:24px">
+      <h3>📦 Subscription Rules</h3>
+      <ul>
+        <li><strong>Full payment</strong> is required in advance for all subscriptions.</li>
+        <li>A monthly subscription includes up to <strong>30 meals (dishes)</strong> as per the selected menu. <em>(Juices, hot beverages, and à la carte items are not included.)</em></li>
+        <li>Up to <strong>5 days</strong> can be carried forward in a monthly subscription, provided you inform us in advance.</li>
+        <li>Any change in schedule must be communicated at least <strong>1 day prior</strong>. Last-minute changes may not be accepted.</li>
+        <li>Please inform us in advance about any <strong>food allergies</strong>. We cannot be held responsible if allergy information is not shared.</li>
+        <li><strong>Customizations</strong>, fish meals, or special requests may incur <strong>additional charges</strong>.</li>
+        <li>Delivery is free for subscription meals. Single or extra deliveries may attract delivery charges.</li>
+        <li>Our kitchen remains closed on <strong>national holidays</strong>.</li>
+        <li><strong>No refund policy</strong> applies to all subscriptions.</li>
+      </ul>
+    </div>
+
+    <div class="ordering-rules" style="margin-bottom:24px">
+      <h3>🕒 Ordering Timings</h3>
+      <ul>
+        <li>Orders for <strong>today</strong> are accepted between <strong>7:00 AM and 8:00 PM</strong>.</li>
+        <li>Between <strong>12:00 AM and 6:59 AM</strong>, the kitchen is closed and ordering for today is unavailable.</li>
+        <li>Orders placed during late-night hours are automatically treated as <strong>orders for tomorrow</strong>.</li>
+        <li>The <strong>Menu of the Day</strong> is available only during active kitchen hours.</li>
+      </ul>
+    </div>
+
+    <div class="fssai-certification">
+      <div class="fssai-badge"><div class="fssai-logo">FSSAI</div><div class="fssai-text">Licensed</div></div>
+      <div class="fssai-details">
+        <h4>🛡️ Food Safety Certified</h4>
+        <p><strong>FSSAI License:</strong> 21526071000648</p>
+        <p>Valid until: 06-02-2027</p>
+        <p class="fssai-note">Certified under Food Safety and Standards Act, 2006</p>
+      </div>
+    </div>
+
+    <p style="font-size:14px;color:var(--muted);margin-top:24px">📍 Serving Navi Mumbai &nbsp;•&nbsp; 🏡 Home-cooked &nbsp;•&nbsp; 🍲 Freshly prepared &nbsp;•&nbsp; 🚚 Delivered with care</p>
+  </div>
+</div>
+
+<!-- ================= MOBILE ABOUT TAB ================= -->
+<div id="tab-about" class="tab-panel" style="padding:20px 16px 100px;overflow-y:auto">
+  <h2 style="font-size:18px;font-weight:800;margin-bottom:12px">About Healthy Meal Spot</h2>
+  <p style="font-size:14px;line-height:1.8;color:var(--text);margin-bottom:12px">Healthy Meal Spot was born out of a simple idea — to serve <strong>fresh, hygienic, home-cooked food</strong> that feels like a meal made by family.</p>
+  <p style="font-size:14px;line-height:1.8;color:var(--text);margin-bottom:20px">Every dish is prepared daily using quality ingredients, traditional recipes, and lots of care.</p>
+
+  <div class="ordering-rules subscription-rules" style="margin-bottom:20px">
+    <h3>📦 Subscription Rules</h3>
+    <ul>
+      <li><strong>Full payment</strong> required in advance.</li>
+      <li>Monthly subscription: up to <strong>30 meals</strong>. Juices and à la carte not included.</li>
+      <li>Up to <strong>5 days</strong> carry-forward with advance notice.</li>
+      <li>Schedule changes need <strong>1 day prior</strong> notice.</li>
+      <li>Inform us of any <strong>food allergies</strong> in advance.</li>
+      <li>Customizations may incur <strong>additional charges</strong>.</li>
+      <li>Kitchen closed on <strong>national holidays</strong>.</li>
+      <li><strong>No refund policy</strong> on subscriptions.</li>
+    </ul>
+  </div>
+
+  <div class="ordering-rules" style="margin-bottom:20px">
+    <h3>🕒 Ordering Timings</h3>
+    <ul>
+      <li>Orders accepted <strong>7:00 AM – 8:00 PM</strong>.</li>
+      <li>Kitchen closed <strong>12:00 AM – 6:59 AM</strong>.</li>
+      <li>Late-night orders treated as <strong>tomorrow's orders</strong>.</li>
+    </ul>
+  </div>
+
+  <div class="fssai-certification">
+    <div class="fssai-badge"><div class="fssai-logo">FSSAI</div><div class="fssai-text">Licensed</div></div>
+    <div class="fssai-details">
+      <h4>🛡️ Food Safety Certified</h4>
+      <p><strong>FSSAI License:</strong> 21526071000648</p>
+      <p>Valid until: 06-02-2027</p>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

@@ -23,7 +23,7 @@
     /* ── App Bar ── */
     .app-bar {
       position: sticky; top: 0; z-index: 100;
-      height: 56px; display: flex; align-items: center; gap: 12px;
+      display: flex; align-items: center; gap: 12px;
       padding: 0 16px; background: #fff;
       box-shadow: 0 2px 8px rgba(0,0,0,0.10);
     }
@@ -147,9 +147,46 @@
 </head>
 <body>
 
-<div class="app-bar">
-  <a href="/" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Menu</a>
-  <span class="app-bar-title">My Profile</span>
+<header class="app-bar">
+  <a href="/" class="app-bar-brand" style="margin-left:-4px">
+    <img src="/favicon.png" alt="" class="app-bar-logo" width="48" height="48">
+  </a>
+  <span style="font-size:16px;font-weight:800;color:var(--text)">❤️ My Health</span>
+  <div class="app-bar-actions">
+    <a href="/" class="top-nav-link app-bar-nav-link">🍽️ Menu</a>
+    <a href="/nutrition" class="top-nav-link app-bar-nav-link">🌿 Nutrition</a>
+    <a href="/consult-nutritionist" class="top-nav-link app-bar-nav-link">🩺 Consult</a>
+    <a href="/about" class="top-nav-link app-bar-nav-link">About</a>
+    <a href="/profile" class="top-nav-link app-bar-nav-link active">❤️ My Health</a>
+  </div>
+</header>
+
+<div id="menu-header-bar" style="display:block">
+  <div class="menu-header-top">
+    <h1 class="menu-header-title">Our Menu</h1>
+  </div>
+  <div class="menu-header-filters">
+    <div class="food-toggle-item" id="ft-veg" onclick="toggleFoodFilter('veg',this)">
+      <div class="food-toggle"><div class="food-toggle__toggle-strip"></div><div class="food-toggle__toggle-thumb"><img src="https://assets.mcdelivery.co.in/icons/veg-filter.svg" alt="ic-veg-filter" loading="lazy" style="object-fit:contain;width:16px;min-width:16px;max-width:16px;height:16px;min-height:16px;max-height:16px"></div></div>
+    </div>
+    <div class="food-toggle-item" id="ft-nonveg" onclick="toggleFoodFilter('nonveg',this)">
+      <div class="food-toggle"><div class="food-toggle__toggle-strip"></div><div class="food-toggle__toggle-thumb"><img src="https://assets.mcdelivery.co.in/icons/nonveg-filter.svg" alt="ic-nonveg-filter" loading="lazy" style="object-fit:contain;width:16px;min-width:16px;max-width:16px;height:16px;min-height:16px;max-height:16px"></div></div>
+    </div>
+    <div class="food-toggle-item" id="ft-egg" onclick="toggleFoodFilter('egg',this)">
+      <div class="food-toggle"><div class="food-toggle__toggle-strip"></div><div class="food-toggle__toggle-thumb"><img src="https://assets.mcdelivery.co.in/icons/egg-filter.svg" alt="ic-egg-filter" loading="lazy" style="object-fit:contain;width:16px;min-width:16px;max-width:16px;height:16px;min-height:16px;max-height:16px"></div></div>
+    </div>
+    <button class="top-sellers-tab" id="ft-topsellers" onclick="toggleTopSellers(this)" aria-pressed="false">Top Sellers</button>
+    <button id="menu-header-search-btn" class="menu-header-search-btn" onclick="openMenuSearch()" aria-label="Search" style="margin-left:auto">
+      <img src="https://assets.mcdelivery.co.in/icons/search-medium.svg" alt="ic-search-medium" loading="lazy" style="object-fit:contain;width:20px;min-width:20px;max-width:20px;height:20px;min-height:20px;max-height:20px">
+    </button>
+    <div id="menu-search-pill" class="menu-search-pill" style="display:none;margin-left:auto">
+      <div class="autocomplete-wrapper">
+        <input id="menu-search-inline" type="text" placeholder="Search here" enterkeyhint="search" maxlength="75" oninput="onMenuSearchInput(this.value)">
+        <div class="ghost-text"><span class="suggestion" role="button" tabindex="0"></span></div>
+      </div>
+      <button class="menu-search-clear" onclick="clearMenuSearch()" aria-label="Clear search">✕</button>
+    </div>
+  </div>
 </div>
 
 <div class="profile-hero">
