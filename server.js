@@ -1,13 +1,54 @@
 require("dotenv").config();
+
+// Fail fast on required secrets
+if (!process.env.ADMIN_API_KEY) throw new Error("ADMIN_API_KEY env var is required");
+if (!process.env.WHATSAPP_AGENT_SECRET) throw new Error("WHATSAPP_AGENT_SECRET env var is required");
+if (process.env.WHATSAPP_AGENT_SECRET === 'change-this-secret') throw new Error("WHATSAPP_AGENT_SECRET is still the default placeholder — set the real value from whatsapp-agent config/settings.json api.secret");
+
 const express = require("express");
+const compression = require("compression");
 const path = require("path");
 const fs = require("fs").promises;
 const fsSync = require("fs");
 const session = require("express-session");
+const { rateLimit } = require("express-rate-limit");
+const { SqliteSessionStore } = require("./services/sqliteSessionStore");
 
 const app = express();
 app.disable("x-powered-by");
-app.set("trust proxy", true);
+const isProduction = process.env.NODE_ENV === "production";
+const trustProxyHops = Number(process.env.TRUST_PROXY_HOPS) || 1;
+app.set("trust proxy", isProduction ? trustProxyHops : 1);
+
+function isEnvFlagEnabled(name) {
+  return /^(1|true)$/i.test(String(process.env[name] || "").trim());
+}
+
+const enableGeoLogs = isEnvFlagEnabled("ENABLE_GEO_LOGS");
+const skipMenuPdf = !isProduction && isEnvFlagEnabled("SKIP_MENU_PDF");
+const disableAgentCalls = !isProduction && isEnvFlagEnabled("DISABLE_AGENT_CALLS");
+const slowRequestThresholdMs = Number(process.env.SLOW_REQUEST_THRESHOLD_MS) || 1200;
+
+function schedulePrune(task, intervalMs) {
+  const timer = setInterval(task, intervalMs);
+  if (typeof timer.unref === "function") timer.unref();
+  return timer;
+}
+
+function pruneExpiredEntries(map, isExpired, maxEntries = Infinity) {
+  if (!(map instanceof Map) || map.size === 0) return;
+  for (const [key, value] of map) {
+    if (isExpired(value)) map.delete(key);
+  }
+  if (map.size <= maxEntries) return;
+  const overflow = map.size - maxEntries;
+  let removed = 0;
+  for (const key of map.keys()) {
+    map.delete(key);
+    removed += 1;
+    if (removed >= overflow) break;
+  }
+}
 
 /* Security headers */
 app.use((_req, res, next) => {
@@ -19,10 +60,10 @@ app.use((_req, res, next) => {
     "Permissions-Policy": "geolocation=(self), camera=(), microphone=()",
     "Content-Security-Policy":
       "default-src 'self'; " +
-      "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://cdnjs.cloudflare.com; " +
-      "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; " +
+      "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; " +
+      "style-src 'self' 'unsafe-inline'; " +
       "img-src 'self' data: https:; " +
-      "font-src 'self' https://cdnjs.cloudflare.com; " +
+      "font-src 'self'; " +
       "connect-src 'self' https://api.healthymealspot.com https://www.google-analytics.com https://nominatim.openstreetmap.org; " +
       "frame-ancestors 'none';",
   });
@@ -37,39 +78,35 @@ app.use(
   })
 );
 
+app.use((req, res, next) => {
+  const startedAt = Date.now();
+  res.on("finish", () => {
+    const elapsed = Date.now() - startedAt;
+    if (elapsed >= slowRequestThresholdMs) {
+      console.warn(`[slow] ${req.method} ${req.originalUrl} -> ${res.statusCode} in ${elapsed}ms`);
+    }
+  });
+  next();
+});
+
 /* Session middleware */
+const sessionStore = isProduction ? new SqliteSessionStore() : undefined;
 app.use(session({
-  secret: process.env.SESSION_SECRET || (process.env.NODE_ENV === 'production' ? (() => { throw new Error('SESSION_SECRET is required in production'); })() : 'dev-only-insecure-secret'),
+  secret: process.env.SESSION_SECRET || (isProduction ? (() => { throw new Error('SESSION_SECRET is required in production'); })() : 'dev-only-insecure-secret'),
+  store: sessionStore,
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: isProduction,
     httpOnly: true,
     sameSite: 'strict',
     maxAge: 24 * 60 * 60 * 1000
   }
 }));
 
-function createRateLimiter({ windowMs = 60_000, max = 300 } = {}) {
-  const buckets = new Map();
-  return function rateLimit(req, res, next) {
-    const key = req.ip || req.connection?.remoteAddress || "anon";
-    const now = Date.now();
-    const bucket = buckets.get(key);
-    if (!bucket || now - bucket.start >= windowMs) {
-      buckets.set(key, { start: now, count: 1 });
-      return next();
-    }
-    bucket.count += 1;
-    if (bucket.count > max) {
-      return res.status(429).json({ error: "Too many requests" });
-    }
-    next();
-  };
-}
-
-const generalLimiter = createRateLimiter({ windowMs: 60_000, max: 500 });
-const apiLimiter = createRateLimiter({ windowMs: 60_000, max: 150 });
+const generalLimiter = rateLimit({ windowMs: 60_000, max: 500, standardHeaders: true, legacyHeaders: false });
+const apiLimiter = rateLimit({ windowMs: 60_000, max: 150, standardHeaders: true, legacyHeaders: false });
+const userLimiter = rateLimit({ windowMs: 60_000, max: 20, standardHeaders: true, legacyHeaders: false });
 
 app.use(generalLimiter);
 
@@ -110,6 +147,8 @@ app.use((req, res, next) => {
 const LOG_DIR = path.join(__dirname, "logs");
 const ACCESS_LOG = path.join(LOG_DIR, "access.log");
 const geoCache = new Map(); // ip -> { data, ts }
+const GEO_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+const GEO_CACHE_MAX_ENTRIES = 5000;
 
 function ensureLogDir() {
   if (!fsSync.existsSync(LOG_DIR)) {
@@ -137,7 +176,7 @@ function isPrivateIp(ip = "") {
 async function lookupGeo(ip) {
   if (!ip || isPrivateIp(ip)) return null;
   const cached = geoCache.get(ip);
-  if (cached && Date.now() - cached.ts < 24 * 60 * 60 * 1000) {
+  if (cached && Date.now() - cached.ts < GEO_CACHE_TTL_MS) {
     return cached.data;
   }
   try {
@@ -161,25 +200,31 @@ async function lookupGeo(ip) {
   }
 }
 
-app.use(async (req, _res, next) => {
-  ensureLogDir();
-  const ip =
-    (req.headers["x-forwarded-for"] || "").toString().split(",")[0].trim() ||
-    req.ip ||
-    req.connection?.remoteAddress ||
-    "unknown";
-  const ua = (req.headers["user-agent"] || "").toString().replace(/\s+/g, " ").slice(0, 300);
-  const when = new Date().toISOString();
-  let geo = "";
-  try {
-    geo = (await lookupGeo(ip)) || "";
-  } catch {
-    geo = "";
-  }
-  const line = `${when} ip=${ip} geo="${geo}" method=${req.method} path="${req.originalUrl}" ua="${ua}"\n`;
-  fsSync.appendFile(ACCESS_LOG, line, { encoding: "utf8" }, () => {});
-  next();
-});
+schedulePrune(() => {
+  pruneExpiredEntries(geoCache, (entry) => !entry || Date.now() - entry.ts >= GEO_CACHE_TTL_MS, GEO_CACHE_MAX_ENTRIES);
+}, 30 * 60 * 1000);
+
+if (enableGeoLogs) {
+  app.use(async (req, _res, next) => {
+    ensureLogDir();
+    const ip =
+      (req.headers["x-forwarded-for"] || "").toString().split(",")[0].trim() ||
+      req.ip ||
+      req.connection?.remoteAddress ||
+      "unknown";
+    const ua = (req.headers["user-agent"] || "").toString().replace(/\s+/g, " ").slice(0, 300);
+    const when = new Date().toISOString();
+    let geo = "";
+    try {
+      geo = (await lookupGeo(ip)) || "";
+    } catch {
+      geo = "";
+    }
+    const line = `${when} ip=${ip} geo="${geo}" method=${req.method} path="${req.originalUrl}" ua="${ua}"\n`;
+    fsSync.appendFile(ACCESS_LOG, line, { encoding: "utf8" }, () => {});
+    next();
+  });
+}
 
 const BACKEND_BASE =
   process.env.ORDER_BACKEND_URL || "https://admin.healthymealspot.com";
@@ -205,30 +250,31 @@ async function fetchWithFallback(pathAndQuery, opts = {}) {
   return resp2;
 }
 
+const _menuCache = new Map(); // type -> { data, ts }
+const MENU_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 async function proxyMenu(type, res) {
+  const cached = _menuCache.get(type);
+  if (cached && Date.now() - cached.ts < MENU_CACHE_TTL) {
+    res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+    return res.json(cached.data);
+  }
   try {
     const resp = await fetchWithFallback(`/menu?type=${type}`);
     if (!resp.ok) throw new Error("MENU_API_FAILED");
     const data = await resp.json();
-    res.set("Cache-Control", "no-store");
-    res.json(data.menu || data);
+    const menu = data.menu || data;
+    _menuCache.set(type, { data: menu, ts: Date.now() });
+    res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+    res.json(menu);
   } catch (e) {
-    const fileMap = {
-      main: "menu.json",
-      corporate: "corporate_menu.json",
-      motd: "menuOfTheDay.json",
-    };
-    const localFile = fileMap[type] || fileMap.main;
-    try {
-      const filePath = path.join(publicPath, localFile);
-      const raw = await fs.readFile(filePath, "utf8");
-      res.set("Cache-Control", "no-store");
-      res.json(JSON.parse(raw));
-    } catch (err) {
-      res.status(502).json({ error: "MENU_BACKEND_UNAVAILABLE" });
-    }
+    res.status(502).json({ error: "MENU_BACKEND_UNAVAILABLE" });
   }
 }
+
+schedulePrune(() => {
+  pruneExpiredEntries(_menuCache, (entry) => !entry || Date.now() - entry.ts >= MENU_CACHE_TTL, 12);
+}, MENU_CACHE_TTL);
 
 /* 0️⃣ Proxy dynamic data from orders backend */
 app.use(
@@ -294,7 +340,19 @@ app.post("/users/register", async (req, res) => {
   }
 });
 
-app.get("/users/:mobile", async (req, res) => {
+function requireUserAuth(req, res, next) {
+  // Allow valid admin API key
+  if (req.headers["x-admin-key"] && req.headers["x-admin-key"] === process.env.ADMIN_API_KEY) return next();
+  // Allow authenticated session owner (can only access their own mobile)
+  if (req.session && req.session.authenticated) {
+    const requested = normalizeMobile(decodeURIComponent(req.params.mobile));
+    if (req.session.mobile === requested) return next();
+    return res.status(403).json({ error: "Forbidden" });
+  }
+  res.status(401).json({ error: "Unauthorized" });
+}
+
+app.get("/users/:mobile", userLimiter, requireUserAuth, async (req, res) => {
   const mobile = normalizeMobile(decodeURIComponent(req.params.mobile));
   if (!/^\+[0-9]{7,15}$/.test(mobile)) return res.status(400).json({ error: "Invalid mobile" });
   try {
@@ -306,7 +364,7 @@ app.get("/users/:mobile", async (req, res) => {
   }
 });
 
-app.get("/users/:mobile/orders", async (req, res) => {
+app.get("/users/:mobile/orders", userLimiter, requireUserAuth, async (req, res) => {
   const mobile = normalizeMobile(decodeURIComponent(req.params.mobile));
   if (!/^\+[0-9]{7,15}$/.test(mobile)) return res.status(400).json({ error: "Invalid mobile" });
   try {
@@ -342,9 +400,20 @@ app.get("/rtc", (_req, res) => {
 });
 
 /* Menu PDF — must be before static middleware */
-const { getMenuPdf, invalidateCache } = require("./services/menuPdf.service");
+let menuPdfService = null;
+function getMenuPdfService() {
+  if (!menuPdfService) {
+    menuPdfService = require("./services/menuPdf.service");
+  }
+  return menuPdfService;
+}
+
 app.get("/menu.pdf", apiLimiter, async (_req, res) => {
+  if (skipMenuPdf) {
+    return res.status(503).json({ error: "Menu PDF generation is disabled in this environment" });
+  }
   try {
+    const { getMenuPdf } = getMenuPdfService();
     const pdfBytes = await getMenuPdf();
     res.set({ "Content-Type": "application/pdf", "Content-Disposition": "inline; filename=\"menu.pdf\"", "Cache-Control": "no-store" });
     res.send(Buffer.from(pdfBytes));
@@ -354,7 +423,11 @@ app.get("/menu.pdf", apiLimiter, async (_req, res) => {
 });
 
 /* 1️⃣ Serve static assets */
-app.use(express.static(publicPath, { etag: false, lastModified: false, setHeaders: (res, path) => { if (path.endsWith('.html')) res.set('Cache-Control', 'no-store'); } }));
+app.use(compression());
+app.use(express.static(publicPath, { etag: false, lastModified: false, setHeaders: (res, filePath) => {
+  if (filePath.endsWith('.html')) res.set('Cache-Control', 'no-store');
+  else if (filePath.endsWith('blogs.json')) res.set('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
+} }));
 
 /* Admin console with auth protection */
 app.get(["/admin", "/admin/"], (req, res) => {
@@ -394,8 +467,9 @@ app.post("/api/chat", async (req, res) => {
   try {
     const { message, phone } = req.body;
     if (!message) return res.status(400).json({ error: "Message required" });
+    if (disableAgentCalls) return res.json({ response: "agent disabled in this environment" });
 
-    const filtered = filterMessage(message);
+    const filtered = await filterMessage(message);
     if (filtered) return res.json({ response: filtered });
 
     // Auth gate — DB check in Node, no LLM involved
@@ -427,9 +501,11 @@ app.post("/api/chat", async (req, res) => {
 
 /* Order WhatsApp notification */
 const AGENT_URL = 'http://127.0.0.1:3001/send';
-const AGENT_SECRET = process.env.WHATSAPP_AGENT_SECRET || 'change-this-secret';
+const AGENT_SECRET = process.env.WHATSAPP_AGENT_SECRET;
 
 app.post("/api/notify-order", async (req, res) => {
+  const incomingSecret = req.headers["x-secret"];
+  if (!incomingSecret || incomingSecret !== AGENT_SECRET) return res.status(403).json({ error: "Forbidden" });
   const { phone, message } = req.body;
   if (!phone || !message) return res.status(400).json({ error: "Missing phone or message" });
   const mobile = String(phone).replace(/^\+91/, "").replace(/\D/g, "");
@@ -447,6 +523,52 @@ app.post("/api/notify-order", async (req, res) => {
   res.json({ ok: true });
 });
 
+/* Image proxy — caches external images in-memory for 24h, serves from own domain */
+const _imgCache = new Map(); // url -> { buf, ct, ts }
+const IMG_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+const IMG_CACHE_MAX_ENTRIES = 250;
+app.get("/api/img", async (req, res) => {
+  const url = req.query.url;
+  if (!url || !/^https:\/\/upload\.wikimedia\.org\//.test(url))
+    return res.status(400).end();
+  const cached = _imgCache.get(url);
+  if (cached && Date.now() - cached.ts < IMG_CACHE_TTL_MS) {
+    res.set({ 'Content-Type': cached.ct, 'Cache-Control': 'public, max-age=86400', 'X-Cache': 'HIT' });
+    return res.send(cached.buf);
+  }
+  try {
+    const r = await fetch(url, { headers: { 'User-Agent': 'HealthyMealSpot/1.0 (https://healthymealspot.com; kitchen@healthymealspot.com)' } });
+    if (!r.ok) throw new Error('upstream ' + r.status);
+    const buf = Buffer.from(await r.arrayBuffer());
+    const ct = r.headers.get('content-type') || 'image/jpeg';
+    _imgCache.set(url, { buf, ct, ts: Date.now() });
+    res.set({ 'Content-Type': ct, 'Cache-Control': 'public, max-age=86400', 'X-Cache': 'MISS' });
+    res.send(buf);
+  } catch {
+    res.status(502).end();
+  }
+});
+
+schedulePrune(() => {
+  pruneExpiredEntries(_imgCache, (entry) => !entry || Date.now() - entry.ts >= IMG_CACHE_TTL_MS, IMG_CACHE_MAX_ENTRIES);
+}, 60 * 60 * 1000);
+
+app.get("/api/section-images", async (_req, res) => {
+  try {
+    const resp = await fetchWithFallback("/api/section-images");
+    if (!resp.ok) throw new Error("SECTION_IMAGES_FAILED");
+    const data = await resp.json();
+    const proxied = {};
+    Object.entries(data).forEach(([k, url]) => {
+      proxied[k] = `/api/img?url=${encodeURIComponent(url)}`;
+    });
+    res.set("Cache-Control", "public, max-age=3600");
+    res.json(proxied);
+  } catch {
+    res.json({});
+  }
+});
+
 app.get("/api/item-images", async (_req, res) => {
   try {
     const data = await fs.readFile(path.join(publicPath, "item-images.json"), "utf8");
@@ -459,7 +581,7 @@ app.get("/api/item-images", async (_req, res) => {
 
 app.put("/api/item-images", async (req, res) => {
   const key = req.headers["x-admin-key"];
-  if (!key || key !== (process.env.ADMIN_API_KEY || "dev-only-admin-key")) return res.status(401).end();
+  if (!key || key !== process.env.ADMIN_API_KEY) return res.status(401).end();
   if (!req.body || typeof req.body !== "object") return res.status(400).json({ error: "Invalid payload" });
   await fs.writeFile(path.join(publicPath, "item-images.json"), JSON.stringify(req.body, null, 2), "utf8");
   res.json({ ok: true });
@@ -474,7 +596,8 @@ app.use("/api", require("./routes/admin.routes"));
 app.post("/api/admin/menu-pdf/invalidate", (req, res) => {
   const key = req.headers["x-admin-key"];
   if (!key || !process.env.ADMIN_API_KEY || key !== process.env.ADMIN_API_KEY) return res.status(401).end();
-  invalidateCache();
+  if (menuPdfService) menuPdfService.invalidateCache();
+  _menuCache.clear();
   res.json({ ok: true });
 });
 
@@ -524,6 +647,12 @@ app.get("/calorie-calculator", (_req, res) => {
 });
 app.get("/bmi-calculator", (_req, res) => {
   res.sendFile(path.join(publicPath, "bmi-calculator.html"));
+});
+app.get("/provider-pressure", (_req, res) => {
+  res.redirect(301, "/is-there-a-mens-day");
+});
+app.get("/is-there-a-mens-day", (_req, res) => {
+  res.sendFile(path.join(publicPath, "is-there-a-mens-day.html"));
 });
 
 /* Author / Nutritionist profile pages */

@@ -6,6 +6,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const BACKEND_BASE = process.env.ORDER_BACKEND_URL || "https://admin.healthymealspot.com";
 
 // --- Static keyword → reply map ---
 const STATIC_REPLIES = [
@@ -39,7 +40,7 @@ const STATIC_REPLIES = [
   },
 ];
 
-// --- Menu section keywords → section key in menu.json ---
+// --- Menu section keywords → section key in backend menu data ---
 const MENU_SECTION_MAP = [
   { match: /\b(breakfast|poha|upma|idli|dosa|pav bhaji|tea|coffee)\b/i, section: 'breakfast' },
   { match: /\b(veg starter|veg snack|paneer tikka|spring roll|samosa|paneer chilli|french fries)\b/i, section: 'veg_starters' },
@@ -56,14 +57,19 @@ const MENU_SECTION_MAP = [
 const FULL_MENU_TRIGGER = /\b(menu|full menu|what do you have|what's available|show menu|today's menu|today menu)\b/i;
 
 let _menuCache = null;
-function getMenu() {
-  if (!_menuCache) {
-    try {
-      _menuCache = JSON.parse(fs.readFileSync(
-        path.join(__dirname, '../public/menu.json'), 'utf8'
-      ));
-    } catch { _menuCache = {}; }
+let _menuCacheTime = 0;
+async function getMenu() {
+  const now = Date.now();
+  if (_menuCache && now - _menuCacheTime < 30_000) return _menuCache;
+  try {
+    const resp = await fetch(`${BACKEND_BASE}/menu?type=main`);
+    if (!resp.ok) throw new Error("MENU_FETCH_FAILED");
+    const data = await resp.json();
+    _menuCache = data.menu || data || {};
+  } catch {
+    _menuCache = {};
   }
+  _menuCacheTime = now;
   return _menuCache;
 }
 
@@ -74,8 +80,8 @@ function formatSection(section, data) {
   return `*${data.title}*\n${lines}`;
 }
 
-function handleMenuQuery(msg) {
-  const menu = getMenu();
+async function handleMenuQuery(msg) {
+  const menu = await getMenu();
 
   // Full menu request
   if (FULL_MENU_TRIGGER.test(msg)) {
@@ -126,7 +132,7 @@ function getMemoryReplies() {
 }
 
 // --- Main filter function ---
-function filterMessage(msg) {
+async function filterMessage(msg) {
   if (!msg || typeof msg !== 'string') return null;
   const text = msg.trim();
 
@@ -140,8 +146,8 @@ function filterMessage(msg) {
     if (match.test(text)) return reply;
   }
 
-  // 3. Menu queries (served from local menu.json)
-  const menuReply = handleMenuQuery(text);
+  // 3. Menu queries (served from backend DB)
+  const menuReply = await handleMenuQuery(text);
   if (menuReply) return menuReply;
 
   // 4. Fall through to LLM

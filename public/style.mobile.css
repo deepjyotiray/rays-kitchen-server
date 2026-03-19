@@ -1,0 +1,479 @@
+/* ===============================================================
+   MOBILE STYLES  (max-width: 768px)
+   All rules here only apply on screens ≤ 768px.
+   Desktop overrides live in style.css inside @media (min-width: 769px).
+   =============================================================== */
+
+@media (max-width: 768px) {
+  :root { --hero-depth: 420px; }
+}
+
+@media (max-width: 768px) {
+  .header { height: 320px; }
+  .header h1 { font-size: 30px; }
+  .header-overlay h1 { font-size: 24px; }
+  .app-bar-actions { gap: 6px; }
+  .action-btn { height: 30px; font-size: 11px; padding: 0 10px; }
+}
+
+@media (max-width: 768px) {
+  #floating-cart {
+    left: 0; right: 0; bottom: 0; width: 100%;
+    border-radius: 18px 18px 0 0;
+    max-height: 85vh;
+    transition: transform 0.35s ease, opacity 0.35s ease;
+  }
+  #floating-cart.cart-hidden { transform: translateY(100%); opacity: 0; pointer-events: none; }
+  .cart-body { max-height: 45vh; }
+  .cart-mini-summary { bottom: 86px; }
+  #floating-cart-toggle { display: none !important; }
+  .toast {
+    left: 50%;
+    right: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .calendar-popup {
+    position: fixed;
+    top: 130px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100vw - 32px);
+    max-width: 360px;
+    z-index: 10001;
+  }
+}
+
+@media (max-width: 768px) {
+  .fssai-certification {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+    padding: 16px;
+  }
+  .fssai-badge {
+    width: 70px;
+    height: 70px;
+  }
+  .fssai-logo {
+    font-size: 14px;
+  }
+  .fssai-details h4 {
+    font-size: 16px;
+    justify-content: center;
+  }
+  .fssai-details p {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 768px) {
+  .search-field {
+    height: 36px;
+    padding: 7px 9px;
+  }
+  .search-field input { font-size: 14px; }
+  .pill-btn {
+    height: 36px;
+    padding: 7px 10px;
+    font-size: 12.5px;
+  }
+  .filter-controls { gap: 8px; }
+  .section {
+    margin: 20px auto;
+    padding: 28px 18px;
+  }
+}
+
+@media (max-width: 768px) {
+  .qty-box .qty-control { font-size: 16px; }
+}
+
+@media (max-width: 768px) {
+  .weight-options {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .weight-option {
+    padding: 10px 12px;
+  }
+  .rtc-item {
+    padding: 14px 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  #customer-modal .modal-content { width: 94vw; }
+}
+
+@media (max-width: 600px) {
+  .nutritionists-grid {
+    gap: 20px;
+    margin: 24px auto;
+  }
+  .nutritionist-card {
+    padding: 24px 20px;
+    max-width: 100%;
+  }
+  .book-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-bar-title span { font-size: 12px; }
+  .nutrition-hero h1 { font-size: 26px; }
+  .consult-hero h1 { font-size: 24px; }
+  .article-title { font-size: 22px; }
+  .category-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .category-card { padding: 14px 8px; font-size: 12px; }
+  .category-card .cat-icon { font-size: 22px; }
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    margin: 10px auto;
+    padding: 12px;
+  }
+  .page-header-title { font-size: 24px; }
+  .page-header-sub {
+    font-size: 18px;
+    margin-bottom: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-action-bar { padding: 6px 10px 10px; gap: 8px; }
+  .page-action-bar .action-btn { height: 36px; font-size: 12px; }
+}
+
+@media (max-width: 768px) {
+  #page-layout { display: block; }
+  #section-sidebar,
+  #cart-sidebar { display: none; }
+  .category-tabs-wrap { display: block; }
+  #page-layout .section-header { display: flex; }
+}
+
+@media (max-width: 768px) {
+  #price-notice-bar, #price-notice-pill { top: 56px !important; }
+}
+
+@media (max-width: 768px) {
+  .category-tabs-wrap {
+    top: 72px;
+  }
+  .category-tab {
+    padding: 8px 12px 6px;
+    font-size: 11px;
+  }
+  .category-tab .tab-icon { font-size: 18px; }
+  .category-tab .tab-img { width: 28px; height: 28px; border-radius: 6px; }
+}
+
+@media (max-width: 768px) {
+  .item-img-wrap { height: 110px; }
+}
+
+@media (max-width: 768px) {
+  .hamburger-btn { display: none !important; }
+  .app-bar-brand-name { display: none; }
+  .app-bar-nav-link { display: none !important; }
+}
+
+/* ── Mobile bottom nav + plate bar + drawer ── */
+@media (max-width: 768px) {
+  :root { --bottom-nav-h: 60px; --cart-bar-h: 48px; }
+
+  body { padding-bottom: calc(var(--bottom-nav-h) + 16px); }
+
+  #floating-cart, #floating-cart-toggle, #cart-mini-summary { display: none !important; }
+  .category-tabs-wrap { display: none !important; }
+
+  #mobile-bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: var(--bottom-nav-h);
+    background: #fff;
+    border-top: 1px solid var(--border);
+    display: flex;
+    z-index: 9996;
+    box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
+  }
+  .mob-nav-btn {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px;
+    background: none; border: none; cursor: pointer;
+    font-family: var(--font); font-size: 10px; font-weight: 700;
+    color: var(--muted); padding: 6px 0;
+    transition: color 0.15s;
+  }
+  .mob-nav-btn svg { width: 18px; height: 18px; }
+  .mob-nav-btn.active { color: var(--accent); }
+  .mob-nav-btn.active svg { color: var(--accent); }
+
+  #mobile-cart-bar {
+    position: fixed;
+    bottom: calc(var(--bottom-nav-h) + 8px); left: 50%; right: auto;
+    transform: translateX(-50%);
+    width: calc(100% - 32px);
+    height: var(--cart-bar-h);
+    background: var(--accent);
+    color: #fff;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    z-index: 9995;
+    cursor: pointer;
+    user-select: none;
+    border-radius: 16px 16px 16px 16px;
+    box-shadow: 0 4px 16px rgba(218,41,28,0.35);
+  }
+  #mobile-cart-bar.visible { display: flex; }
+  .mob-cart-bar-left { display: flex; align-items: center; gap: 10px; }
+  .mob-cart-count-badge {
+    background: #fff; color: var(--accent);
+    width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800;
+  }
+  .mob-cart-bar-label { font-size: 13px; font-weight: 700; }
+  .mob-cart-bar-total { font-size: 14px; font-weight: 800; margin-left: auto; margin-right: 10px; }
+  .mob-plate-chevron { font-size: 10px; opacity: 0.8; }
+
+  #plate-drawer {
+    position: fixed;
+    bottom: calc(var(--bottom-nav-h) + var(--cart-bar-h) + 12px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 32px);
+    max-height: 0;
+    overflow: hidden;
+    background: #fff;
+    z-index: 9994;
+    transition: max-height 0.32s cubic-bezier(0.32,0.72,0,1);
+    border-radius: 16px;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.14);
+  }
+  #plate-drawer.open {
+    max-height: 55vh;
+    overflow-y: auto;
+  }
+  #plate-drawer-items {
+    padding: 12px 16px 4px;
+    font-size: 13px;
+  }
+  .plate-empty-msg {
+    text-align: center;
+    padding: 24px 16px;
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.6;
+  }
+  .plate-empty-msg span { font-size: 13px; font-weight: 400; }
+  .mob-coupon-box { margin: 10px 16px 0; }
+  .mob-coupon-box input { flex: 1; }
+  .plate-drawer-total-row {
+    display: flex; justify-content: space-between;
+    font-size: 14px; font-weight: 700;
+    padding: 10px 16px 0;
+    border-top: 1px solid var(--border);
+  }
+  .plate-order-btn {
+    display: block; width: calc(100% - 32px);
+    margin: 10px 16px 14px;
+    padding: 12px; border-radius: 4px; border: none;
+    background: var(--red); color: #fff;
+    font-size: 14px; font-weight: 800;
+    cursor: pointer; font-family: var(--font);
+  }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  #mobile-menu-layout {
+    position: fixed;
+    top: 56px;
+    left: 0; right: 0;
+    bottom: var(--bottom-nav-h);
+    display: none;
+    overflow: hidden;
+    z-index: 10;
+  }
+  #tab-menu.active #mobile-menu-layout { display: flex; }
+
+  #nutrition-mobile-layout {
+    position: fixed;
+    top: 56px;
+    left: 0; right: 0;
+    bottom: var(--bottom-nav-h);
+    display: none;
+    overflow: hidden;
+  }
+  #tab-nutrition.active #nutrition-mobile-layout { display: flex; }
+  #nutrition-mobile-layout { top: calc(56px + var(--mob-nutrition-header-h, 90px)); }
+
+  #consult-mobile-layout {
+    position: fixed;
+    top: calc(56px + var(--mob-consult-header-h, 90px));
+    left: 0; right: 0;
+    bottom: var(--bottom-nav-h);
+    display: none;
+    overflow: hidden;
+  }
+  #tab-consult.active #consult-mobile-layout { display: flex; }
+  #consult-cat-sidebar {
+    width: 90px;
+    flex-shrink: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: #f7f6f2;
+    border-right: 1px solid var(--border);
+    scrollbar-width: none;
+  }
+  #consult-cat-sidebar::-webkit-scrollbar { display: none; }
+  #consult-content-pane {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 12px;
+  }
+
+  #tab-myhealth.active {
+    display: block;
+    position: fixed;
+    top: calc(56px + var(--mob-myhealth-header-h, 46px));
+    left: 0; right: 0;
+    bottom: var(--bottom-nav-h);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .profile-hero {
+    background: var(--accent);
+    padding: 32px 20px 64px;
+    text-align: center;
+    color: #fff;
+  }
+  .ph-avatar {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.25);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; font-weight: 800; color: #fff;
+    margin: 0 auto 12px;
+    border: 3px solid rgba(255,255,255,0.5);
+  }
+  .ph-hero-name { font-size: 1.3rem; font-weight: 800; }
+  .ph-hero-phone { font-size: 0.875rem; opacity: 0.85; margin-top: 4px; }
+  #ph-sheet {
+    background: #fff;
+    border-radius: 24px 24px 0 0;
+    margin-top: -28px;
+    padding: 28px 20px 40px;
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  #nutrition-cat-sidebar {
+    width: 90px;
+    flex-shrink: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: #f7f6f2;
+    border-right: 1px solid var(--border);
+    scrollbar-width: none;
+  }
+  #nutrition-cat-sidebar::-webkit-scrollbar { display: none; }
+  #nutrition-content-pane {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 8px;
+  }
+  #nutrition-content-pane .article-cards { display: flex; flex-direction: column; gap: 0; }
+  #nutrition-content-pane .article-card { border-radius: 10px; margin-bottom: 10px; }
+  #nutrition-content-pane .article-card img { height: 120px; }
+  #mobile-cat-sidebar {
+    width: 90px;
+    flex-shrink: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: #f7f6f2;
+    border-right: 1px solid var(--border);
+    scrollbar-width: none;
+  }
+  #mobile-cat-sidebar::-webkit-scrollbar { display: none; }
+  .mob-cat-btn {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 6px; width: 100%; padding: 16px 6px;
+    background: none; border: none; border-left: 3px solid transparent;
+    font-family: var(--font); font-size: 11px; font-weight: 700;
+    color: var(--muted); cursor: pointer; text-align: center;
+    line-height: 1.3; transition: background 0.12s, color 0.12s;
+  }
+  .mob-cat-btn .cat-emoji { font-size: 26px; line-height: 1; }
+  .mob-cat-btn .tab-img {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--border);
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.2s infinite;
+  }
+  .mob-cat-btn.active .tab-img { border-color: var(--accent); }
+  .mob-cat-btn.active {
+    background: #fff; color: var(--accent);
+    border-left-color: var(--accent);
+  }
+  #mobile-menu-items {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 8px;
+  }
+  #mobile-menu-items .section { margin: 0 0 16px; padding: 12px; }
+  #mobile-menu-items .section-header { display: flex !important; }
+  #mobile-menu-items .menu-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  #mobile-menu-items .item-img-wrap { height: 90px; }
+  #mobile-menu-items .item-name { font-size: 12px; }
+  #mobile-menu-items .item-desc { display: none; }
+  #mobile-menu-items .item-served-with {
+    margin-top: 5px;
+    font-size: 10px;
+    line-height: 1.35;
+    -webkit-line-clamp: 2;
+  }
+  #mobile-menu-items .item-macros { display: none; }
+}
+
+/* ── Mobile app-bar compact ── */
+@media (max-width: 768px) {
+  .app-bar { height: 56px !important; padding: 0 12px; gap: 8px; }
+  body { padding-top: 56px; }
+  .app-bar-search-row { top: 56px; }
+  #page-layout { display: none !important; }
+  #tab-home, #tab-menu { display: none; }
+  #tab-home.active, #tab-menu.active { display: block; }
+  #tab-nutrition, #tab-consult, #tab-myhealth { display: none; }
+  #tab-nutrition.active, #tab-consult.active, #tab-myhealth.active {
+    display: block;
+    height: calc(100vh - 56px - var(--bottom-nav-h));
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  #ab-order-type-wrap, #ab-location-wrap { display: none !important; }
+  #menu-container-hidden-source { display: none; }
+}
+
+@media (max-width: 768px) {
+  #mobile-menu-layout { top: calc(56px + var(--mob-menu-header-h, 90px)); }
+  #mobile-menu-items .section-header { scroll-margin-top: 8px; }
+}

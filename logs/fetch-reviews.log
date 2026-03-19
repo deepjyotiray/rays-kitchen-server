@@ -58,3 +58,34 @@ Cards loaded: 12
 Cards loaded: 12
 Scraped 12 reviews
 Done. Added 0 new. Total: 14
+Cards loaded: 8
+Cards loaded: 13
+Cards loaded: 13
+Cards loaded: 13
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+page.evaluate: Target page, context or browser has been closed
+    at /Users/deepjyotiray/Documents/FoodWebsite/rays-home-kitchen/scripts/fetch-reviews.js:37:30
+
+Node.js v24.1.0
+Cards loaded: 8
+Cards loaded: 8
+Cards loaded: 14
+Cards loaded: 14
+Scraped 14 reviews
+Done. Added 0 new. Total: 14
+Cards loaded: 8
+Cards loaded: 8
+Cards loaded: 8
+Cards loaded: 14
+Cards loaded: 14
+Scraped 14 reviews
+Done. Added 0 new. Total: 14
+Cards loaded: 8
+Cards loaded: 8
+Cards loaded: 14
+Cards loaded: 14
+Scraped 14 reviews
+Done. Added 0 new. Total: 14

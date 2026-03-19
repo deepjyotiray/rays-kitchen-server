@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+  <title>Is There a Men's Day? | Healthy Meal Spot</title>
+  <meta name="description" content="There's a day for everything. But is there really a Men's Day? Take this quick quiz to find out how much society expects from men — silently.">
+  <link rel="canonical" href="https://healthymealspot.com/is-there-a-mens-day">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/style.mobile.css" media="(max-width: 768px)">
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://healthymealspot.com/"},{"@type":"ListItem","position":2,"name":"Is There a Men's Day?","item":"https://healthymealspot.com/is-there-a-mens-day"}]}
+  </script>
+  <style>
+    /* ── Layout ── */
+    .ppc-wrap { max-width: 560px; margin: 0 auto; padding: 24px 16px 100px; }
+
+    /* ── Landing ── */
+    .ppc-landing { text-align: center; padding: 32px 0 8px; animation: ppcFadeUp .45s ease both; }
+    .ppc-landing .ppc-emoji { font-size: 52px; line-height: 1; margin-bottom: 16px; }
+    .ppc-landing h1 { font-size: 26px; font-weight: 800; color: var(--text); margin: 0 0 10px; }
+    .ppc-landing .ppc-sub { font-size: 16px; font-weight: 600; color: var(--accent); margin: 0 0 14px; }
+    .ppc-landing .ppc-desc { font-size: 15px; color: var(--muted); line-height: 1.7; margin: 0 0 28px; }
+    .ppc-start-btn {
+      display: inline-block; padding: 14px 36px;
+      background: var(--accent); color: #fff;
+      border: none; border-radius: 10px;
+      font-size: 16px; font-weight: 700; cursor: pointer;
+      transition: opacity .2s;
+    }
+    .ppc-start-btn:hover { opacity: .88; }
+
+    /* ── Progress bar ── */
+    .ppc-progress-wrap { margin-bottom: 24px; }
+    .ppc-progress-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; display: flex; justify-content: space-between; }
+    .ppc-progress-bar { height: 5px; background: #e5e7eb; border-radius: 99px; overflow: hidden; }
+    .ppc-progress-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width .4s ease; }
+
+    /* ── Question card ── */
+    .ppc-card {
+      background: #fff; border-radius: 14px;
+      padding: 24px 20px; box-shadow: 0 2px 12px rgba(0,0,0,.07);
+      animation: ppcFadeUp .4s ease both;
+    }
+    .ppc-q-caption { font-size: 12px; color: var(--muted); margin-bottom: 6px; font-style: italic; }
+    .ppc-q-text { font-size: 18px; font-weight: 700; color: var(--text); margin: 0 0 20px; line-height: 1.4; }
+
+    /* ── Options ── */
+    .ppc-options { display: flex; flex-direction: column; gap: 10px; }
+    .ppc-option {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 13px 14px; border: 1.5px solid #e5e7eb;
+      border-radius: 10px; cursor: pointer;
+      transition: border-color .18s, background .18s;
+      background: #fafafa;
+    }
+    .ppc-option:hover { border-color: var(--accent); background: #f0fdf4; }
+    .ppc-option.selected { border-color: var(--accent); background: #f0fdf4; }
+    .ppc-option-dot {
+      width: 18px; height: 18px; min-width: 18px;
+      border-radius: 50%; border: 2px solid #d1d5db;
+      margin-top: 2px; transition: border-color .18s, background .18s;
+    }
+    .ppc-option.selected .ppc-option-dot { border-color: var(--accent); background: var(--accent); }
+    .ppc-option-label { font-size: 14px; color: var(--text); line-height: 1.5; }
+    .ppc-option-tag { font-size: 12px; color: var(--muted); display: block; margin-top: 2px; }
+
+    /* ── Slider ── */
+    .ppc-slider-wrap { padding: 8px 0 4px; }
+    .ppc-slider { width: 100%; accent-color: var(--accent); cursor: pointer; }
+    .ppc-slider-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .ppc-slider-val { text-align: center; font-size: 28px; font-weight: 800; color: var(--accent); margin: 10px 0 4px; }
+
+    /* ── Next button ── */
+    .ppc-next-btn {
+      width: 100%; margin-top: 20px; padding: 13px;
+      background: var(--accent); color: #fff;
+      border: none; border-radius: 10px;
+      font-size: 15px; font-weight: 700; cursor: pointer;
+      transition: opacity .2s;
+    }
+    .ppc-next-btn:disabled { opacity: .4; cursor: not-allowed; }
+    .ppc-next-btn:not(:disabled):hover { opacity: .88; }
+
+    /* ── Result ── */
+    .ppc-result { animation: ppcFadeUp .5s ease both; }
+    .ppc-result-hero { text-align: center; padding: 28px 0 20px; }
+    .ppc-result-hero .ppc-emoji { font-size: 48px; }
+    .ppc-result-hero h2 { font-size: 22px; font-weight: 800; color: var(--text); margin: 12px 0 6px; }
+    .ppc-result-hero .ppc-score-label { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+
+    .ppc-score-ring {
+      width: 110px; height: 110px; margin: 0 auto 16px;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 30px; font-weight: 800; color: #fff;
+    }
+
+    .ppc-message-card {
+      background: #fff; border-radius: 14px; padding: 22px 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.07); margin-bottom: 16px;
+    }
+    .ppc-message-card p { font-size: 15px; color: var(--text); line-height: 1.75; margin: 0 0 12px; }
+    .ppc-message-card p:last-child { margin: 0; }
+    .ppc-message-card .ppc-highlight { font-weight: 700; color: var(--accent); }
+
+    .ppc-footer-note {
+      background: #f9fafb; border-radius: 12px; padding: 18px 16px;
+      font-size: 13px; color: var(--muted); line-height: 1.7;
+      margin-bottom: 20px; border-left: 3px solid var(--accent);
+    }
+
+    /* ── Share ── */
+    .ppc-share-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 10px; text-align: center; }
+    .ppc-share-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 24px; }
+    .ppc-share-btn {
+      display: flex; align-items: center; gap: 7px;
+      padding: 10px 18px; border-radius: 8px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      border: none; text-decoration: none; transition: opacity .2s;
+    }
+    .ppc-share-btn:hover { opacity: .85; }
+    .ppc-share-x    { background: #000; color: #fff; }
+    .ppc-share-li   { background: #0a66c2; color: #fff; }
+    .ppc-share-wa   { background: #25d366; color: #fff; }
+
+    .ppc-restart-btn {
+      display: block; width: 100%; padding: 12px;
+      background: transparent; border: 1.5px solid var(--accent);
+      color: var(--accent); border-radius: 10px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      transition: background .18s, color .18s;
+    }
+    .ppc-restart-btn:hover { background: var(--accent); color: #fff; }
+
+    /* ── Transitions ── */
+    @keyframes ppcFadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .ppc-hidden { display: none !important; }
+
+    /* ── Breadcrumb ── */
+    .breadcrumb { font-size: 13px; color: var(--muted); padding: 10px 16px 0; max-width: 800px; margin: 0 auto; }
+    .breadcrumb a { color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<header class="app-bar">
+  <a href="/" class="app-bar-brand">
+    <img src="/favicon.png" alt="" class="app-bar-logo" width="36" height="36">
+  </a>
+  <span style="font-size:15px;font-weight:800;color:var(--text)">Is There a Men's Day?</span>
+  <div class="app-bar-actions" style="margin-left:auto">
+    <a href="/nutrition" class="top-nav-link app-bar-nav-link">Nutrition Hub</a>
+    <a href="/consult-nutritionist" class="top-nav-link app-bar-nav-link">Consult</a>
+  </div>
+</header>
+
+<nav class="breadcrumb" aria-label="Breadcrumb">
+  <a href="/">Home</a> › Is There a Men's Day?
+</nav>
+
+<main>
+  <div class="ppc-wrap">
+
+    <!-- ── LANDING ── -->
+    <section id="ppc-landing" class="ppc-landing">
+      <div class="ppc-emoji">📅</div>
+      <h1>Is There a Men's Day?</h1>
+      <p class="ppc-sub">Yes — November 19th. But somehow, nobody seems to know that.</p>
+      <p class="ppc-desc">
+        Society expects men to earn early, provide for everyone, and carry it all silently.
+        Take this quick quiz to see exactly how much is on your plate.
+      </p>
+      <button class="ppc-start-btn" onclick="startQuiz()">Find Out →</button>
+    </section>
+
+    <!-- ── QUIZ ── -->
+    <section id="ppc-quiz" class="ppc-hidden">
+      <div class="ppc-progress-wrap">
+        <div class="ppc-progress-label">
+          <span id="ppc-step-label">Question 1 of 5</span>
+          <span id="ppc-pct-label">0%</span>
+        </div>
+        <div class="ppc-progress-bar">
+          <div class="ppc-progress-fill" id="ppc-progress-fill" style="width:0%"></div>
+        </div>
+      </div>
+      <div id="ppc-card-wrap"></div>
+    </section>
+
+    <!-- ── RESULT ── -->
+    <section id="ppc-result" class="ppc-hidden ppc-result">
+      <div class="ppc-result-hero">
+        <div class="ppc-emoji">📅</div>
+        <h2>Your result is in.</h2>
+        <p class="ppc-score-label">Provider Pressure Score</p>
+        <div class="ppc-score-ring" id="ppc-score-ring">—</div>
+        <p id="ppc-score-band" style="font-size:14px;font-weight:600;color:var(--muted);margin:0"></p>
+      </div>
+
+      <div class="ppc-message-card">
+        <p>The right time to marry is when <span class="ppc-highlight">responsibility is shared</span> — not when one person is expected to carry everything alone.</p>
+        <p>Not your salary.<br>Not the pressure.<br>Not society's expectations.</p>
+        <p style="font-size:18px;font-weight:800;color:var(--text)">You.</p>
+      </div>
+
+      <div id="ppc-personal-note" class="ppc-message-card ppc-hidden"></div>
+
+      <div class="ppc-footer-note">
+        Many men grow up believing they must silently carry financial and emotional responsibility for everyone around them.
+        Marriage should be a partnership — not a burden placed on one person.
+      </div>
+
+      <p class="ppc-share-title">Share this with someone who needs to hear it</p>
+      <div class="ppc-share-btns">
+        <a class="ppc-share-btn ppc-share-x" id="share-x" href="#" target="_blank" rel="noopener">
+          <i class="fa-brands fa-x-twitter"></i> X
+        </a>
+        <a class="ppc-share-btn ppc-share-li" id="share-li" href="#" target="_blank" rel="noopener">
+          <i class="fa-brands fa-linkedin-in"></i> LinkedIn
+        </a>
+        <a class="ppc-share-btn ppc-share-wa" id="share-wa" href="#" target="_blank" rel="noopener">
+          <i class="fa-brands fa-whatsapp"></i> WhatsApp
+        </a>
+      </div>
+
+      <button class="ppc-restart-btn" onclick="restartQuiz()">↩ Take it again</button>
+    </section>
+
+  </div>
+</main>
+
+<footer class="page-footer">
+  &copy; 2026 Healthy Meal Spot &bull; <a href="/">Order Food</a> &bull; <a href="/nutrition">Nutrition Hub</a>
+</footer>
+
+<nav id="mobile-bottom-nav">
+  <button class="mob-nav-btn" onclick="window.location.href='/'">
+    <i class="fa-solid fa-house"></i>Home
+  </button>
+  <button class="mob-nav-btn" onclick="window.location.href='/?tab=menu'">
+    <i class="fa-solid fa-utensils"></i>Menu
+  </button>
+  <button class="mob-nav-btn active">
+    <i class="fa-solid fa-scale-balanced"></i>Quiz
+  </button>
+  <button class="mob-nav-btn" onclick="window.location.href='/consult-nutritionist'">
+    <i class="fa-solid fa-stethoscope"></i>Consult
+  </button>
+  <button class="mob-nav-btn" onclick="window.location.href='/profile'">
+    <i class="fa-solid fa-heart-pulse"></i>My Health
+  </button>
+</nav>
+
+<script>
+const QUESTIONS = [
+  {
+    id: "income",
+    caption: "Apparently a man's worth starts with his salary.",
+    text: "What's your annual income?",
+    type: "options",
+    options: [
+      { label: "Under ₹5 LPA", tag: '"Still figuring life out"', score: 1 },
+      { label: "₹5–10 LPA",    tag: '"Acceptable starter husband"', score: 2 },
+      { label: "₹10–20 LPA",   tag: '"Now the relatives are interested"', score: 3 },
+      { label: "₹20 LPA+",     tag: '"Premium son-in-law material"', score: 4 },
+    ]
+  },
+  {
+    id: "dependents",
+    caption: "Because one salary must support many lives.",
+    text: "Who depends on your income?",
+    type: "options",
+    options: [
+      { label: "Just me",                              tag: "Living the dream", score: 0 },
+      { label: "Parents + me",                         tag: "The classic Indian setup", score: 2 },
+      { label: "Parents + wife",                       tag: "Multiplying fast", score: 3 },
+      { label: "Parents + wife + kids",                tag: "Full house, full pressure", score: 4 },
+      { label: "Everyone including relatives asking for loans", tag: "You are the bank", score: 5 },
+    ]
+  },
+  {
+    id: "worry_age",
+    caption: "For many men, adulthood starts early.",
+    text: "When did you start worrying about money?",
+    type: "options",
+    options: [
+      { label: "After graduation",                          tag: "Reasonable", score: 1 },
+      { label: "First job",                                 tag: "Fairly common", score: 2 },
+      { label: "When family started depending on me",       tag: "Responsibility arrived uninvited", score: 3 },
+      { label: 'Since childhood ("beta engineer banega na?")', tag: "Pressure was pre-installed", score: 4 },
+    ]
+  },
+  {
+    id: "health",
+    caption: "Providing often comes before self-care.",
+    text: "When did you last prioritize your own health?",
+    type: "options",
+    options: [
+      { label: "This week",            tag: "Rare but real", score: 0 },
+      { label: "Few months ago",       tag: "Getting there", score: 2 },
+      { label: "I don't remember",     tag: "Classic provider mode", score: 3 },
+      { label: "Health is for retirement", tag: "The most common answer", score: 4 },
+    ]
+  },
+  {
+    id: "pressure",
+    caption: "Society has strong expectations for men.",
+    text: "How much pressure do you feel to \"provide\"?",
+    type: "slider",
+    min: 0, max: 100, default: 50,
+    labelMin: "0 — Chill",
+    labelMax: "100 — Entire family depends on me",
+  }
+];
+
+let current = 0;
+let answers = {};
+
+function show(id) {
+  ["ppc-landing","ppc-quiz","ppc-result"].forEach(s => {
+    document.getElementById(s).classList.toggle("ppc-hidden", s !== id);
+  });
+}
+
+function startQuiz() {
+  current = 0;
+  answers = {};
+  show("ppc-quiz");
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[current];
+  const total = QUESTIONS.length;
+  const pct = Math.round((current / total) * 100);
+
+  document.getElementById("ppc-step-label").textContent = `Question ${current + 1} of ${total}`;
+  document.getElementById("ppc-pct-label").textContent = pct + "%";
+  document.getElementById("ppc-progress-fill").style.width = pct + "%";
+
+  const wrap = document.getElementById("ppc-card-wrap");
+  wrap.innerHTML = "";
+
+  const card = document.createElement("div");
+  card.className = "ppc-card";
+
+  if (q.type === "options") {
+    card.innerHTML = `
+      <p class="ppc-q-caption">${q.caption}</p>
+      <p class="ppc-q-text">${q.text}</p>
+      <div class="ppc-options" id="ppc-opts"></div>
+      <button class="ppc-next-btn" id="ppc-next" disabled onclick="nextQuestion()">
+        ${current < QUESTIONS.length - 1 ? "Next →" : "See My Result →"}
+      </button>`;
+    wrap.appendChild(card);
+
+    const opts = document.getElementById("ppc-opts");
+    q.options.forEach((opt, i) => {
+      const el = document.createElement("div");
+      el.className = "ppc-option" + (answers[q.id] === i ? " selected" : "");
+      el.innerHTML = `<div class="ppc-option-dot"></div>
+        <div class="ppc-option-label">${opt.label}<span class="ppc-option-tag">${opt.tag}</span></div>`;
+      el.onclick = () => {
+        document.querySelectorAll(".ppc-option").forEach(o => o.classList.remove("selected"));
+        el.classList.add("selected");
+        answers[q.id] = i;
+        document.getElementById("ppc-next").disabled = false;
+      };
+      if (answers[q.id] === i) el.classList.add("selected");
+      opts.appendChild(el);
+    });
+    if (answers[q.id] !== undefined) document.getElementById("ppc-next").disabled = false;
+
+  } else {
+    const saved = answers[q.id] ?? q.default;
+    card.innerHTML = `
+      <p class="ppc-q-caption">${q.caption}</p>
+      <p class="ppc-q-text">${q.text}</p>
+      <div class="ppc-slider-wrap">
+        <div class="ppc-slider-val" id="ppc-slider-val">${saved}</div>
+        <input type="range" class="ppc-slider" id="ppc-slider"
+          min="${q.min}" max="${q.max}" value="${saved}">
+        <div class="ppc-slider-labels">
+          <span>${q.labelMin}</span><span>${q.labelMax}</span>
+        </div>
+      </div>
+      <button class="ppc-next-btn" onclick="nextQuestion()">See My Result →</button>`;
+    wrap.appendChild(card);
+
+    const slider = document.getElementById("ppc-slider");
+    const valEl  = document.getElementById("ppc-slider-val");
+    slider.oninput = () => { valEl.textContent = slider.value; answers[q.id] = +slider.value; };
+    answers[q.id] = saved;
+  }
+}
+
+function nextQuestion() {
+  const q = QUESTIONS[current];
+  if (q.type === "slider") answers[q.id] = +document.getElementById("ppc-slider").value;
+
+  current++;
+  if (current < QUESTIONS.length) {
+    renderQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function calcScore() {
+  let score = 0;
+  QUESTIONS.forEach(q => {
+    if (q.type === "options") {
+      const idx = answers[q.id];
+      if (idx !== undefined) score += q.options[idx].score;
+    } else {
+      score += Math.round((answers[q.id] / 100) * 5);
+    }
+  });
+  return score; // max ~22
+}
+
+function showResult() {
+  const raw = calcScore();
+  const pct = Math.min(100, Math.round((raw / 22) * 100));
+
+  // Score ring colour
+  const ring = document.getElementById("ppc-score-ring");
+  ring.textContent = pct + "%";
+  ring.style.background = pct >= 70 ? "#ef4444" : pct >= 40 ? "#f59e0b" : "#22c55e";
+
+  // Band label
+  const band = document.getElementById("ppc-score-band");
+  if (pct >= 70) band.textContent = "High pressure — you're carrying a lot.";
+  else if (pct >= 40) band.textContent = "Moderate pressure — it adds up over time.";
+  else band.textContent = "Lower pressure — but the expectations are still real.";
+
+  // Personal note based on health answer
+  const healthIdx = answers["health"];
+  const noteEl = document.getElementById("ppc-personal-note");
+  if (healthIdx >= 2) {
+    noteEl.classList.remove("ppc-hidden");
+    noteEl.innerHTML = `<p>You mentioned you haven't prioritised your health in a while. That's one of the quietest costs of provider pressure — your own wellbeing gets deprioritised until it becomes a crisis.</p>
+      <p>A partnership means your health matters too. <a href="/consult-nutritionist" style="color:var(--accent);font-weight:600">Talk to a nutritionist →</a></p>`;
+  }
+
+  // Share links
+  const msg = encodeURIComponent("I took the \"Is There a Men's Day?\" quiz. Turns out society expects men to carry more than we talk about. https://healthymealspot.com/is-there-a-mens-day");
+  document.getElementById("share-x").href  = `https://twitter.com/intent/tweet?text=${msg}`;
+  document.getElementById("share-li").href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent("https://healthymealspot.com/is-there-a-mens-day")}`;
+  document.getElementById("share-wa").href = `https://wa.me/?text=${msg}`;
+
+  // Progress bar to 100%
+  document.getElementById("ppc-progress-fill").style.width = "100%";
+  document.getElementById("ppc-pct-label").textContent = "100%";
+
+  show("ppc-result");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function restartQuiz() {
+  current = 0;
+  answers = {};
+  show("ppc-quiz");
+  renderQuestion();
+}
+</script>
+<script src="/drawer-auth.js"></script>
+</body>
+</html>

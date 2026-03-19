@@ -9,6 +9,18 @@ const MAX_ATTEMPTS = 3;
 // In-memory OTP store: phone -> { otp, expires, attempts, name }
 const otpStore = new Map();
 
+function pruneOtpStore() {
+  const now = Date.now();
+  for (const [phone, entry] of otpStore) {
+    if (!entry || now > entry.expires || entry.attempts >= MAX_ATTEMPTS) {
+      otpStore.delete(phone);
+    }
+  }
+}
+
+const otpPruneTimer = setInterval(pruneOtpStore, 60 * 1000);
+if (typeof otpPruneTimer.unref === "function") otpPruneTimer.unref();
+
 function loadVerified() {
   try {
     return JSON.parse(fs.readFileSync(STORE_PATH, "utf8"));

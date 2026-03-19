@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script>if(window.innerWidth<=768)window.location.replace("/?tab=nutrition");</script>
+  <script>window.location.replace('/#nutrition');</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
   <title>Nutrition Hub | Healthy Meal Spot - Diet & Wellness Articles</title>
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/style.mobile.css" media="(max-width: 768px)">
   <meta name="description" content="Explore evidence-based nutrition advice, healthy recipes, weight loss tips, and wellness guides from the experts at Healthy Meal Spot.">
   <meta name="keywords" content="nutrition blog, healthy recipes, weight loss tips, medical nutrition, diet advice Navi Mumbai" />
   <meta property="og:title" content="Nutrition Hub | Healthy Meal Spot - Diet & Wellness Articles" />
@@ -21,42 +22,10 @@
 </head>
 <body>
 
-<header class="app-bar">
-  <a href="/" class="app-bar-brand" style="margin-left:-4px">
-    <img src="/favicon.png" alt="" class="app-bar-logo" width="48" height="48">
-  </a>
-  <div style="display:flex;align-items:center;gap:10px">
-    <span style="font-size:16px;font-weight:800;color:var(--text);white-space:nowrap">🌿 Nutrition Hub</span>
-    <div class="search-field" aria-label="Search articles" style="margin:0">
-      <i class="fa-solid fa-magnifying-glass"></i>
-      <input id="search-articles" type="search" inputmode="search" placeholder="Search articles..." autocomplete="off">
-      <button id="clear-search" class="clear-search" type="button" aria-label="Clear search">&#x2715;</button>
-    </div>
-  </div>
-  <div class="app-bar-actions">
-    <a href="/" class="top-nav-link app-bar-nav-link">🍽️ Menu</a>
-    <a href="/nutrition" class="top-nav-link app-bar-nav-link active">🌿 Nutrition</a>
-    <a href="/consult-nutritionist" class="top-nav-link app-bar-nav-link">🩺 Consult</a>
-    <a href="/about" class="top-nav-link app-bar-nav-link">About</a>
-    <a href="/profile" class="top-nav-link app-bar-nav-link">❤️ My Health</a>
-  </div>
-</header>
 
-<div id="menu-header-bar" style="display:block">
-  <div class="category-grid" id="nutrition-cat-grid">
-    <button class="category-card" onclick="filterCat('weight-loss')"><span class="cat-icon">⚖️</span>Weight Loss</button>
-    <button class="category-card" onclick="filterCat('muscle-gain')"><span class="cat-icon">💪</span>Muscle Gain</button>
-    <button class="category-card" onclick="filterCat('medical')"><span class="cat-icon">🩹</span>Medical Nutrition</button>
-    <button class="category-card" onclick="filterCat('recipes')"><span class="cat-icon">🍳</span>Healthy Recipes</button>
-    <button class="category-card" onclick="filterCat('myths')"><span class="cat-icon">🔎</span>Nutrition Myths</button>
-  </div>
-</div>
 
-<main>
-  <!-- SEO Context for the Pillar Page -->
-  <section class="seo-content" style="padding: 16px; margin: 0 auto; max-width: 800px; text-align: center; color: var(--text);">
-    <p>Welcome to the Nutrition Hub. Explore our expert-backed guides on building a healthier lifestyle. Whether you're looking for sustainable <button onclick="filterCat('weight-loss')" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:inherit;padding:0;font-family:inherit">Weight Loss</button> strategies, structured <button onclick="filterCat('muscle-gain')" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:inherit;padding:0;font-family:inherit">Muscle Gain</button> diet plans, specialized <button onclick="filterCat('medical')" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:inherit;padding:0;font-family:inherit">Medical Nutrition</button> advice for PCOS or Diabetes, delicious <button onclick="filterCat('recipes')" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:inherit;padding:0;font-family:inherit">Healthy Recipes</button>, or simply want to bust common <button onclick="filterCat('myths')" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:inherit;padding:0;font-family:inherit">Nutrition Myths</button>—we have you covered.</p>
-  </section>
+<main style="padding-top: 176px">
+  <section class="seo-content" style="padding: 8px 16px 16px; margin: 0 auto; max-width: 900px; text-align: center; color: var(--muted); font-size: 14px; display:none"></section>
 
 <!-- Articles -->
 <div class="articles-section">
@@ -130,21 +99,56 @@ function renderArticles(articles) {
     : '<div style="color:var(--muted);padding:20px">No articles yet. Check back soon!</div>';
 }
 
+function openNutritionSearch() {
+  const btn = document.getElementById('nutrition-search-btn');
+  const pill = document.getElementById('nutrition-search-pill');
+  const wrapper = document.getElementById('nutrition-search-wrapper');
+  btn.style.display = 'none';
+  pill.classList.add('open');
+  wrapper.classList.add('open');
+  document.getElementById('search-articles').focus();
+}
+function clearNutritionSearch() {
+  const btn = document.getElementById('nutrition-search-btn');
+  const pill = document.getElementById('nutrition-search-pill');
+  const wrapper = document.getElementById('nutrition-search-wrapper');
+  document.getElementById('search-articles').value = '';
+  btn.style.display = '';
+  pill.classList.remove('open');
+  wrapper.classList.remove('open');
+  renderArticles(_activeCat ? _allArticles.filter(a => a.category === _activeCat) : _allArticles);
+}
+function onNutritionSearchInput(q) {
+  const lq = q.trim().toLowerCase();
+  const base = _activeCat ? _allArticles.filter(a => a.category === _activeCat) : _allArticles;
+  renderArticles(lq ? base.filter(a => a.title.toLowerCase().includes(lq) || (a.excerpt||'').toLowerCase().includes(lq)) : base);
+}
+
 function filterCat(cat) {
-  _activeCat = cat;
+  const isToggleOff = _activeCat === cat;
+  _activeCat = isToggleOff ? null : cat;
+  // Update pill active states
+  document.querySelectorAll('#nutrition-cat-grid .category-card').forEach(btn => {
+    const on = btn.dataset.cat === _activeCat;
+    btn.classList.toggle('category-card--active', on);
+  });
   const title = document.getElementById('articles-section-title');
   const backBtn = document.getElementById('nutrition-back-btn');
   const si = document.getElementById('search-articles');
-  if (cat) {
-    if (title) title.textContent = CAT_LABELS[cat] || cat;
+  if (_activeCat) {
+    if (title) title.textContent = CAT_LABELS[_activeCat] || _activeCat;
     if (backBtn) backBtn.style.display = 'inline-block';
     if (si) si.value = '';
   } else {
     if (title) title.textContent = 'Latest Articles';
     if (backBtn) backBtn.style.display = 'none';
   }
-  renderArticles(cat ? _allArticles.filter(a => a.category === cat) : _allArticles);
-  document.querySelector('.articles-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  renderArticles(_activeCat ? _allArticles.filter(a => a.category === _activeCat) : _allArticles);
+  if (_activeCat) {
+    document.querySelector('.articles-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 }
 
 fetch('/blogs.json')
@@ -152,18 +156,6 @@ fetch('/blogs.json')
   .then(data => {
     _allArticles = data.articles || [];
     renderArticles(_allArticles);
-    const searchInput = document.getElementById('search-articles');
-    const clearBtn = document.getElementById('clear-search');
-    if (searchInput) {
-      searchInput.addEventListener('input', e => {
-        const q = e.target.value.trim().toLowerCase();
-        const base = _activeCat ? _allArticles.filter(a => a.category === _activeCat) : _allArticles;
-        renderArticles(q ? base.filter(a => a.title.toLowerCase().includes(q) || (a.excerpt||'').toLowerCase().includes(q)) : base);
-      });
-    }
-    if (clearBtn && searchInput) {
-      clearBtn.addEventListener('click', () => { searchInput.value = ''; filterCat(_activeCat); searchInput.focus(); });
-    }
   })
   .catch(() => {
     document.getElementById('article-cards').innerHTML = '<div style="color:var(--muted);padding:20px">Could not load articles.</div>';

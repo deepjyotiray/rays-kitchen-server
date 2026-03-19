@@ -2,19 +2,33 @@ const express = require("express");
 const fs = require("fs").promises;
 const path = require("path");
 const { invalidateCache } = require("../services/menuPdf.service");
+const { doubleCsrf } = require("csrf-csrf");
 
 const router = express.Router();
 
-const ADMIN_KEY = process.env.ADMIN_API_KEY || (process.env.NODE_ENV === "production" ? (() => { throw new Error("ADMIN_API_KEY required in production"); })() : "dev-only-admin-key");
+// ADMIN_API_KEY is guaranteed present by server.js startup check
+const ADMIN_KEY = process.env.ADMIN_API_KEY;
+
+const { generateToken, doubleCsrfProtection } = doubleCsrf({
+  getSecret: () => process.env.SESSION_SECRET || process.env.ADMIN_API_KEY,
+  cookieName: "__Host-psifi.x-csrf-token",
+  cookieOptions: { sameSite: "strict", secure: process.env.NODE_ENV === "production", httpOnly: true },
+});
+
+// Skip CSRF for API-key-authenticated requests; enforce for session-based ones
+function csrfUnlessApiKey(req, res, next) {
+  if (req.headers["x-admin-key"]) return next();
+  return doubleCsrfProtection(req, res, next);
+}
+
+// Expose CSRF token to the SPA
+router.get("/admin/csrf-token", (req, res) => {
+  res.json({ token: generateToken(req, res) });
+});
 
 const publicDir = path.join(__dirname, "..", "public");
 const configPath = path.join(__dirname, "..", "config", "app-state.json");
-
-const MENU_FILES = {
-  main: path.join(publicDir, "menu.json"),
-  corporate: path.join(publicDir, "corporate_menu.json"),
-  motd: path.join(publicDir, "menuOfTheDay.json"),
-};
+const BACKEND_BASE = process.env.ORDER_BACKEND_URL || "https://admin.healthymealspot.com";
 
 async function readJson(filePath, fallback = {}) {
   try {
@@ -31,16 +45,9 @@ async function writeJson(filePath, data) {
 }
 
 function requireAdmin(req, res, next) {
-  // Check session first
   if (req.session && req.session.isAdmin) return next();
-  
-  // Fallback to API key for backward compatibility
   const key = req.headers["x-admin-key"];
-  if (key && key === ADMIN_KEY) {
-    req.session.isAdmin = true;
-    return next();
-  }
-  
+  if (key && key === ADMIN_KEY) return next();
   res.status(401).json({ error: "Unauthorized" });
 }
 
@@ -51,7 +58,7 @@ router.get("/state", async (_req, res) => {
 });
 
 /* === ADMIN: STATE === */
-router.post("/admin/state", requireAdmin, async (req, res) => {
+router.post("/admin/state", requireAdmin, csrfUnlessApiKey, async (req, res) => {
   const current = await readJson(configPath, { kitchenClosedToday: false });
   const nextState = {
     ...current,
@@ -64,27 +71,45 @@ router.post("/admin/state", requireAdmin, async (req, res) => {
 /* === ADMIN: MENU LOAD/SAVE === */
 router.get("/admin/menu", requireAdmin, async (req, res) => {
   const type = (req.query.type || "main").toLowerCase();
-  const file = MENU_FILES[type];
-  if (!file) return res.status(400).json({ error: "Invalid menu type" });
-
-  const data = await readJson(file, null);
-  if (!data) return res.status(404).json({ error: "Menu not found" });
-
-  res.json({ type, menu: data });
+  if (!["main", "corporate", "motd"].includes(type)) {
+    return res.status(400).json({ error: "Invalid menu type" });
+  }
+  try {
+    const resp = await fetch(`${BACKEND_BASE}/admin/menu?type=${encodeURIComponent(type)}`, {
+      headers: { "x-admin-key": ADMIN_KEY },
+    });
+    const data = await resp.json();
+    res.status(resp.status).json(data);
+  } catch {
+    res.status(502).json({ error: "MENU_BACKEND_UNAVAILABLE" });
+  }
 });
 
-router.put("/admin/menu", requireAdmin, async (req, res) => {
+router.put("/admin/menu", requireAdmin, csrfUnlessApiKey, async (req, res) => {
   const type = (req.body.type || "").toLowerCase();
-  const file = MENU_FILES[type];
-  if (!file) return res.status(400).json({ error: "Invalid menu type" });
+  if (!["main", "corporate", "motd"].includes(type)) {
+    return res.status(400).json({ error: "Invalid menu type" });
+  }
 
   const menu = req.body.menu;
   if (!menu || typeof menu !== "object")
     return res.status(400).json({ error: "Menu payload missing" });
 
-  await writeJson(file, menu);
-  if (type === "main") invalidateCache();
-  res.json({ success: true, type });
+  try {
+    const resp = await fetch(`${BACKEND_BASE}/admin/menu`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "x-admin-key": ADMIN_KEY,
+      },
+      body: JSON.stringify({ type, menu }),
+    });
+    const data = await resp.json();
+    if (type === "main" && resp.ok) invalidateCache();
+    res.status(resp.status).json(data);
+  } catch {
+    res.status(502).json({ error: "MENU_BACKEND_UNAVAILABLE" });
+  }
 });
 
 module.exports = router;

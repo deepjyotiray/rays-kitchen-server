@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>window.location.replace('/#about');</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
   <title>About Healthy Meal Spot | Our Story & FSSAI Certification</title>
@@ -13,6 +14,7 @@
   <link rel="canonical" href="https://healthymealspot.com/about" />
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/style.mobile.css" media="(max-width: 768px)">
 </head>
 <body>
 
@@ -40,47 +42,7 @@
   </ul>
 </nav>
 
-<header class="app-bar">
-  <a href="/" class="app-bar-brand" style="margin-left:-4px">
-    <img src="/favicon.png" alt="" class="app-bar-logo" width="48" height="48">
-  </a>
-  <span style="font-size:16px;font-weight:800;color:var(--text)">About Healthy Meal Spot</span>
-  <div class="app-bar-actions">
-    <a href="/" class="top-nav-link app-bar-nav-link">🍽️ Menu</a>
-    <a href="/nutrition" class="top-nav-link app-bar-nav-link">🌿 Nutrition</a>
-    <a href="/consult-nutritionist" class="top-nav-link app-bar-nav-link">🩺 Consult</a>
-    <a href="/about" class="top-nav-link app-bar-nav-link active">About</a>
-    <a href="/profile" class="top-nav-link app-bar-nav-link">❤️ My Health</a>
-  </div>
-</header>
 
-<div id="menu-header-bar" style="display:block">
-  <div class="menu-header-top">
-    <h1 class="menu-header-title">Our Menu</h1>
-  </div>
-  <div class="menu-header-filters">
-    <div class="food-toggle-item" id="ft-veg" onclick="toggleFoodFilter('veg',this)">
-      <div class="food-toggle"><div class="food-toggle__toggle-strip"></div><div class="food-toggle__toggle-thumb"><img src="https://assets.mcdelivery.co.in/icons/veg-filter.svg" alt="ic-veg-filter" loading="lazy" style="object-fit:contain;width:16px;min-width:16px;max-width:16px;height:16px;min-height:16px;max-height:16px"></div></div>
-    </div>
-    <div class="food-toggle-item" id="ft-nonveg" onclick="toggleFoodFilter('nonveg',this)">
-      <div class="food-toggle"><div class="food-toggle__toggle-strip"></div><div class="food-toggle__toggle-thumb"><img src="https://assets.mcdelivery.co.in/icons/nonveg-filter.svg" alt="ic-nonveg-filter" loading="lazy" style="object-fit:contain;width:16px;min-width:16px;max-width:16px;height:16px;min-height:16px;max-height:16px"></div></div>
-    </div>
-    <div class="food-toggle-item" id="ft-egg" onclick="toggleFoodFilter('egg',this)">
-      <div class="food-toggle"><div class="food-toggle__toggle-strip"></div><div class="food-toggle__toggle-thumb"><img src="https://assets.mcdelivery.co.in/icons/egg-filter.svg" alt="ic-egg-filter" loading="lazy" style="object-fit:contain;width:16px;min-width:16px;max-width:16px;height:16px;min-height:16px;max-height:16px"></div></div>
-    </div>
-    <button class="top-sellers-tab" id="ft-topsellers" onclick="toggleTopSellers(this)" aria-pressed="false">Top Sellers</button>
-    <button id="menu-header-search-btn" class="menu-header-search-btn" onclick="openMenuSearch()" aria-label="Search" style="margin-left:auto">
-      <img src="https://assets.mcdelivery.co.in/icons/search-medium.svg" alt="ic-search-medium" loading="lazy" style="object-fit:contain;width:20px;min-width:20px;max-width:20px;height:20px;min-height:20px;max-height:20px">
-    </button>
-    <div id="menu-search-pill" class="menu-search-pill" style="display:none;margin-left:auto">
-      <div class="autocomplete-wrapper">
-        <input id="menu-search-inline" type="text" placeholder="Search here" enterkeyhint="search" maxlength="75" oninput="onMenuSearchInput(this.value)">
-        <div class="ghost-text"><span class="suggestion" role="button" tabindex="0"></span></div>
-      </div>
-      <button class="menu-search-clear" onclick="clearMenuSearch()" aria-label="Clear search">✕</button>
-    </div>
-  </div>
-</div>
 
 <section class="section about-section" style="margin-top:24px">
   <h2>About Us</h2>

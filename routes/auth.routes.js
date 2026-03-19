@@ -2,9 +2,22 @@ const express = require('express');
 const router = express.Router();
 
 const AGENT_URL = 'http://127.0.0.1:3001/send';
-const AGENT_SECRET = process.env.WHATSAPP_AGENT_SECRET || 'change-this-secret';
+const AGENT_SECRET = process.env.WHATSAPP_AGENT_SECRET;
 
 const otpStore = new Map();
+const OTP_TTL_MS = 5 * 60 * 1000;
+
+function pruneOtpStore() {
+  const now = Date.now();
+  for (const [mobile, entry] of otpStore) {
+    if (!entry || now > entry.expires || entry.attempts >= 3) {
+      otpStore.delete(mobile);
+    }
+  }
+}
+
+const otpPruneTimer = setInterval(pruneOtpStore, 60 * 1000);
+if (typeof otpPruneTimer.unref === 'function') otpPruneTimer.unref();
 
 function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -36,9 +49,7 @@ router.post('/send-otp', (req, res) => {
   }
 
   const otp = generateOTP();
-  const expires = Date.now() + 5 * 60 * 1000;
-
-  console.log(`\n=== OTP for ${mobile}: ${otp} ===\n`);
+  const expires = Date.now() + OTP_TTL_MS;
 
   otpStore.set(mobile, { otp, expires, attempts: 0 });
 

@@ -9,6 +9,7 @@
   <link rel="icon" href="/favicon.png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/style.mobile.css" media="(max-width: 768px)">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -320,19 +321,7 @@ function renderProfile() {
   if (u.diet) setActivePill('diet-pills', u.diet);
   if (u.goal) setActivePill('goal-pills', u.goal);
 
-  // Pill click handlers
-  document.getElementById('diet-pills').addEventListener('click', e => {
-    const pill = e.target.closest('.pill');
-    if (!pill) return;
-    setActivePill('diet-pills', pill.dataset.v);
-    savePreferences();
-  });
-  document.getElementById('goal-pills').addEventListener('click', e => {
-    const pill = e.target.closest('.pill');
-    if (!pill) return;
-    setActivePill('goal-pills', pill.dataset.v);
-    savePreferences();
-  });
+
 }
 
 function setActivePill(groupId, value) {
@@ -393,7 +382,7 @@ async function savePreferences() {
 
 async function patchUser(fields) {
   try {
-    await fetch('https://api.healthymealspot.com/users/register', {
+    await fetch('/users/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...currentUser, ...fields })
@@ -441,6 +430,19 @@ function showToast(msg) {
 }
 
 init();
+
+document.getElementById('diet-pills').addEventListener('click', e => {
+  const pill = e.target.closest('.pill');
+  if (!pill) return;
+  setActivePill('diet-pills', pill.dataset.v);
+  savePreferences();
+});
+document.getElementById('goal-pills').addEventListener('click', e => {
+  const pill = e.target.closest('.pill');
+  if (!pill) return;
+  setActivePill('goal-pills', pill.dataset.v);
+  savePreferences();
+});
 </script>
 </body>
 </html>

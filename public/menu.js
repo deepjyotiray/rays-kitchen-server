@@ -12,11 +12,15 @@ const SECTION_ICONS = {
   sweets: '🍮',
 };
 
-/* ================= ITEM IMAGES ================= */
-// Loaded from DB-backed API at runtime; populated on init
-let ITEM_IMAGES = {};
-fetch('/api/item-images').then(r => r.ok ? r.json() : {}).then(d => { ITEM_IMAGES = d; }).catch(() => {});
+/* ================= CATEGORY TAB IMAGES ================= */
+const SECTION_IMAGES = {};
+function getSectionImage(key) {
+  return SECTION_IMAGES[key] || null;
+}
 
+/* ================= ITEM IMAGES ================= */
+// Populated from menu data (image field on each item) + API fallback
+let ITEM_IMAGES = {};
 
 function getItemImage(name) {
   return ITEM_IMAGES[name] || null;
@@ -36,7 +40,11 @@ function renderCategoryTabs() {
     const btn = document.createElement('button');
     btn.className = 'category-tab';
     btn.dataset.key = k;
-    btn.innerHTML = `<span class="tab-icon">${getSectionIcon(k)}</span><span>${s.title}</span>`;
+    const img = getSectionImage(k);
+    const iconHtml = img
+      ? `<img src="${img}" alt="${s.title}" class="tab-img" loading="lazy">`
+      : `<span class="tab-icon">${getSectionIcon(k)}</span>`;
+    btn.innerHTML = `${iconHtml}<span>${s.title}</span>`;
     btn.addEventListener('click', () => scrollToSection(k));
     tabsEl.appendChild(btn);
   });
@@ -79,13 +87,24 @@ function updateActiveTab() {
   tabs.forEach(t => {
     const match = safeItemKey(t.dataset.key) === activeKey;
     t.classList.toggle('active', match);
-    if (match) {
-      t.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    if (match && t.dataset.autoScrolled !== '1') {
+      t.dataset.autoScrolled = '1';
+      t.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    } else if (!match) {
+      t.dataset.autoScrolled = '0';
     }
   });
 }
 
-window.addEventListener('scroll', updateActiveTab, { passive: true });
+let activeTabScrollQueued = false;
+window.addEventListener('scroll', () => {
+  if (activeTabScrollQueued) return;
+  activeTabScrollQueued = true;
+  window.requestAnimationFrame(() => {
+    activeTabScrollQueued = false;
+    updateActiveTab();
+  });
+}, { passive: true });
 
 window.ORDER_FOR_DATE = window.ORDER_FOR_DATE || new Date();
 
@@ -98,6 +117,7 @@ let baseFreeDeliveryTarget = freeDeliveryTarget;
 let menuData = {};
 let vegOnly = false;
 let selectedItems = {};
+let activeItemDetailDomKey = null;
 let orderDay = "today";
 let orderType = new Date().getHours() < 16 ? "Lunch" : "Dinner";
 const kitchenClosedToday = () => window.KITCHEN_CLOSED_TODAY === true;
@@ -135,6 +155,9 @@ let priceFilter = "all";
 let defaultSearchPlaceholder = "Search dishes, ingredients...";
 // let sectionContextLabel = "";
 let sectionContextRaf = false;
+let deliveryChargeInitScheduled = false;
+let backgroundDataInitScheduled = false;
+let lastMobileMenuMarkup = "";
 const TODAY_PREP_MINUTES = 60;
 const FUTURE_WINDOWS = {
   Lunch: "1:30 – 3:30 PM",
@@ -296,9 +319,47 @@ async function initDeliveryCharge() {
 function showLocationBlockedBanner() {}
 
 /* ================= HELPERS & MENU LOAD ================= */
-fetch("/coupons.json?v=" + Date.now())
-  .then((r) => r.json())
-  .then((d) => (coupons = d || {}));
+function scheduleBackgroundTask(task, delay = 200) {
+  const runTask = () => window.setTimeout(task, 0);
+  if (typeof window.requestIdleCallback === "function") {
+    window.requestIdleCallback(runTask, { timeout: Math.max(1000, delay) });
+    return;
+  }
+  window.setTimeout(runTask, delay);
+}
+
+function initBackgroundData() {
+  if (backgroundDataInitScheduled) return;
+  backgroundDataInitScheduled = true;
+
+  scheduleBackgroundTask(() => {
+    fetch("/coupons.json")
+      .then((r) => r.ok ? r.json() : {})
+      .then((d) => { coupons = d || {}; })
+      .catch(() => {});
+  }, 200);
+
+  scheduleBackgroundTask(() => {
+    fetch('/api/item-images')
+      .then(r => r.ok ? r.json() : {})
+      .then(d => {
+        ITEM_IMAGES = d || {};
+        if (Object.keys(menuData).length) renderMenu();
+      })
+      .catch(() => {});
+  }, 400);
+
+  scheduleBackgroundTask(() => {
+    fetch('/api/section-images')
+      .then(r => r.ok ? r.json() : {})
+      .then(d => {
+        Object.assign(SECTION_IMAGES, d || {});
+        renderCategoryTabs();
+        if (typeof buildMobileCatSidebar === 'function') buildMobileCatSidebar();
+      })
+      .catch(() => {});
+  }, 600);
+}
 
 function safeItemKey(id) {
   return id.replace(/[^a-zA-Z0-9_-]/g, "_");
@@ -352,54 +413,261 @@ const isCorporatePage = window.location.pathname
   .toLowerCase()
   .includes("corporate");
 
-const MENU_FILE = isCorporatePage ? "corporate_menu.json" : "menu.json";
+// Snapshot of last-seen kitchen state for change detection
+let _lastKitchenState = null;
 
 async function refreshKitchenState() {
   try {
     const res = await fetch("/api/state");
     if (!res.ok) throw new Error("STATE_LOAD_FAILED");
     const data = await res.json();
-    window.KITCHEN_CLOSED_TODAY = !!data.kitchenClosedToday;
-    kitchenClosures = Array.isArray(data.closures) ? data.closures : [];
+    const newClosed = !!data.kitchenClosedToday;
+    const newClosures = Array.isArray(data.closures) ? data.closures : [];
+    const newHash = newClosed + '|' + JSON.stringify(newClosures);
+    const stateChanged = _lastKitchenState !== newHash;
+    _lastKitchenState = newHash;
+
+    window.KITCHEN_CLOSED_TODAY = newClosed;
+    kitchenClosures = newClosures;
     window.KITCHEN_CLOSURES = kitchenClosures;
     syncOrderDayFromDate();
     updateEtaLabel();
     syncCartVisibility();
     if (typeof renderCalendar === "function") renderCalendar();
     if (typeof updateSelectedLabel === "function") updateSelectedLabel();
+    // Only re-render when state actually changed and menu is already loaded
+    if (stateChanged && Object.keys(menuData).length) renderMenu();
   } catch (e) {
     syncOrderDayFromDate();
   }
 }
 
-async function fetchMenuData() {
-  try {
-    // Try API first for dynamic menu with macros
-    const apiUrl = isCorporatePage ? 
-      "https://api.healthymealspot.com/menu?type=corporate" : 
-      "https://api.healthymealspot.com/menu?type=main";
-    
-    const apiRes = await fetch(apiUrl);
-    if (apiRes.ok) {
-      const apiData = await apiRes.json();
-      menuData = apiData.menu || apiData;
-      renderMenu();
-      return;
-    }
-  } catch (err) {
-    console.warn("API menu load failed, falling back to JSON:", err);
+// O(1) lookup: domKey → { id, sectionKey, item }
+let menuIndex = new Map();
+
+function createMenuItemId(sectionKey, item, itemIndex) {
+  return `${sectionKey}__${itemIndex}__${item.name}`;
+}
+
+function parseMenuItemId(itemId) {
+  const parts = String(itemId || "").split("__");
+  return {
+    sectionKey: parts[0] || "",
+    itemIndex: Number(parts[1]),
+  };
+}
+
+function buildMenuIndex() {
+  menuIndex = new Map();
+  Object.entries(menuData).forEach(([sectionKey, s]) => {
+    (s.items || []).forEach((item, itemIndex) => {
+      const id = createMenuItemId(sectionKey, item, itemIndex);
+      menuIndex.set(safeItemKey(id), { id, sectionKey, item });
+    });
+  });
+}
+
+function getQtyBoxMarkup({ domKey, qty, available, closed, hasConfiguredChoices }) {
+  if (hasConfiguredChoices) {
+    return `<button class="add-btn customize-btn" data-available="${available}" data-item-id="${domKey}" ${!available || closed ? "disabled" : ""} aria-label="Customize item"><span class="add-text">${qty > 0 ? "Added" : "Options"}</span></button>`;
   }
-  
-  // Fallback to JSON file
+  if (qty === 0) {
+    return `<button class="add-btn" data-available="${available}" data-item-id="${domKey}" ${!available || closed ? "disabled" : ""} aria-label="Add"><span class="add-text">ADD</span><span class="add-plus">+</span></button>`;
+  }
+  return `<div class="qty-control" data-available="${available}">
+    <span class="qty-minus" data-item-id="${domKey}" ${closed ? 'style="pointer-events:none;opacity:0.4"' : ""}>\u2212</span>
+    <span class="qty-count">${qty}</span>
+    <span class="qty-plus" data-item-id="${domKey}" ${closed ? 'style="pointer-events:none;opacity:0.4"' : ""}>+</span>
+  </div>`;
+}
+
+function normalizeCustomizationGroups(groups) {
+  if (!Array.isArray(groups)) return [];
+  return groups
+    .map((group, index) => {
+      const title = String(group?.title || group?.name || `Customization ${index + 1}`).trim();
+      const type = group?.type === "multi" ? "multi" : "single";
+      const required = group?.required === true;
+      const options = Array.isArray(group?.options)
+        ? group.options
+            .map((option) => ({
+              name: String(option?.name || option?.label || "").trim(),
+              price: Number(option?.price) || 0,
+              default: option?.default === true,
+            }))
+            .filter((option) => option.name)
+        : [];
+      if (!title || !options.length) return null;
+      return { title, type, required, options };
+    })
+    .filter(Boolean);
+}
+
+function itemHasCustomizations(item) {
+  return normalizeCustomizationGroups(item?.customizations).length > 0;
+}
+
+function getItemCartEntries(baseId) {
+  return Object.entries(selectedItems).filter(
+    ([itemId, item]) => (item?.baseId || itemId) === baseId
+  );
+}
+
+function getItemCartQty(baseId) {
+  return getItemCartEntries(baseId).reduce((sum, [, item]) => sum + (Number(item?.qty) || 0), 0);
+}
+
+function getCustomizationSelectionSummary(selectedCustomizations = []) {
+  return (selectedCustomizations || [])
+    .filter((group) => Array.isArray(group?.selections) && group.selections.length)
+    .map((group) => `${group.title}: ${group.selections.map((option) => option.name).join(", ")}`);
+}
+
+function getCustomizationPriceDelta(selectedCustomizations = []) {
+  return (selectedCustomizations || []).reduce(
+    (sum, group) =>
+      sum +
+      (group?.selections || []).reduce(
+        (groupSum, option) => groupSum + (Number(option?.price) || 0),
+        0
+      ),
+    0
+  );
+}
+
+function buildConfiguredCartItemId(baseId, selectedCustomizations = []) {
+  const signature = getCustomizationSelectionSummary(selectedCustomizations)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join(" | ");
+  return signature ? `${baseId}::${safeItemKey(signature)}` : baseId;
+}
+
+function ensureSelectedItemDefaults(id, name, price) {
+  if (!selectedItems[id]) {
+    selectedItems[id] = {
+      baseId: id,
+      name,
+      price,
+      basePrice: price,
+      qty: 0,
+      extras: {},
+      selectedCustomizations: [],
+      customizationPriceDelta: 0,
+    };
+  }
+  selectedItems[id].extras ||= {};
+  selectedItems[id].selectedCustomizations ||= [];
+  selectedItems[id].baseId ||= id.includes("::") ? id.split("::")[0] : id;
+  if (selectedItems[id].basePrice === undefined) {
+    selectedItems[id].basePrice = price;
+  }
+}
+
+function addConfiguredItemToCart(baseId, item, selectedCustomizations = []) {
+  const normalizedSelections = (selectedCustomizations || [])
+    .filter((group) => Array.isArray(group?.selections) && group.selections.length)
+    .map((group) => ({
+      title: String(group.title || "").trim(),
+      type: group.type === "multi" ? "multi" : "single",
+      selections: group.selections.map((option) => ({
+        name: String(option?.name || "").trim(),
+        price: Number(option?.price) || 0,
+      })),
+    }))
+    .filter((group) => group.title && group.selections.length);
+  const customizationPriceDelta = getCustomizationPriceDelta(normalizedSelections);
+  const cartItemId = buildConfiguredCartItemId(baseId, normalizedSelections);
+  const unitPrice = (Number(item?.price) || 0) + customizationPriceDelta;
+  if (!selectedItems[cartItemId]) {
+    selectedItems[cartItemId] = {
+      baseId,
+      name: item?.name || "",
+      price: unitPrice,
+      basePrice: Number(item?.price) || 0,
+      qty: 0,
+      extras: {},
+      selectedCustomizations: normalizedSelections,
+      customizationPriceDelta,
+    };
+  }
+  selectedItems[cartItemId].qty += 1;
+  selectedItems[cartItemId].selectedCustomizations = normalizedSelections;
+  selectedItems[cartItemId].customizationPriceDelta = customizationPriceDelta;
+  selectedItems[cartItemId].price = unitPrice;
+  lastAddedItemId = cartItemId;
+  if (cartHighlightTimer) clearTimeout(cartHighlightTimer);
+  cartHighlightTimer = setTimeout(() => {
+    if (lastAddedItemId === cartItemId) {
+      lastAddedItemId = null;
+      updateCart();
+    }
+  }, 900);
+  flashMenuItem(baseId);
+  if (typeof showToast === "function") {
+    showToast("Item added to cart !");
+  }
+  if (navigator?.vibrate) {
+    navigator.vibrate(12);
+  }
+  updateCart();
+  updateMenuQtyUI(baseId);
+}
+
+window.getMenuEntryByDomKey = function (domKey) {
+  return menuIndex.get(domKey) || null;
+};
+
+window.getMenuItemCartQty = function (baseId) {
+  return getItemCartQty(baseId);
+};
+
+window.addConfiguredMenuItem = function ({ domKey, selectedCustomizations = [] } = {}) {
+  const entry = menuIndex.get(domKey);
+  if (!entry) return false;
+  addConfiguredItemToCart(entry.id, entry.item, selectedCustomizations);
+  return true;
+};
+
+window.getMenuItemDetailState = function (domKey) {
+  const entry = menuIndex.get(domKey);
+  if (!entry) return null;
+  activeItemDetailDomKey = domKey;
+  return {
+    domKey,
+    baseId: entry.id,
+    name: entry.item?.name || "",
+    price: Number(entry.item?.price) || 0,
+    qty: getItemCartQty(entry.id),
+    customizations: normalizeCustomizationGroups(entry.item?.customizations),
+  };
+};
+
+window.addActiveMenuItemDetailToCart = function (selectedCustomizations = []) {
+  if (!activeItemDetailDomKey) return false;
+  return window.addConfiguredMenuItem({
+    domKey: activeItemDetailDomKey,
+    selectedCustomizations,
+  });
+};
+
+window.clearActiveMenuItemDetail = function () {
+  activeItemDetailDomKey = null;
+};
+
+async function fetchMenuData() {
+  const url = isCorporatePage ? "/menu.json?type=corporate" : "/menu.json";
   try {
-    const res = await fetch(MENU_FILE);
+    const res = await fetch(url);
     if (!res.ok) throw new Error("MENU_LOAD_FAILED");
     const data = await res.json();
     menuData = data.menu || data;
+    buildMenuIndex();
     renderMenu();
   } catch (err) {
     console.error("Failed to load menu:", err);
     menuData = {};
+    buildMenuIndex();
     renderMenu();
   }
 }
@@ -407,14 +675,33 @@ async function fetchMenuData() {
 (async function initApp() {
   window.ORDER_FOR_DATE = getTodayStart();
   syncOrderDayFromDate();
-  try {
-    await refreshKitchenState();
-  } catch (e) {
-    console.warn("Kitchen state load failed", e);
-  }
-  await fetchMenuData();
-  await loadExistingUser();
+  // fetchMenuData() calls renderMenu() once when data is ready.
+  // refreshKitchenState() only re-renders if state flags changed (handled inside).
+  await Promise.allSettled([
+    fetchMenuData(),
+    refreshKitchenState(),
+    loadExistingUser(),
+  ]);
 })();
+
+function scheduleDeliveryChargeInit() {
+  if (deliveryChargeInitScheduled) return;
+  deliveryChargeInitScheduled = true;
+
+  const run = () => {
+    window.setTimeout(() => {
+      initDeliveryCharge();
+    }, 0);
+  };
+
+  window.requestAnimationFrame(() => {
+    if (typeof window.requestIdleCallback === "function") {
+      window.requestIdleCallback(run, { timeout: 1500 });
+      return;
+    }
+    window.setTimeout(run, 200);
+  });
+}
 
 /* ---------- RENDER MENU ---------- */
 function renderMenu() {
@@ -484,29 +771,33 @@ function renderMenu() {
       }" id="grid-${k}">
         ${filteredItems.length
           ? filteredItems
-          .map((i) => {
-            const itemId = `${k}__${i.name}`;
+          .map((i, itemIndex) => {
+            const itemId = createMenuItemId(k, i, itemIndex);
             const itemDomKey = safeItemKey(itemId);
             const extrasId = `extras-${itemDomKey}`;
             const hasExtras = s.note && s.note["Extras available"];
-            const inCart = selectedItems[itemId]?.qty > 0;
-            const qty = selectedItems[itemId]?.qty || 0;
+            const hasConfiguredChoices = itemHasCustomizations(i);
+            const inCart = getItemCartQty(itemId) > 0;
+            const qty = getItemCartQty(itemId);
             // const minusDisabledAttr =
               !available || qty <= 0 ? "disabled" : "";
             const plusDisabledAttr = !available || kitchenClosed ? "disabled" : "";
             const minusDisabledAttr = !available || kitchenClosed ? "disabled" : "";
             const plusActiveClass =
               qty > 0 && available ? " qty-plus-active" : "";
+            const customizationData = encodeURIComponent(
+              JSON.stringify(normalizeCustomizationGroups(i.customizations))
+            );
 
             const imgSrc = getItemImage(i.name);
             const imgHtml = imgSrc
-              ? `<div class="item-img-wrap"><img src="${imgSrc}" alt="${i.name}" loading="lazy"></div>`
+              ? `<div class="item-img-wrap"><img src="${imgSrc}" alt="${i.name}" loading="lazy" onload="this.parentNode.style.animation='none';this.parentNode.style.background='none'"></div>`
               : `<div class="item-img-wrap"><div class="item-img-placeholder">${getSectionIcon(k)}</div></div>`;
 
             return `
               <div class="menu-item ${!available ? "disabled" : ""} ${kitchenClosed ? "kitchen-closed" : ""} ${
               inCart ? "menu-item-in-cart" : ""
-            }" data-item-key="${itemDomKey}" ${i.calories ? `data-calories="${i.calories}" data-protein="${i.protein || 0}" data-carbs="${i.carbs || 0}" data-fat="${i.fat || 0}"` : ''}>
+            }" data-item-key="${itemDomKey}" data-item-id="${itemId.replace(/"/g, '&quot;')}" data-price="${Number(i.price) || 0}" data-customizations="${customizationData}" ${i.calories ? `data-calories="${i.calories}" data-protein="${i.protein || 0}" data-carbs="${i.carbs || 0}" data-fat="${i.fat || 0}"` : ''} ${i.servedWith ? `data-served-with="${String(i.servedWith).replace(/"/g, '&quot;')}"` : ''}>
                 ${imgHtml}
                 <div class="item-content">
                   <div class="item-indicator-top">
@@ -519,6 +810,7 @@ function renderMenu() {
                   </div>
 
                   <div class="item-desc">${i.description || ''}</div>
+                  ${i.servedWith ? `<div class="item-served-with">${i.servedWith}</div>` : ''}
 
                   <div class="item-price-row">
                     <div class="item-price">
@@ -529,16 +821,9 @@ function renderMenu() {
                       }
                     </div>
                     <div class="qty-box">
-                      ${qty === 0 ?
-                        `<button class="add-btn" data-item-key="${itemDomKey}" data-available="${available}" data-item-id="${itemDomKey}" ${plusDisabledAttr} aria-label="Add">
-                          <span class="add-text">ADD</span>
-                          <span class="add-plus">+</span>
-                        </button>` :
-                        `<div class="qty-control" data-item-key="${itemDomKey}" data-available="${available}">
-                        <span class="qty-minus" data-item-id="${itemDomKey}" ${minusDisabledAttr ? 'style="pointer-events:none;opacity:0.4"' : ''}>\u2212</span>
-                        <span class="qty-count">${qty}</span>
-                        <span class="qty-plus" data-item-id="${itemDomKey}" ${plusDisabledAttr ? 'style="pointer-events:none;opacity:0.4"' : ''}>+</span>
-                        </div>`
+                      ${hasConfiguredChoices
+                        ? getQtyBoxMarkup({ domKey: itemDomKey, qty, available, closed: kitchenClosed, hasConfiguredChoices })
+                        : getQtyBoxMarkup({ domKey: itemDomKey, qty, available, closed: kitchenClosed, hasConfiguredChoices })
                       }
                     </div>
                   </div>
@@ -589,14 +874,23 @@ function renderMenu() {
   // Sync mobile menu pane whenever menu re-renders (mobile only)
   const _ip = document.getElementById('mobile-menu-items');
   if (_ip && window.innerWidth <= 768) {
-    _ip.innerHTML = c.innerHTML;
-    _ip.querySelectorAll('.scroll-reveal').forEach(el => { el.classList.remove('scroll-reveal'); el.classList.add('revealed'); });
-    if (typeof bindMenuItemEvents === 'function') bindMenuItemEvents(_ip);
+    const nextMarkup = c.innerHTML;
+    if (lastMobileMenuMarkup !== nextMarkup) {
+      _ip.innerHTML = nextMarkup;
+      lastMobileMenuMarkup = nextMarkup;
+      _ip.querySelectorAll('.scroll-reveal').forEach(el => { el.classList.remove('scroll-reveal'); el.classList.add('revealed'); });
+      if (_ip._menuEventsController) _ip._menuEventsController.abort();
+      const mobileController = new AbortController();
+      _ip._menuEventsController = mobileController;
+      if (typeof bindMenuItemEvents === 'function') bindMenuItemEvents(_ip, mobileController.signal);
+      window._mobileMenuNeedsSidebarRefresh = true;
+    }
   }
   if (c._menuEventsController) c._menuEventsController.abort();
   const controller = new AbortController();
   c._menuEventsController = controller;
   bindMenuItemEvents(c, controller.signal);
+  scheduleDeliveryChargeInit();
 }
 
 function bindMenuItemEvents(container, signal) {
@@ -605,20 +899,16 @@ function bindMenuItemEvents(container, signal) {
     const btn = e.target.closest(".add-btn[data-item-id]");
     if (btn) {
       if (btn.disabled || kitchenClosedToday()) return;
-      const domKey = btn.dataset.itemId;
-      const itemEl = btn.closest(".menu-item");
-      if (!itemEl) return;
-      const [sectionKey] = domKey.split("__");
-      const realId = Object.keys(menuData).reduce((found, k) => {
-        if (found) return found;
-        const item = (menuData[k]?.items || []).find(i => safeItemKey(`${k}__${i.name}`) === domKey);
-        return item ? `${k}__${item.name}` : null;
-      }, null);
-      if (!realId) return;
-      const [sk, ...nameParts] = realId.split("__");
-      const itemName = nameParts.join("__");
-      const menuItem = (menuData[sk]?.items || []).find(i => i.name === itemName);
-      if (menuItem) updateQty(realId, menuItem.name, menuItem.price, 1);
+      const entry = menuIndex.get(btn.dataset.itemId);
+      if (!entry) return;
+      if (itemHasCustomizations(entry.item)) {
+        const itemEl = btn.closest(".menu-item");
+        if (itemEl && typeof window.openItemDetail === "function") {
+          window.openItemDetail(itemEl);
+        }
+        return;
+      }
+      updateQty(entry.id, entry.item.name, entry.item.price, 1);
       return;
     }
     const minus = e.target.closest(".qty-minus[data-item-id]");
@@ -626,31 +916,17 @@ function bindMenuItemEvents(container, signal) {
     const target = minus || plus;
     if (target) {
       if (kitchenClosedToday()) return;
-      const domKey = target.dataset.itemId;
-      const realId = Object.keys(menuData).reduce((found, k) => {
-        if (found) return found;
-        const item = (menuData[k]?.items || []).find(i => safeItemKey(`${k}__${i.name}`) === domKey);
-        return item ? `${k}__${item.name}` : null;
-      }, null);
-      if (!realId) return;
-      const [sk, ...nameParts] = realId.split("__");
-      const itemName = nameParts.join("__");
-      const menuItem = (menuData[sk]?.items || []).find(i => i.name === itemName);
-      if (menuItem) updateQty(realId, menuItem.name, menuItem.price, minus ? -1 : 1);
+      const entry = menuIndex.get(target.dataset.itemId);
+      if (!entry) return;
+      updateQty(entry.id, entry.item.name, entry.item.price, minus ? -1 : 1);
     }
   }, opts);
   container.addEventListener("change", (e) => {
     const input = e.target.closest("input[data-item-id][data-extra-name]");
     if (!input) return;
-    const domKey = input.dataset.itemId;
-    const extraName = decodeURIComponent(input.dataset.extraName);
-    const extraPrice = Number(input.dataset.extraPrice);
-    const realId = Object.keys(menuData).reduce((found, k) => {
-      if (found) return found;
-      const item = (menuData[k]?.items || []).find(i => safeItemKey(`${k}__${i.name}`) === domKey);
-      return item ? `${k}__${item.name}` : null;
-    }, null);
-    if (realId) toggleExtra(realId, extraName, extraPrice, input.checked);
+    const entry = menuIndex.get(input.dataset.itemId);
+    if (!entry) return;
+    toggleExtra(entry.id, decodeURIComponent(input.dataset.extraName), Number(input.dataset.extraPrice), input.checked);
   }, opts);
 }
 
@@ -668,8 +944,8 @@ window.toggleSection = function (key) {
 
 /* ---------- UPDATE QTY ---------- */
 function updateQty(id, name, price, delta) {
-  if (!selectedItems[id])
-    selectedItems[id] = { name, price, qty: 0, extras: {} };
+  const baseIdBeforeChange = selectedItems[id]?.baseId || id;
+  ensureSelectedItemDefaults(id, name, price);
 
   selectedItems[id].qty += delta;
 
@@ -707,7 +983,7 @@ function updateQty(id, name, price, delta) {
   }
 
   updateCart();
-  updateMenuQtyUI(id);
+  updateMenuQtyUI(baseIdBeforeChange);
   
   // Dispatch cart update event for MOTD
   if (typeof window.dispatchEvent === "function") {
@@ -716,60 +992,14 @@ function updateQty(id, name, price, delta) {
 }
 
 function updateMenuQtyUI(itemId) {
-  const qty = selectedItems[itemId]?.qty || 0;
+  const entry = menuIndex.get(safeItemKey(itemId));
+  const hasConfiguredChoices = itemHasCustomizations(entry?.item);
+  const qty = hasConfiguredChoices ? getItemCartQty(itemId) : selectedItems[itemId]?.qty || 0;
   const domKey = safeItemKey(itemId);
-  const qtyBox = document.querySelector(
-    `.menu-item[data-item-key="${domKey}"] .qty-box`
-  );
-  
-  if (qtyBox) {
-    const available = qtyBox.querySelector('[data-available]')?.dataset.available !== 'false';
-    const closed = kitchenClosedToday();
-    
-    // Get item details from menu data
-    const [sectionKey, ...nameParts] = itemId.split('__');
-    const itemName = nameParts.join('__');
-    const section = menuData[sectionKey];
-    const menuItem = section?.items?.find(item => item.name === itemName);
-    const itemName2 = menuItem?.name || '';
-    const itemPrice = menuItem?.price || 0;
-    
-    qtyBox.innerHTML = "";
-    if (qty === 0) {
-      const btn = document.createElement("button");
-      btn.className = "add-btn";
-      btn.dataset.available = available;
-      btn.dataset.itemId = domKey;
-      if (!available || closed) btn.disabled = true;
-      btn.setAttribute("aria-label", "Add item");
-      btn.innerHTML = '<span class="add-text">ADD</span><span class="add-plus">+</span>';
-      qtyBox.appendChild(btn);
-    } else {
-      const ctrl = document.createElement("div");
-      ctrl.className = "qty-control";
-      ctrl.dataset.available = available;
-      const minus = document.createElement("span");
-      minus.className = "qty-minus";
-      minus.dataset.itemId = domKey;
-      minus.textContent = "\u2212";
-      if (closed) minus.style.cssText = "pointer-events:none;opacity:0.4";
-      const count = document.createElement("span");
-      count.className = "qty-count";
-      count.textContent = qty;
-      const plus = document.createElement("span");
-      plus.className = "qty-plus";
-      plus.dataset.itemId = domKey;
-      plus.textContent = "+";
-      if (closed) plus.style.cssText = "pointer-events:none;opacity:0.4";
-      ctrl.append(minus, count, plus);
-      qtyBox.appendChild(ctrl);
-    }
-  }
-
-  // Also update all matching panes (mobile-menu-items, etc.)
+  const closed = kitchenClosedToday();
   document.querySelectorAll(`.menu-item[data-item-key="${domKey}"] .qty-box`).forEach(box => {
-    if (box === qtyBox) return;
-    box.innerHTML = qtyBox ? qtyBox.innerHTML : '';
+    const available = box.querySelector('[data-available]')?.dataset.available !== 'false';
+    box.innerHTML = getQtyBoxMarkup({ domKey, qty, available, closed, hasConfiguredChoices });
     const parentItem = box.closest('.menu-item');
     if (parentItem) parentItem.classList.toggle('menu-item-in-cart', qty > 0);
   });
@@ -857,9 +1087,9 @@ function toggleExtra(itemId, extraName, extraPrice, checked) {
 function cleanupUnavailableSelections() {
   if (kitchenClosedToday()) { selectedItems = {}; return; }
   Object.keys(selectedItems).forEach((id) => {
-    const sectionKey = id.split("__")[0];
+    const { sectionKey, itemIndex } = parseMenuItemId(id);
     const section = menuData[sectionKey];
-    const item = (section?.items || []).find((i) => `${sectionKey}__${i.name}` === id);
+    const item = Number.isInteger(itemIndex) ? (section?.items || [])[itemIndex] : null;
     if (!id.startsWith("motd__") && item && item.available === false) {
       delete selectedItems[id];
     }
@@ -886,6 +1116,7 @@ function updateCart() {
     let extrasCost = 0;
     const highlightClass =
       lastAddedItemId && lastAddedItemId === itemId ? " cart-row-highlight" : "";
+    const customizationLines = getCustomizationSelectionSummary(i.selectedCustomizations);
 
     if (i.extras)
       Object.values(i.extras).forEach((p) => (extrasCost += p * i.qty));
@@ -904,6 +1135,12 @@ function updateCart() {
     title.className = "cart-item-title";
     title.textContent = i.name;
     cartItem.appendChild(title);
+    if (customizationLines.length) {
+      const customizationEl = document.createElement("div");
+      customizationEl.className = "cart-item-extras";
+      customizationEl.textContent = customizationLines.join(" • ");
+      cartItem.appendChild(customizationEl);
+    }
     if (i.extras && Object.keys(i.extras).length) {
       const extrasEl = document.createElement("div");
       extrasEl.className = "cart-item-extras";
@@ -1426,23 +1663,16 @@ window.addOrderToCart = function(orderId, itemsText) {
         const quantity = parseInt(qty);
         const itemPrice = parseInt(price) / quantity; // Get unit price
         
-        // Find matching menu item
+        // Find matching menu item via index (O(n) over index values, avoids nested loops)
         let found = false;
-        Object.entries(menuData).forEach(([sectionKey, section]) => {
-          if (found) return;
-          const menuItem = section.items?.find(item => 
-            item.name.toLowerCase().trim() === itemName.toLowerCase().trim()
-          );
-          if (menuItem) {
-            const itemId = `${sectionKey}__${menuItem.name}`;
-            // Add to cart
-            for (let i = 0; i < quantity; i++) {
-              updateQty(itemId, menuItem.name, menuItem.price, 1);
-            }
+        for (const entry of menuIndex.values()) {
+          if (entry.item.name.toLowerCase().trim() === itemName.toLowerCase().trim()) {
+            for (let i = 0; i < quantity; i++) updateQty(entry.id, entry.item.name, entry.item.price, 1);
             addedCount++;
             found = true;
+            break;
           }
-        });
+        }
       }
     });
     
@@ -2088,6 +2318,7 @@ async function placeFinalOrder() {
   /* ✅ Build Items (Menu extras stay ONLY here) */
   Object.entries(selectedItems).forEach(([id, item]) => {
     let extrasText = "";
+    const customizationText = getCustomizationSelectionSummary(item.selectedCustomizations).join(", ");
 
     if (item.extras && Object.keys(item.extras).length) {
       extrasText = Object.keys(item.extras)
@@ -2105,8 +2336,11 @@ async function placeFinalOrder() {
 
     subtotal += lineTotal;
 
+    const detailParts = [];
+    if (customizationText) detailParts.push(customizationText);
+    if (extrasText) detailParts.push(extrasText);
     itemsText += `• ${item.name} x ${item.qty}${
-      extrasText ? ` (${extrasText})` : ""
+      detailParts.length ? ` (${detailParts.join("; ")})` : ""
     } = ₹${lineTotal}\n`;
   });
 
@@ -2374,13 +2608,13 @@ function handleCartScroll() {
 
 document.addEventListener("DOMContentLoaded", () => {
   checkSession();
-  initDeliveryCharge();
   setupFilters();
   setupParallax();
   setupCartTouch();
   setupCartFocusGuards();
   setupCartOutsideTouch();
   bindSectionContextListeners();
+  initBackgroundData();
 });
 
 async function checkSession() {
