@@ -204,26 +204,56 @@ schedulePrune(() => {
   pruneExpiredEntries(geoCache, (entry) => !entry || Date.now() - entry.ts >= GEO_CACHE_TTL_MS, GEO_CACHE_MAX_ENTRIES);
 }, 30 * 60 * 1000);
 
+// ip -> { geo, firstSeen, lastSeen, count, lastMethod, lastPath, lastUa }
+const accessMap = new Map();
+const ACCESS_LOG_TTL_MS = 24 * 60 * 60 * 1000;
+
+function flushAccessLog() {
+  const now = Date.now();
+  for (const [ip, entry] of accessMap) {
+    if (now - entry.lastSeen > ACCESS_LOG_TTL_MS) accessMap.delete(ip);
+  }
+  if (accessMap.size === 0) return;
+  ensureLogDir();
+  const lines = [...accessMap.entries()]
+    .map(([ip, e]) =>
+      `ip=${ip} geo="${e.geo}" first=${e.firstSeen} last=${e.lastSeen} count=${e.count} method=${e.lastMethod} path="${e.lastPath}" ua="${e.lastUa}"`
+    )
+    .join("\n") + "\n";
+  fsSync.writeFile(ACCESS_LOG, lines, { encoding: "utf8" }, () => {});
+}
+
 if (enableGeoLogs) {
   app.use(async (req, _res, next) => {
-    ensureLogDir();
     const ip =
       (req.headers["x-forwarded-for"] || "").toString().split(",")[0].trim() ||
       req.ip ||
       req.connection?.remoteAddress ||
       "unknown";
-    const ua = (req.headers["user-agent"] || "").toString().replace(/\s+/g, " ").slice(0, 300);
-    const when = new Date().toISOString();
-    let geo = "";
-    try {
-      geo = (await lookupGeo(ip)) || "";
-    } catch {
-      geo = "";
+    const now = new Date().toISOString();
+    const existing = accessMap.get(ip);
+    if (existing) {
+      existing.lastSeen = now;
+      existing.count += 1;
+      existing.lastMethod = req.method;
+      existing.lastPath = req.originalUrl;
+      existing.lastUa = (req.headers["user-agent"] || "").toString().replace(/\s+/g, " ").slice(0, 300);
+    } else {
+      let geo = "";
+      try { geo = (await lookupGeo(ip)) || ""; } catch { geo = ""; }
+      accessMap.set(ip, {
+        geo,
+        firstSeen: now,
+        lastSeen: now,
+        count: 1,
+        lastMethod: req.method,
+        lastPath: req.originalUrl,
+        lastUa: (req.headers["user-agent"] || "").toString().replace(/\s+/g, " ").slice(0, 300),
+      });
     }
-    const line = `${when} ip=${ip} geo="${geo}" method=${req.method} path="${req.originalUrl}" ua="${ua}"\n`;
-    fsSync.appendFile(ACCESS_LOG, line, { encoding: "utf8" }, () => {});
     next();
   });
+  schedulePrune(flushAccessLog, 5 * 60 * 1000);
 }
 
 const BACKEND_BASE =
