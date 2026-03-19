@@ -248,19 +248,19 @@
     position: fixed;
     bottom: calc(var(--bottom-nav-h) + var(--cart-bar-h) + 12px);
     left: 50%;
-    transform: translateX(-50%);
     width: calc(100% - 32px);
-    max-height: 0;
-    overflow: hidden;
-    background: #fff;
-    z-index: 9994;
-    transition: max-height 0.32s cubic-bezier(0.32,0.72,0,1);
-    border-radius: 16px;
-    box-shadow: 0 -4px 24px rgba(0,0,0,0.14);
-  }
-  #plate-drawer.open {
     max-height: 55vh;
     overflow-y: auto;
+    background: #fff;
+    z-index: 9994;
+    border-radius: 16px;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.14);
+    transform: translateX(-50%) translateY(110vh);
+    transition: transform 0.32s cubic-bezier(0.32,0.72,0,1);
+    will-change: transform;
+  }
+  #plate-drawer.open {
+    transform: translateX(-50%) translateY(0);
   }
   #plate-drawer-items {
     padding: 12px 16px 4px;

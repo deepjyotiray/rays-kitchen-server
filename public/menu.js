@@ -13,7 +13,18 @@ const SECTION_ICONS = {
 };
 
 /* ================= CATEGORY TAB IMAGES ================= */
-const SECTION_IMAGES = {};
+const SECTION_IMAGES = {
+  healthy: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=80&h=80&fit=crop&auto=format',
+  healthySubs: 'https://images.unsplash.com/photo-1547592180-85f173990554?w=80&h=80&fit=crop&auto=format',
+  breakfast: 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=80&h=80&fit=crop&auto=format',
+  veg_starters: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=80&h=80&fit=crop&auto=format',
+  veg_main: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=80&h=80&fit=crop&auto=format',
+  non_veg_starters: 'https://images.unsplash.com/photo-1527477396000-e27163b481c2?w=80&h=80&fit=crop&auto=format',
+  SeaFood_starters: 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=80&h=80&fit=crop&auto=format',
+  non_veg_main: 'https://images.unsplash.com/photo-1574484284002-952d92456975?w=80&h=80&fit=crop&auto=format',
+  'rice&breads': 'https://images.unsplash.com/photo-1536304993881-ff86e0c9b1b5?w=80&h=80&fit=crop&auto=format',
+  sweets: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=80&h=80&fit=crop&auto=format',
+};
 function getSectionImage(key) {
   return SECTION_IMAGES[key] || null;
 }
@@ -468,11 +479,15 @@ function buildMenuIndex() {
 }
 
 function getQtyBoxMarkup({ domKey, qty, available, closed, hasConfiguredChoices }) {
-  if (hasConfiguredChoices) {
-    return `<button class="add-btn customize-btn" data-available="${available}" data-item-id="${domKey}" ${!available || closed ? "disabled" : ""} aria-label="Customize item"><span class="add-text">${qty > 0 ? "Added" : "Options"}</span></button>`;
-  }
   if (qty === 0) {
     return `<button class="add-btn" data-available="${available}" data-item-id="${domKey}" ${!available || closed ? "disabled" : ""} aria-label="Add"><span class="add-text">ADD</span><span class="add-plus">+</span></button>`;
+  }
+  if (hasConfiguredChoices) {
+    return `<div class="qty-control" data-available="${available}">
+    <span class="qty-minus" data-item-id="${domKey}" ${closed ? 'style="pointer-events:none;opacity:0.4"' : ""}>\u2212</span>
+    <span class="qty-count">${qty}</span>
+    <span class="qty-plus" data-item-id="${domKey}" ${closed ? 'style="pointer-events:none;opacity:0.4"' : ""}>+</span>
+  </div>`;
   }
   return `<div class="qty-control" data-available="${available}">
     <span class="qty-minus" data-item-id="${domKey}" ${closed ? 'style="pointer-events:none;opacity:0.4"' : ""}>\u2212</span>
@@ -811,6 +826,7 @@ function renderMenu() {
 
                   <div class="item-desc">${i.description || ''}</div>
                   ${i.servedWith ? `<div class="item-served-with">${i.servedWith}</div>` : ''}
+                  ${hasConfiguredChoices ? `<span class="customisable-tag">Customisable</span>` : ''}
 
                   <div class="item-price-row">
                     <div class="item-price">
@@ -896,6 +912,10 @@ function renderMenu() {
 function bindMenuItemEvents(container, signal) {
   const opts = signal ? { signal } : {};
   container.addEventListener("click", (e) => {
+    if (!e.target.closest('.qty-box') && !e.target.closest('.add-btn')) {
+      const item = e.target.closest('.menu-item');
+      if (item && typeof openItemDetail === 'function') { openItemDetail(item); return; }
+    }
     const btn = e.target.closest(".add-btn[data-item-id]");
     if (btn) {
       if (btn.disabled || kitchenClosedToday()) return;
@@ -918,6 +938,18 @@ function bindMenuItemEvents(container, signal) {
       if (kitchenClosedToday()) return;
       const entry = menuIndex.get(target.dataset.itemId);
       if (!entry) return;
+      if (plus && itemHasCustomizations(entry.item)) {
+        const itemEl = target.closest(".menu-item");
+        if (itemEl && typeof window.openItemDetail === "function") window.openItemDetail(itemEl);
+        return;
+      }
+      if (minus && itemHasCustomizations(entry.item)) {
+        const entries = getItemCartEntries(entry.id);
+        if (!entries.length) return;
+        const [lastId, lastItem] = entries[entries.length - 1];
+        updateQty(lastId, lastItem.name, lastItem.price, -1);
+        return;
+      }
       updateQty(entry.id, entry.item.name, entry.item.price, minus ? -1 : 1);
     }
   }, opts);
@@ -1107,7 +1139,7 @@ function updateCart() {
     b.disabled = true;
   }
 
-  c.innerHTML = `<div class="cart-header-row"><span>Item</span><span>Rate</span><span>Qty</span></div>`;
+  c.innerHTML = Object.keys(selectedItems).length > 0 ? `<div class="cart-header-row"><span>Item</span><span>Rate</span><span>Qty</span></div>` : '';
 
   let total = 0;
   let freeEligibleSubtotal = 0;
@@ -1176,7 +1208,7 @@ function updateCart() {
     0
   );
 
-  if (deliveryCharge > 0 || !locationAllowed) {
+  if (currentUser && (deliveryCharge > 0 || !locationAllowed)) {
     const deliveryWaived =
       locationAllowed &&
       freeDeliveryTarget !== null &&
@@ -1193,7 +1225,7 @@ function updateCart() {
 
     const deliveryRow = document.createElement("div");
     deliveryRow.className = "cart-row";
-    deliveryRow.innerHTML = `<span class="delivery-label">🚚 Delivery:</span><span class="cart-rate">${deliveryLabel}</span>`;
+    deliveryRow.innerHTML = `<span class="delivery-label" style="grid-column:1/3">🚚 Delivery:</span><span class="cart-rate">${deliveryLabel}</span>`;
     c.appendChild(deliveryRow);
   }
 
@@ -1201,11 +1233,11 @@ function updateCart() {
     locationAllowed &&
     freeDeliveryTarget !== null &&
     eligibleSubtotalBeforeDelivery >= freeDeliveryTarget;
-  const appliedDeliveryCharge = locationAllowed
-    ? deliveryWaived
-      ? 0
+  const appliedDeliveryCharge = currentUser
+    ? locationAllowed
+      ? deliveryWaived ? 0 : deliveryCharge
       : deliveryCharge
-    : deliveryCharge;
+    : 0;
   updateCartProgress(eligibleSubtotalBeforeDelivery, deliveryWaived);
 
   const finalTotal = Math.max(subtotalBeforeDelivery + appliedDeliveryCharge, 0);
