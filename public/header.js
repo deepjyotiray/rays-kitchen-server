@@ -209,6 +209,31 @@
     document.body.insertBefore(subHeaders, document.body.firstChild);
     document.body.insertBefore(appBar, document.body.firstChild);
 
+    // ── Active order tracker (mobile only) ──────────────────────────────
+    (function initActiveOrderTracker() {
+      if (location.pathname.includes('thank-you')) return;
+
+      function startTracker(orderId) {
+        // delegate to BottomWidget if available, else retry when ready
+        function tryWidget() {
+          if (typeof BottomWidget !== 'undefined') {
+            BottomWidget.setOrders([{ id: orderId, delivery_status: 'Pending', status: 'New' }]);
+          } else {
+            setTimeout(tryWidget, 100);
+          }
+        }
+        tryWidget();
+      }
+
+      window.startActiveOrderTracker = startTracker;
+
+      // Check localStorage cache
+      let cached;
+      try { cached = JSON.parse(localStorage.getItem('ACTIVE_ORDER') || 'null'); } catch (_) {}
+      if (cached && cached.orderId) startTracker(cached.orderId);
+    })();
+    // ────────────────────────────────────────────────────────────────────
+
     // Switch sub-bar panel when tab changes
     const _origSetHeaderActiveTab = window.setHeaderActiveTab;
     window.setHeaderActiveTab = function(tab) {

@@ -892,7 +892,7 @@ function renderMenu() {
   if (_ip && window.innerWidth <= 768) {
     const nextMarkup = c.innerHTML;
     if (lastMobileMenuMarkup !== nextMarkup) {
-      _ip.innerHTML = nextMarkup;
+      _ip.innerHTML = nextMarkup + '<div style="height:calc(var(--widget-h, 56px) + 32px);flex-shrink:0"></div>';
       lastMobileMenuMarkup = nextMarkup;
       _ip.querySelectorAll('.scroll-reveal').forEach(el => { el.classList.remove('scroll-reveal'); el.classList.add('revealed'); });
       if (_ip._menuEventsController) _ip._menuEventsController.abort();
@@ -1225,7 +1225,7 @@ function updateCart() {
 
     const deliveryRow = document.createElement("div");
     deliveryRow.className = "cart-row";
-    deliveryRow.innerHTML = `<span class="delivery-label" style="grid-column:1/3">🚚 Delivery:</span><span class="cart-rate">${deliveryLabel}</span>`;
+    deliveryRow.innerHTML = `<span class="delivery-label">🚚 Delivery:</span><span class="cart-rate">${deliveryLabel}</span>`;
     c.appendChild(deliveryRow);
   }
 
@@ -1856,7 +1856,9 @@ window.orderOnWhatsApp = function () {
 
 async function loadUserAndShowOrder(mobile) {
   try {
-    const res = await fetch(`/users/${mobile}`);
+    const normalizedMobile = mobile.startsWith('+') ? mobile : '+91' + mobile;
+    localStorage.setItem('user_mobile', normalizedMobile);
+    const res = await fetch(`/users/${normalizedMobile}`);
     if (res.ok) {
       const data = await res.json();
       currentUser = data.user;
@@ -2478,18 +2480,19 @@ Total: ₹${finalTotal}`;
       createdAt: new Date().toISOString(),
     };
     sessionStorage.setItem("LAST_ORDER", JSON.stringify(summary));
+    localStorage.setItem("ACTIVE_ORDER", JSON.stringify({ orderId, phone: customerPhone, createdAt: summary.createdAt }));
   } catch (_) {}
 
   selectedItems = {};
   updateCart();
   renderMenu();
 
-  // Redirect to thank-you page
+  // Show order tracking tab in SPA
   setTimeout(() => {
-    window.location.href =
-      "/thank-you.html?orderId=" + encodeURIComponent(orderId);
-    const cart = document.getElementById("floating-cart");
-    if (cart) cart.classList.add("cart-hidden");
+    if (typeof switchTab === 'function') switchTab('order');
+    if (typeof initOrderTab === 'function') initOrderTab(orderId);
+    const cart = document.getElementById('floating-cart');
+    if (cart) cart.classList.add('cart-hidden');
   }, 300);
 }
 
