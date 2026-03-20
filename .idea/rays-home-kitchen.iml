@@ -6,7 +6,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="whatsapp-agent" />
     <orderEntry type="module" module-name="ray-orders-backend" />
+    <orderEntry type="module" module-name="secure-agent" />
   </component>
 </module>
