@@ -1,18 +1,16 @@
 /**
- * Pre-LLM message filter for Ray's Home Kitchen WhatsApp bot.
+ * Pre-LLM message filter for Healthy Meal Spot WhatsApp bot.
  * Returns a reply string if the message can be handled without the LLM,
  * or null to fall through to the agent.
  */
 
-const fs = require('fs');
-const path = require('path');
 const BACKEND_BASE = process.env.ORDER_BACKEND_URL || "https://admin.healthymealspot.com";
 
 // --- Static keyword → reply map ---
 const STATIC_REPLIES = [
   {
     match: /\b(hi|hello|hey|helo|hii|namaste|namaskar|good\s*(morning|afternoon|evening|night))\b/i,
-    reply: `🍽️ Welcome to Ray's Home Kitchen!\n\nReply with:\n• *menu* — see today's menu\n• *timings* — our hours\n• *location* — find us\n• Or just tell me what you'd like to order!`
+    reply: `🍽️ Welcome to Healthy Meal Spot!\n\nReply with:\n• *menu* — see today's menu\n• *timings* — our hours\n• *location* — find us\n• Or just tell me what you'd like to order!`
   },
   {
     match: /\b(timing|timings|hours|open|close|when|schedule)\b/i,
@@ -20,7 +18,7 @@ const STATIC_REPLIES = [
   },
   {
     match: /\b(location|address|where|directions|find you|locate)\b/i,
-    reply: `📍 *Ray's Home Kitchen*\n\nWe deliver to your doorstep! Share your address and we'll confirm delivery availability. 🛵`
+    reply: `📍 *Healthy Meal Spot*\n\nWe deliver to your doorstep! Share your address and we'll confirm delivery availability. 🛵`
   },
   {
     match: /\b(thank|thanks|thankyou|thank you|thx|ty)\b/i,
@@ -105,52 +103,23 @@ async function handleMenuQuery(msg) {
   return null;
 }
 
-// --- MEMORY.md canned replies ---
-let _memoryCache = null;
-let _memoryCacheTime = 0;
 
-function getMemoryReplies() {
-  const now = Date.now();
-  if (_memoryCache && now - _memoryCacheTime < 30_000) return _memoryCache;
-  try {
-    const raw = fs.readFileSync(
-      path.join(__dirname, '../../../.openclaw/agents/restaurant/workspace/MEMORY.md'), 'utf8'
-    );
-    const entries = [];
-    const blocks = raw.split(/^## /m).slice(1);
-    for (const block of blocks) {
-      const nl = block.indexOf('\n');
-      if (nl === -1) continue;
-      const trigger = block.slice(0, nl).trim().toLowerCase();
-      const reply = block.slice(nl + 1).trim();
-      if (trigger && reply) entries.push({ trigger, reply });
-    }
-    _memoryCache = entries;
-    _memoryCacheTime = now;
-  } catch { _memoryCache = []; }
-  return _memoryCache;
-}
 
 // --- Main filter function ---
 async function filterMessage(msg) {
   if (!msg || typeof msg !== 'string') return null;
   const text = msg.trim();
 
-  // 1. MEMORY.md canned replies (highest priority after image check)
-  for (const { trigger, reply } of getMemoryReplies()) {
-    if (text.toLowerCase().includes(trigger)) return reply;
-  }
-
-  // 2. Static keyword replies
+  // 1. Static keyword replies
   for (const { match, reply } of STATIC_REPLIES) {
     if (match.test(text)) return reply;
   }
 
-  // 3. Menu queries (served from backend DB)
+  // 2. Menu queries (served from backend DB)
   const menuReply = await handleMenuQuery(text);
   if (menuReply) return menuReply;
 
-  // 4. Fall through to LLM
+  // 3. Fall through to LLM
   return null;
 }
 

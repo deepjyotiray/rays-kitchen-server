@@ -21,7 +21,7 @@ Optional:
 | `NODE_ENV` | — | Set to `production` to enable secure cookies |
 | `ENABLE_GEO_LOGS` | `false` | Set to `true` to enable IP geolocation lookups and append request lines to `logs/access.log` |
 | `SKIP_MENU_PDF` | `false` in production | In non-production, set to `1` or `true` to make `/menu.pdf` return a friendly `503` without loading `pdf-lib` or fonts |
-| `DISABLE_AGENT_CALLS` | `false` in production | In non-production, set to `1` or `true` to make `/api/chat` return `agent disabled in this environment` instead of spawning `openclaw` |
+| `DISABLE_AGENT_CALLS` | `false` in production | In non-production, set to `1` or `true` to make `/api/chat` return `agent disabled in this environment` instead of calling the WhatsApp agent |
 
 Example `.env`:
 ```

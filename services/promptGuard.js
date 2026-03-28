@@ -23,7 +23,7 @@ const BLOCK_PATTERNS = [
   /&&|\|\||\$\(/,
 ];
 
-const BLOCK_REPLY = "Hi! This number is only for Ray's Home Kitchen orders and enquiries. 🍽️";
+const BLOCK_REPLY = "Hi! This number is only for Healthy Meal Spot orders and enquiries. 🍽️";
 
 function promptGuard(message) {
   for (const pattern of BLOCK_PATTERNS) {

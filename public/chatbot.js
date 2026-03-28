@@ -22,7 +22,7 @@ class RestaurantChatbot {
   injectHTML() {
     const html = `
       <div class="chatbot-widget">
-        <button class="chatbot-toggle" onclick="chatbot.toggle()"><img src="/favicon.ico" alt="chat"></button>
+        <button class="chatbot-toggle" onclick="chatbot.toggle()"><img src="/afavicon.ico" alt="chat"></button>
         <div class="chatbot-window" id="chatbot-window">
           <div class="chatbot-header">
             <h3>Ray's Kitchen Assistant</h3>

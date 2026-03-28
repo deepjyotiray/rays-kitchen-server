@@ -470,21 +470,18 @@ app.get(["/admin", "/admin/"], (req, res) => {
 });
 
 /* Chatbot API */
-const { execFile } = require('child_process');
 const { whatsappAuthGuard } = require('./services/whatsappAuth');
 const { promptGuard } = require('./services/promptGuard');
 
-function askAgent(message, phone) {
-  return new Promise((resolve, reject) => {
-    execFile('/opt/homebrew/bin/openclaw',
-      ['agent', '--agent', 'restaurant', '--to', phone, '--message', message, '--deliver'],
-      { timeout: 30000, maxBuffer: 1024 * 1024 },
-      (err, stdout, stderr) => {
-        if (err) { reject(new Error(`Agent exec error: ${err.message}${stderr ? ' - ' + stderr : ''}`)); return; }
-        resolve((stdout || '').trim());
-      }
-    );
+async function askAgent(message, phone) {
+  const r = await fetch(AGENT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-secret': AGENT_SECRET },
+    body: JSON.stringify({ phone, message })
   });
+  if (!r.ok) throw new Error('agent returned ' + r.status);
+  const data = await r.json();
+  return data.response || data.reply || '';
 }
 
 app.post("/api/chat-test", async (req, res) => {

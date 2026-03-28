@@ -26,7 +26,7 @@
   <script type="application/ld+json">
   {"@context":"https://schema.org","@type":"Restaurant","name":"Healthy Meal Spot","servesCuisine":"Healthy Indian","priceRange":"$$","url":"https://healthymealspot.com","description":"Healthy Meal Spot offers fresh, nutritious meals and evidence-based nutrition guidance delivered in Navi Mumbai.","address":{"@type":"PostalAddress","addressLocality":"Navi Mumbai","addressRegion":"Maharashtra","addressCountry":"IN"},"email":"kitchen@healthymealspot.com","sameAs":["https://healthymealspot.com"]}
   </script>
-  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/afavicon.ico" sizes="any">
   <script>document.write(`<link rel="stylesheet" href="/style.css?v=${APP_VERSION}">`);</script>
   <link rel="stylesheet" href="/style.mobile.css" media="(max-width: 768px)">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -1209,18 +1209,19 @@ window.showOrderDrawer = function(orderId, deliveryStatus, orderStatus) {
       const eta  = o.expected_delivery ? `<div>🕐 ETA: <strong>${o.expected_delivery}</strong></div>` : '';
 
       let mapHTML = '';
+      const _R = '18.976240,73.023252';
       if (o.location_lat && o.location_lng) {
         const q = `${o.location_lat},${o.location_lng}`;
-        const mapsLink = o.location_url || `https://www.google.com/maps?q=${q}`;
+        const mapsLink = `https://www.google.com/maps/dir/${_R}/${q}`;
         mapHTML = `<a href="${mapsLink}" target="_blank" rel="noopener" style="display:block;margin-bottom:10px;border-radius:10px;overflow:hidden;text-decoration:none">` +
-          `<img src="https://maps.googleapis.com/maps/api/staticmap?center=${q}&zoom=15&size=600x160&scale=2&markers=color:red%7C${q}&key=AIzaSyBwdQ0CVaAt_S945Niq2umfWh-jdo-ojKw" style="width:100%;height:120px;object-fit:cover;display:block" loading="lazy" alt="Delivery location">` +
+          `<img src="https://maps.googleapis.com/maps/api/staticmap?size=600x160&scale=2&markers=color:green%7Clabel:R%7C${_R}&markers=color:red%7Clabel:D%7C${q}&key=AIzaSyBwdQ0CVaAt_S945Niq2umfWh-jdo-ojKw" style="width:100%;height:120px;object-fit:cover;display:block" loading="lazy" alt="Restaurant to delivery">` +
         `</a>`;
       } else if (o.location_url) {
         mapHTML = `<a href="${o.location_url}" target="_blank" rel="noopener" style="display:block;margin-bottom:10px;padding:10px 12px;background:#f0fdf4;border-radius:10px;font-size:12px;font-weight:700;color:#16a34a;text-decoration:none">📍 View delivery location on Maps</a>`;
       } else if (o.address) {
         const q = encodeURIComponent(o.address);
-        mapHTML = `<a href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener" style="display:block;margin-bottom:10px;border-radius:10px;overflow:hidden;text-decoration:none">` +
-          `<img src="https://maps.googleapis.com/maps/api/staticmap?center=${q}&zoom=14&size=600x160&scale=2&markers=color:red%7C${q}&key=AIzaSyBwdQ0CVaAt_S945Niq2umfWh-jdo-ojKw" style="width:100%;height:120px;object-fit:cover;display:block" loading="lazy" alt="Delivery location">` +
+        mapHTML = `<a href="https://www.google.com/maps/dir/${_R}/${q}" target="_blank" rel="noopener" style="display:block;margin-bottom:10px;border-radius:10px;overflow:hidden;text-decoration:none">` +
+          `<img src="https://maps.googleapis.com/maps/api/staticmap?size=600x160&scale=2&markers=color:green%7Clabel:R%7C${_R}&markers=color:red%7Clabel:D%7C${q}&key=AIzaSyBwdQ0CVaAt_S945Niq2umfWh-jdo-ojKw" style="width:100%;height:120px;object-fit:cover;display:block" loading="lazy" alt="Restaurant to delivery">` +
         `</a>`;
       }
 
@@ -3066,7 +3067,7 @@ async function dtMhSignOut() {
   <!-- Map -->
   <div id="to-map" style="flex:0 0 160px;background:#e5e7eb;position:relative"></div>
   <div id="to-map-bar" style="display:flex;align-items:center;padding:4px 14px;font-size:11px;color:#6b7280;flex-shrink:0;border-bottom:1px solid #f3f4f6">
-    <span>🏠 Kitchen → 📍 Your location</span>
+    <span id="to-map-label">🏠 Kitchen → 📍 Your location</span>
     <a id="to-map-link" href="#" target="_blank" style="margin-left:auto;color:var(--accent);font-weight:700;text-decoration:none">Open in Maps ↗</a>
   </div>
 
@@ -3146,12 +3147,29 @@ async function dtMhSignOut() {
     const ci = L.divIcon({ html:'<div style="font-size:18px;line-height:1">📍</div>', className:'', iconAnchor:[9,18] });
     L.marker([REST.lat, REST.lng], { icon:ki }).addTo(_map);
     L.marker([lat, lng],           { icon:ci }).addTo(_map);
-    L.polyline([[REST.lat,REST.lng],[lat,lng]], { color:'#da291c', weight:2, dashArray:'5,6' }).addTo(_map);
+    // dotted arc
+    const pts = [], N = 40;
+    for (let i = 0; i <= N; i++) {
+      const t = i / N;
+      const aLat = REST.lat + (lat - REST.lat) * t;
+      const aLng = REST.lng + (lng - REST.lng) * t;
+      const bulge = Math.sin(t * Math.PI) * 0.15 * Math.sqrt(Math.pow(lat-REST.lat,2)+Math.pow(lng-REST.lng,2));
+      pts.push([aLat + bulge, aLng - bulge * 0.5]);
+    }
+    L.polyline(pts, { color:'#da291c', weight:2, dashArray:'6,8' }).addTo(_map);
     _map.fitBounds([[REST.lat,REST.lng],[lat,lng]], { padding:[24,24] });
-    // link
+    // travel time estimate (~25 km/h avg)
+    const R2 = 6371, toRad = d => d * Math.PI / 180;
+    const dLat = toRad(lat-REST.lat), dLng = toRad(lng-REST.lng);
+    const hav = Math.sin(dLat/2)**2 + Math.cos(toRad(REST.lat))*Math.cos(toRad(lat))*Math.sin(dLng/2)**2;
+    const km = R2 * 2 * Math.atan2(Math.sqrt(hav), Math.sqrt(1-hav));
+    const mins = Math.max(5, Math.round(km / 25 * 60));
+    // link + ETA
     const a = document.getElementById('to-map-link');
     if (a) a.href = `https://www.google.com/maps/dir/${REST.lat},${REST.lng}/${lat},${lng}`;
-    document.getElementById('to-map-bar').style.display = 'flex';
+    const bar = document.getElementById('to-map-bar');
+    bar.style.display = 'flex';
+    bar.querySelector('span').textContent = `🏠 Kitchen → 📍 You · ~${mins} min`;
   }
 
   function renderBody(o) {

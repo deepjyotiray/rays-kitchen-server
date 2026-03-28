@@ -1,6 +1,8 @@
-const { execFile } = require("child_process");
 const fs = require("fs");
 const path = require("path");
+
+const AGENT_URL = 'http://127.0.0.1:3001/send';
+const AGENT_SECRET = process.env.WHATSAPP_AGENT_SECRET;
 
 const STORE_PATH = path.join(__dirname, "../config/verified-users.json");
 const OTP_TTL_MS = 5 * 60 * 1000;
@@ -48,14 +50,11 @@ function getName(phone) {
 }
 
 function sendWA(target, message) {
-  return new Promise((resolve, reject) => {
-    execFile(
-      "/opt/homebrew/bin/openclaw",
-      ["message", "send", "--channel", "whatsapp", "--target", target, "--message", message],
-      { timeout: 10000 },
-      (err) => (err ? reject(err) : resolve())
-    );
-  });
+  return fetch(AGENT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-secret': AGENT_SECRET },
+    body: JSON.stringify({ phone: target, message })
+  }).then(r => { if (!r.ok) throw new Error('agent returned ' + r.status); });
 }
 
 function generateOTP() {
@@ -65,7 +64,7 @@ function generateOTP() {
 async function initiateOtp(phone) {
   const otp = generateOTP();
   otpStore.set(phone, { otp, expires: Date.now() + OTP_TTL_MS, attempts: 0 });
-  await sendWA(phone, `Welcome to Ray's Home Kitchen! 🍽️\n\nYour OTP is: *${otp}*\n\nValid for 5 minutes. Reply with this OTP to verify your number.`);
+  await sendWA(phone, `Welcome to Healthy Meal Spot! 🍽️\n\nYour OTP is: *${otp}*\n\nValid for 5 minutes. Reply with this OTP to verify your number.`);
 }
 
 // Returns { ok, name } or { error }
