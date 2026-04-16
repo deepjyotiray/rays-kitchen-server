@@ -145,6 +145,8 @@ let locationAllowed = true,
   deliveryCharge = Number(window.DEFAULT_DELIVERY_CHARGE) || 0,
   deliveryDistanceKm = 0;
 
+let orderMode = "delivery";
+
 let enteredCoupon = null,
   appliedCoupon = null,
   discountAmount = 0;
@@ -1208,7 +1210,9 @@ function updateCart() {
     0
   );
 
-  if (currentUser && (deliveryCharge > 0 || !locationAllowed)) {
+  const isPickup = orderMode === "pickup";
+
+  if (!isPickup && currentUser && (deliveryCharge > 0 || !locationAllowed)) {
     const deliveryWaived =
       locationAllowed &&
       freeDeliveryTarget !== null &&
@@ -1230,14 +1234,17 @@ function updateCart() {
   }
 
   const deliveryWaived =
-    locationAllowed &&
+    isPickup ||
+    (locationAllowed &&
     freeDeliveryTarget !== null &&
-    eligibleSubtotalBeforeDelivery >= freeDeliveryTarget;
-  const appliedDeliveryCharge = currentUser
-    ? locationAllowed
-      ? deliveryWaived ? 0 : deliveryCharge
-      : deliveryCharge
-    : 0;
+    eligibleSubtotalBeforeDelivery >= freeDeliveryTarget);
+  const appliedDeliveryCharge = isPickup
+    ? 0
+    : currentUser
+      ? locationAllowed
+        ? deliveryWaived ? 0 : deliveryCharge
+        : deliveryCharge
+      : 0;
   updateCartProgress(eligibleSubtotalBeforeDelivery, deliveryWaived);
 
   const finalTotal = Math.max(subtotalBeforeDelivery + appliedDeliveryCharge, 0);
@@ -1872,6 +1879,7 @@ async function loadUserAndShowOrder(mobile) {
   }
   
   syncOrderTypeRadios();
+  syncOrderModeRadios();
   updateExpectedDeliveryUI();
   
   const logoutLink = document.getElementById('logout-link');
@@ -2225,10 +2233,10 @@ window.confirmOrder = async function () {
     customerName = name;
   }
   
-  customerAddress = document.getElementById("cust-address").value.trim();
+  customerAddress = orderMode === "pickup" ? "Self Pickup" : document.getElementById("cust-address").value.trim();
   customerNotes = document.getElementById("cust-notes").value.trim();
 
-  if (!customerAddress) {
+  if (orderMode === "delivery" && !customerAddress) {
     alert("Please enter delivery address");
     return;
   }
@@ -2238,7 +2246,7 @@ window.confirmOrder = async function () {
     return;
   }
 
-  if (!locationAllowed) {
+  if (orderMode === "delivery" && !locationAllowed) {
     const confirmBtn = document.querySelector("#order-step .co-btn-primary");
     if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = "Checking address…"; }
     try {
@@ -2338,16 +2346,20 @@ async function persistOrder(payload) {
 async function placeFinalOrder() {
   let subtotal = 0;
   let itemsText = "";
+  const isPickup = orderMode === "pickup";
   const eligibleSubtotal = Math.max(getFreeEligibleSubtotal() - discountAmount, 0);
   const deliveryWaived =
-    locationAllowed &&
+    isPickup ||
+    (locationAllowed &&
     freeDeliveryTarget !== null &&
-    eligibleSubtotal >= freeDeliveryTarget;
-  const appliedDeliveryCharge = locationAllowed
-    ? deliveryWaived
-      ? 0
-      : deliveryCharge
-    : deliveryCharge;
+    eligibleSubtotal >= freeDeliveryTarget);
+  const appliedDeliveryCharge = isPickup
+    ? 0
+    : locationAllowed
+      ? deliveryWaived
+        ? 0
+        : deliveryCharge
+      : deliveryCharge;
 
   /* ✅ Build Items (Menu extras stay ONLY here) */
   Object.entries(selectedItems).forEach(([id, item]) => {
@@ -2418,6 +2430,7 @@ async function placeFinalOrder() {
     orderTime: formatLocalTime(new Date()),
 
     orderFor: getOrderForDateISO(),
+    orderMode: orderMode,
 
     customer: customerName,
     phone: customerPhone,
@@ -2443,6 +2456,7 @@ async function placeFinalOrder() {
   const message = `🧾 *New Order ${orderId}*
 *Order For:* ${getOrderForLabel()}
 (Date: ${getOrderForDateISO()})
+*Order Mode:* ${isPickup ? '🏠 Self Pickup' : '🚚 Delivery'}
 
 *Name:* ${customerName}
 *Phone:* ${customerPhone}
@@ -2886,6 +2900,26 @@ function syncOrderTypeRadios() {
       updateExpectedDeliveryUI();
     };
   });
+}
+
+function syncOrderModeRadios() {
+  const radios = document.querySelectorAll('input[name="orderMode"]');
+  const addressField = document.getElementById('address-field');
+  const pickupLocation = document.getElementById('pickup-location');
+  radios.forEach((r) => {
+    r.checked = r.value === orderMode;
+    r.onchange = () => {
+      orderMode = r.value;
+      const isPickup = orderMode === 'pickup';
+      if (addressField) addressField.style.display = isPickup ? 'none' : '';
+      if (pickupLocation) pickupLocation.style.display = isPickup ? '' : 'none';
+      updateCart();
+      updateExpectedDeliveryUI();
+    };
+  });
+  const isPickup = orderMode === 'pickup';
+  if (addressField) addressField.style.display = isPickup ? 'none' : '';
+  if (pickupLocation) pickupLocation.style.display = isPickup ? '' : 'none';
 }
 
 function computeExpectedDelivery() {

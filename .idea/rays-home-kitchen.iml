@@ -13,7 +13,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="ray-orders-backend" />
-    <orderEntry type="module" module-name="secure-agent" />
     <orderEntry type="library" name="Python 3.14 (rays-home-kitchen) interpreter library" level="application" />
   </component>
 </module>

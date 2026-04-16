@@ -275,7 +275,11 @@ document.addEventListener('DOMContentLoaded', () => {
       <button class="mob-cat-btn" data-filter="General Wellness"><img class="tab-img" src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=80&h=80&fit=crop&auto=format" alt="Wellness" loading="lazy" onload="this.style.animation='none'"><span>Wellness</span></button>
     </nav>
     <div id="consult-content-pane">
-      <div class="nutritionists-grid" id="nutritionists">
+      <div id="consult-loader" class="tab-loader" aria-live="polite">
+        <div class="tab-loader-spinner" aria-hidden="true"></div>
+        <div class="tab-loader-label">Loading nutritionists…</div>
+      </div>
+      <div class="nutritionists-grid" id="nutritionists" style="display:none">
         <div class="nutritionist-card" data-specs="Weight Loss Muscle Gain General Wellness">
           <div class="nutritionist-photo">👨</div>
           <div class="nutritionist-info">
@@ -726,6 +730,23 @@ document.addEventListener('DOMContentLoaded', function() {
           <input id="new-user-name" type="text" placeholder="Your Name *" class="co-input" style="display:none;margin-top:8px">
         </div>
         <div class="co-field">
+          <label class="co-label">Order Type</label>
+          <div class="co-pills">
+            <label class="co-pill"><input type="radio" name="orderMode" value="delivery" checked><span>🚚 Delivery</span></label>
+            <label class="co-pill"><input type="radio" name="orderMode" value="pickup"><span>🏠 Self Pickup</span></label>
+          </div>
+        </div>
+        <div id="pickup-location" class="co-field" style="display:none">
+          <label class="co-label">Pickup Location</label>
+          <div class="co-pickup-card">
+            <div class="co-pickup-address">📍 504, Tower 19, Sector 6, Ananta Towers, Ulwe, Navi Mumbai</div>
+            <a class="co-pickup-map" href="https://www.google.com/maps?q=18.976240,73.023252" target="_blank" rel="noopener">
+              <img src="https://maps.googleapis.com/maps/api/staticmap?center=18.976240,73.023252&zoom=16&size=600x200&scale=2&markers=color:red%7C18.976240,73.023252&key=AIzaSyBwdQ0CVaAt_S945Niq2umfWh-jdo-ojKw" alt="Pickup location map" loading="lazy">
+              <span>Open in Google Maps ↗</span>
+            </a>
+          </div>
+        </div>
+        <div id="address-field" class="co-field">
           <label class="co-label">Delivery Address</label>
           <input id="cust-address" type="text" placeholder="Enter delivery address" class="co-input">
         </div>
@@ -2287,17 +2308,28 @@ function initNutritionTab() {
 /* ===== CONSULT / BOOKING ===== */
 let selectedNutritionist = '';
 let _consultInited = false;
+let _consultLoading = false;
 
 function initConsultTab() {
-  if (_consultInited) return;
-  _consultInited = true;
-  document.getElementById('consult-cat-sidebar')?.addEventListener('click', e => {
-    const btn = e.target.closest('.mob-cat-btn');
-    if (!btn) return;
-    document.querySelectorAll('#consult-cat-sidebar .mob-cat-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    filterConsultCards('', btn.dataset.filter);
-  });
+  if (_consultInited || _consultLoading) return;
+  _consultLoading = true;
+  const loader = document.getElementById('consult-loader');
+  const grid = document.getElementById('nutritionists');
+  if (loader) loader.style.display = 'flex';
+  if (grid) grid.style.display = 'none';
+  window.setTimeout(() => {
+    _consultInited = true;
+    _consultLoading = false;
+    document.getElementById('consult-cat-sidebar')?.addEventListener('click', e => {
+      const btn = e.target.closest('.mob-cat-btn');
+      if (!btn) return;
+      document.querySelectorAll('#consult-cat-sidebar .mob-cat-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filterConsultCards('', btn.dataset.filter);
+    });
+    if (loader) loader.style.display = 'none';
+    if (grid) grid.style.display = '';
+  }, 450);
 }
 
 let _consultSearchQ = '';
